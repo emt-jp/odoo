@@ -10,9 +10,9 @@ requirement is explained in the [FAQ](#faq).
 
 2.  Modify your current pull request, or make a new pull request on
     [odoo/odoo](https://github.com/odoo/odoo), adding a new file
-    `<lowercase-github-login>.md` under the [`doc/cla/individual`](individual/) directory.
+    `<lowercase-github-login>.md` under the [`docs/cla/individual`](individual/) directory.
     If your GitHub login is `ODony`, the file would be
-    `doc/cla/individual/odony.md`. The file should contain:
+    `docs/cla/individual/odony.md`. The file should contain:
 
 ```
 <country>, <date>
@@ -46,9 +46,9 @@ signature is merged.
 
 2.  Modify your current pull request, or make a new pull request on
     [odoo/odoo](/odoo/odoo), adding a new file `<lowercase-company-name>.md`
-    under the [`doc/cla/corporate`](corporate/) directory.
+    under the [`docs/cla/corporate`](corporate/) directory.
     If the name of the company is Odoo, the file would be
-    `doc/cla/corporate/odoo.md`. The file should contain:
+    `docs/cla/corporate/odoo.md`. The file should contain:
 
 ```
 <country>, <date>

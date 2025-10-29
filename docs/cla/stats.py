@@ -9,7 +9,7 @@ import re
 import pprint
 
 
-cla_glob = "doc/cla/*/*.md"
+cla_glob = "docs/cla/*/*.md"
 cla = ''.join(open(f).read() for f in glob.glob(cla_glob))
 cla = cla.lower()
 

@@ -35,3 +35,18 @@ Developers can start with [the developer tutorials](https://www.odoo.com/documen
 
 If you believe you have found a security issue, check our [Responsible Disclosure page](https://www.odoo.com/security-report)
 for details and get in touch with us via email.
+
+## Repository layout
+
+- `odoo/`: core server source
+- `addons/`: community addons
+- `docs/`: documentation and guides
+- `ops/`: operational assets
+  - `ops/config/`: Odoo config files
+  - `ops/docker/`: Docker, Nginx, Prometheus, Grafana configs
+  - `ops/compose/`: additional compose files (dev/test/prod)
+- `requirements/`: Python requirements files
+- `tools/scripts/`: helper scripts
+- `var/`: local runtime data (logs, backups, test_results)
+
+Top-level kept minimal: `README.md`, `Dockerfile`, `docker-compose.yml`.

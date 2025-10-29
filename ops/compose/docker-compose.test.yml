@@ -1,0 +1,280 @@
+# Testing configuration
+version: '3.8'
+
+services:
+  # Test Database
+  test_db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: odoo_test
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - test_postgres_data:/var/lib/postgresql/data/pgdata
+    # No host port mapping needed for internal test network
+    networks:
+      - odoo_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo -d odoo_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Test Redis
+  test_redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --requirepass odoo_redis_password
+    volumes:
+      - test_redis_data:/data
+    # No host port mapping needed for internal test network
+    networks:
+      - odoo_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Unit Tests
+  unit_tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      test_db:
+        condition: service_healthy
+      test_redis:
+        condition: service_healthy
+    environment:
+      - HOST=test_db
+      - USER=odoo
+      - PASSWORD=odoo
+      - DATABASE=odoo_test
+      - REDIS_HOST=test_redis
+      - REDIS_PASSWORD=odoo_redis_password
+      - TESTING=true
+      - PYTHONPATH=/opt/odoo
+      - PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
+      - PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
+    volumes:
+      - ./addons:/opt/odoo/addons
+      - ./odoo:/opt/odoo/odoo
+      - ./tests:/opt/odoo/tests
+      - ./ops/config:/etc/odoo
+      - ./var/test_results:/opt/odoo/test_results
+    command: >
+      bash -c "
+        python3 -m pytest tests/unit/ -v
+        --cov=odoo
+        --cov-report=html:/opt/odoo/test_results/htmlcov
+        --cov-report=xml:/opt/odoo/test_results/coverage.xml
+        --junitxml=/opt/odoo/test_results/junit-unit.xml
+        --html=/opt/odoo/test_results/report-unit.html
+        --self-contained-html
+        --tb=short
+      "
+    networks:
+      - odoo_network
+
+  # Integration Tests
+  integration_tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      test_db:
+        condition: service_healthy
+      test_redis:
+        condition: service_healthy
+    environment:
+      - HOST=test_db
+      - USER=odoo
+      - PASSWORD=odoo
+      - DATABASE=odoo_test
+      - REDIS_HOST=test_redis
+      - REDIS_PASSWORD=odoo_redis_password
+      - TESTING=true
+      - PYTHONPATH=/opt/odoo
+    volumes:
+      - ./addons:/opt/odoo/addons
+      - ./odoo:/opt/odoo/odoo
+      - ./tests:/opt/odoo/tests
+      - ./ops/config:/etc/odoo
+      - ./var/test_results:/opt/odoo/test_results
+    command: >
+      bash -c "
+        python3 -m pytest tests/integration/ -v
+        --cov=odoo
+        --cov-report=html:/opt/odoo/test_results/htmlcov-integration
+        --cov-report=xml:/opt/odoo/test_results/coverage-integration.xml
+        --junitxml=/opt/odoo/test_results/junit-integration.xml
+        --html=/opt/odoo/test_results/report-integration.html
+        --self-contained-html
+        --tb=short
+      "
+    networks:
+      - odoo_network
+
+  # End-to-End Tests
+  e2e_tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      test_db:
+        condition: service_healthy
+      test_redis:
+        condition: service_healthy
+    environment:
+      - HOST=test_db
+      - USER=odoo
+      - PASSWORD=odoo
+      - DATABASE=odoo_test
+      - REDIS_HOST=test_redis
+      - REDIS_PASSWORD=odoo_redis_password
+      - TESTING=true
+      - PYTHONPATH=/opt/odoo
+    volumes:
+      - ./addons:/opt/odoo/addons
+      - ./odoo:/opt/odoo/odoo
+      - ./tests:/opt/odoo/tests
+      - ./ops/config:/etc/odoo
+      - ./var/test_results:/opt/odoo/test_results
+    command: >
+      bash -c "
+        python3 -m pytest tests/e2e/ -v
+        --cov=odoo
+        --cov-report=html:/opt/odoo/test_results/htmlcov-e2e
+        --cov-report=xml:/opt/odoo/test_results/coverage-e2e.xml
+        --junitxml=/opt/odoo/test_results/junit-e2e.xml
+        --html=/opt/odoo/test_results/report-e2e.html
+        --self-contained-html
+        --tb=short
+      "
+    networks:
+      - odoo_network
+
+  # Performance Tests
+  performance_tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      test_db:
+        condition: service_healthy
+      test_redis:
+        condition: service_healthy
+    environment:
+      - HOST=test_db
+      - USER=odoo
+      - PASSWORD=odoo
+      - DATABASE=odoo_test
+      - REDIS_HOST=test_redis
+      - REDIS_PASSWORD=odoo_redis_password
+      - TESTING=true
+      - PYTHONPATH=/opt/odoo
+    volumes:
+      - ./addons:/opt/odoo/addons
+      - ./odoo:/opt/odoo/odoo
+      - ./tests:/opt/odoo/tests
+      - ./ops/config:/etc/odoo
+      - ./var/test_results:/opt/odoo/test_results
+    command: >
+      bash -c "
+        python3 -m pytest tests/performance/ -v
+        --junitxml=/opt/odoo/test_results/junit-performance.xml
+        --html=/opt/odoo/test_results/report-performance.html
+        --self-contained-html
+        --tb=short
+      "
+    networks:
+      - odoo_network
+
+  # Security Tests
+  security_tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      test_db:
+        condition: service_healthy
+      test_redis:
+        condition: service_healthy
+    environment:
+      - HOST=test_db
+      - USER=odoo
+      - PASSWORD=odoo
+      - DATABASE=odoo_test
+      - REDIS_HOST=test_redis
+      - REDIS_PASSWORD=odoo_redis_password
+      - TESTING=true
+      - PYTHONPATH=/opt/odoo
+    volumes:
+      - ./addons:/opt/odoo/addons
+      - ./odoo:/opt/odoo/odoo
+      - ./tests:/opt/odoo/tests
+      - ./ops/config:/etc/odoo
+      - ./var/test_results:/opt/odoo/test_results
+    command: >
+      bash -c "
+        python3 -m pytest tests/security/ -v
+        --junitxml=/opt/odoo/test_results/junit-security.xml
+        --html=/opt/odoo/test_results/report-security.html
+        --self-contained-html
+        --tb=short
+      "
+    networks:
+      - odoo_network
+
+  # All Tests
+  all_tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      test_db:
+        condition: service_healthy
+      test_redis:
+        condition: service_healthy
+    environment:
+      - HOST=test_db
+      - USER=odoo
+      - PASSWORD=odoo
+      - DATABASE=odoo_test
+      - REDIS_HOST=test_redis
+      - REDIS_PASSWORD=odoo_redis_password
+      - TESTING=true
+      - PYTHONPATH=/opt/odoo
+    volumes:
+      - ./addons:/opt/odoo/addons
+      - ./odoo:/opt/odoo/odoo
+      - ./tests:/opt/odoo/tests
+      - ./ops/config:/etc/odoo
+      - ./var/test_results:/opt/odoo/test_results
+    command: >
+      bash -c "
+        python3 -m pytest tests/ -v
+        --cov=odoo
+        --cov-report=html:/opt/odoo/test_results/htmlcov
+        --cov-report=xml:/opt/odoo/test_results/coverage.xml
+        --junitxml=/opt/odoo/test_results/junit.xml
+        --html=/opt/odoo/test_results/report.html
+        --self-contained-html
+        --tb=short
+        --maxfail=10
+      "
+    networks:
+      - odoo_network
+
+volumes:
+  test_postgres_data:
+  test_redis_data:
+
+networks:
+  odoo_network:
+    driver: bridge
+
+
+
+

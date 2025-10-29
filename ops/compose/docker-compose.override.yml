@@ -1,0 +1,97 @@
+# Development overrides
+version: '3.8'
+
+services:
+  odoo:
+    volumes:
+      - ./addons:/opt/odoo/addons:rw
+      - ./odoo:/opt/odoo/odoo:rw
+      - ./ops/config:/etc/odoo:rw
+      - ./var/logs:/opt/odoo/var/log:rw
+      - ./var/backups:/opt/odoo/var/backups:rw
+    environment:
+      - ODOO_RC=/etc/odoo/odoo.conf
+      - PYTHONPATH=/opt/odoo
+      - ODOO_ADDONS_PATH=/opt/odoo/addons
+    command: >
+      python3 odoo-bin
+      -c /etc/odoo/odoo.conf
+      --dev=reload,qweb,werkzeug,xml
+      --log-level=debug
+      --logfile=/opt/odoo/var/log/odoo.log
+      --workers=0
+      --max-cron-threads=1
+    ports:
+      - "8069:8069"
+      - "8070:8070"  # Additional port for testing
+
+  db:
+    environment:
+      POSTGRES_DB: odoo_dev
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  # Development tools
+  odoo_shell:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+      - redis
+    environment:
+      - HOST=db
+      - USER=odoo
+      - PASSWORD=odoo
+      - DATABASE=odoo_dev
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=odoo_redis_password
+    volumes:
+      - ./addons:/opt/odoo/addons
+      - ./odoo:/opt/odoo/odoo
+      - ./ops/config:/etc/odoo
+      - odoo_data:/opt/odoo/var
+    command: python3 odoo-bin shell -c /etc/odoo/odoo.conf
+    networks:
+      - odoo_network
+    profiles:
+      - dev
+
+  # Database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    depends_on:
+      - db
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@odoo.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    networks:
+      - odoo_network
+    profiles:
+      - dev
+
+  # Redis management
+  redis_commander:
+    image: rediscommander/redis-commander:latest
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOSTS=local:redis:6379:0:odoo_redis_password
+    ports:
+      - "8081:8081"
+    networks:
+      - odoo_network
+    profiles:
+      - dev
+
+
+
+

@@ -51,3 +51,8 @@ package.json
 /man/
 /share/
 /src/
+
+# runtime artifacts
+/var/logs/
+/var/backups/
+/var/test_results/
