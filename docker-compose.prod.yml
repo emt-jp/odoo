@@ -1,0 +1,95 @@
+services:
+  # PostgreSQL Database
+  psql:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: odoo
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-odoo_secure_password}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - odoo-db:/var/lib/postgresql/data/pgdata
+    networks:
+      - odoo_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo -d odoo"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # Odoo Application
+  odoo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      psql:
+        condition: service_healthy
+    environment:
+      - HOST=psql
+      - USER=odoo
+      - PASSWORD=${POSTGRES_PASSWORD:-odoo_secure_password}
+      - DATABASE=odoo
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./ops/config:/etc/odoo
+      - ./addons:/mnt/extra-addons
+      - ./odoo/addons:/opt/odoo/addons
+      - ./var/logs:/opt/odoo/var/log
+      - ./var/backups:/opt/odoo/var/backups
+    expose:
+      - "8069"
+      - "8072"
+    networks:
+      - odoo_network
+    command: >
+      python3 odoo-bin
+      -c /etc/odoo/odoo.conf
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8069/web/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./ops/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ops/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./ops/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - odoo
+    networks:
+      - odoo_network
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-odoo_redis_password}
+    volumes:
+      - redis_data:/data
+    networks:
+      - odoo_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  odoo-data:
+  odoo-db:
+  redis_data:
+
+networks:
+  odoo_network:
+    driver: bridge

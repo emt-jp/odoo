@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Booking Sequence -->
+        <record id="sequence_rental_booking" model="ir.sequence">
+            <field name="name">Rental Booking</field>
+            <field name="code">rental.booking</field>
+            <field name="prefix">RB%(year)s</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Insurance Plans -->
+        <record id="insurance_none" model="rental.insurance">
+            <field name="name">No Insurance</field>
+            <field name="code">none</field>
+            <field name="daily_rate">0</field>
+            <field name="deductible">0</field>
+            <field name="max_coverage">0</field>
+            <field name="description">No insurance coverage. Customer is fully responsible for any damage.</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="insurance_basic" model="rental.insurance">
+            <field name="name">Basic Insurance</field>
+            <field name="code">basic</field>
+            <field name="daily_rate">15</field>
+            <field name="deductible">500</field>
+            <field name="max_coverage">10000</field>
+            <field name="collision_damage">True</field>
+            <field name="description">Basic collision damage coverage with $500 deductible.</field>
+            <field name="sequence">2</field>
+        </record>
+
+        <record id="insurance_full" model="rental.insurance">
+            <field name="name">Full Coverage</field>
+            <field name="code">full</field>
+            <field name="daily_rate">35</field>
+            <field name="deductible">0</field>
+            <field name="max_coverage">50000</field>
+            <field name="collision_damage">True</field>
+            <field name="theft_protection">True</field>
+            <field name="personal_accident">True</field>
+            <field name="roadside_assistance">True</field>
+            <field name="description">Complete coverage with zero deductible. Includes collision damage, theft protection, personal accident insurance, and 24/7 roadside assistance.</field>
+            <field name="sequence">3</field>
+        </record>
+
+        <!-- Rental Extras -->
+        <record id="extra_child_seat_infant" model="rental.extra">
+            <field name="name">Infant Car Seat (0-12 months)</field>
+            <field name="code">CHILD_INFANT</field>
+            <field name="category">child_seat</field>
+            <field name="price">10</field>
+            <field name="price_type">per_day</field>
+            <field name="max_price_per_rental">50</field>
+            <field name="description">Rear-facing infant car seat for babies 0-12 months (up to 13kg)</field>
+            <field name="icon">fa-baby</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="extra_child_seat_toddler" model="rental.extra">
+            <field name="name">Toddler Car Seat (1-4 years)</field>
+            <field name="code">CHILD_TODDLER</field>
+            <field name="category">child_seat</field>
+            <field name="price">10</field>
+            <field name="price_type">per_day</field>
+            <field name="max_price_per_rental">50</field>
+            <field name="description">Forward-facing car seat for toddlers 1-4 years (9-18kg)</field>
+            <field name="icon">fa-child</field>
+            <field name="sequence">2</field>
+        </record>
+
+        <record id="extra_booster_seat" model="rental.extra">
+            <field name="name">Booster Seat (4-12 years)</field>
+            <field name="code">CHILD_BOOSTER</field>
+            <field name="category">child_seat</field>
+            <field name="price">8</field>
+            <field name="price_type">per_day</field>
+            <field name="max_price_per_rental">40</field>
+            <field name="description">Booster seat for children 4-12 years (15-36kg)</field>
+            <field name="icon">fa-child</field>
+            <field name="sequence">3</field>
+        </record>
+
+        <record id="extra_etc" model="rental.extra">
+            <field name="name">ETC Card</field>
+            <field name="code">ETC</field>
+            <field name="category">equipment</field>
+            <field name="price">5</field>
+            <field name="price_type">per_day</field>
+            <field name="max_price_per_rental">50</field>
+            <field name="description">ETC card for automatic toll payment on highways</field>
+            <field name="icon">fa-credit-card</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="extra_additional_driver" model="rental.extra">
+            <field name="name">Additional Driver</field>
+            <field name="code">ADD_DRIVER</field>
+            <field name="category">driver</field>
+            <field name="price">15</field>
+            <field name="price_type">per_day</field>
+            <field name="max_price_per_rental">75</field>
+            <field name="description">Add an additional authorized driver to the rental</field>
+            <field name="icon">fa-user-plus</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="extra_snow_tyre" model="rental.extra">
+            <field name="name">Snow Tyre</field>
+            <field name="code">SNOW_TYRE</field>
+            <field name="category">winter</field>
+            <field name="price">30</field>
+            <field name="price_type">per_rental</field>
+            <field name="description">Winter snow tyres for safe driving in snowy conditions</field>
+            <field name="icon">fa-snowflake</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="extra_pickup" model="rental.extra">
+            <field name="name">Hotel/Station Pickup</field>
+            <field name="code">PICKUP</field>
+            <field name="category">service</field>
+            <field name="price">30</field>
+            <field name="price_type">per_rental</field>
+            <field name="description">We pick up the car from your hotel or station</field>
+            <field name="icon">fa-car</field>
+            <field name="sequence">40</field>
+        </record>
+
+        <record id="extra_dropoff" model="rental.extra">
+            <field name="name">Hotel/Station Dropoff</field>
+            <field name="code">DROPOFF</field>
+            <field name="category">service</field>
+            <field name="price">30</field>
+            <field name="price_type">per_rental</field>
+            <field name="description">We deliver the car to your hotel or station</field>
+            <field name="icon">fa-car-side</field>
+            <field name="sequence">41</field>
+        </record>
+
+        <!-- Sample Rental Locations -->
+        <record id="location_downtown" model="rental.location">
+            <field name="name">Downtown Office</field>
+            <field name="code">DT01</field>
+            <field name="location_type">city</field>
+            <field name="street">123 Main Street</field>
+            <field name="city">Tokyo</field>
+            <field name="country_id" ref="base.jp"/>
+            <field name="phone">+81-3-1234-5678</field>
+            <field name="email">downtown@carrental.com</field>
+            <field name="monday_open">8.0</field>
+            <field name="monday_close">20.0</field>
+            <field name="tuesday_open">8.0</field>
+            <field name="tuesday_close">20.0</field>
+            <field name="wednesday_open">8.0</field>
+            <field name="wednesday_close">20.0</field>
+            <field name="thursday_open">8.0</field>
+            <field name="thursday_close">20.0</field>
+            <field name="friday_open">8.0</field>
+            <field name="friday_close">20.0</field>
+            <field name="saturday_open">9.0</field>
+            <field name="saturday_close">18.0</field>
+            <field name="sunday_open">10.0</field>
+            <field name="sunday_close">16.0</field>
+            <field name="pickup_fee">0</field>
+            <field name="dropoff_fee">0</field>
+            <field name="different_location_fee">50</field>
+        </record>
+
+        <record id="location_airport" model="rental.location">
+            <field name="name">Narita Airport</field>
+            <field name="code">NRT01</field>
+            <field name="location_type">airport</field>
+            <field name="street">Narita International Airport, Terminal 1</field>
+            <field name="city">Narita</field>
+            <field name="country_id" ref="base.jp"/>
+            <field name="phone">+81-476-34-5678</field>
+            <field name="email">narita@carrental.com</field>
+            <field name="monday_open">6.0</field>
+            <field name="monday_close">22.0</field>
+            <field name="tuesday_open">6.0</field>
+            <field name="tuesday_close">22.0</field>
+            <field name="wednesday_open">6.0</field>
+            <field name="wednesday_close">22.0</field>
+            <field name="thursday_open">6.0</field>
+            <field name="thursday_close">22.0</field>
+            <field name="friday_open">6.0</field>
+            <field name="friday_close">22.0</field>
+            <field name="saturday_open">6.0</field>
+            <field name="saturday_close">22.0</field>
+            <field name="sunday_open">6.0</field>
+            <field name="sunday_close">22.0</field>
+            <field name="pickup_fee">20</field>
+            <field name="dropoff_fee">20</field>
+            <field name="different_location_fee">80</field>
+        </record>
+
+        <record id="location_haneda" model="rental.location">
+            <field name="name">Haneda Airport</field>
+            <field name="code">HND01</field>
+            <field name="location_type">airport</field>
+            <field name="street">Haneda Airport, Terminal 2</field>
+            <field name="city">Tokyo</field>
+            <field name="country_id" ref="base.jp"/>
+            <field name="phone">+81-3-5757-8910</field>
+            <field name="email">haneda@carrental.com</field>
+            <field name="monday_open">5.0</field>
+            <field name="monday_close">23.0</field>
+            <field name="tuesday_open">5.0</field>
+            <field name="tuesday_close">23.0</field>
+            <field name="wednesday_open">5.0</field>
+            <field name="wednesday_close">23.0</field>
+            <field name="thursday_open">5.0</field>
+            <field name="thursday_close">23.0</field>
+            <field name="friday_open">5.0</field>
+            <field name="friday_close">23.0</field>
+            <field name="saturday_open">5.0</field>
+            <field name="saturday_close">23.0</field>
+            <field name="sunday_open">5.0</field>
+            <field name="sunday_close">23.0</field>
+            <field name="pickup_fee">15</field>
+            <field name="dropoff_fee">15</field>
+            <field name="different_location_fee">70</field>
+        </record>
+
+        <!-- Vehicle Features -->
+        <record id="feature_ac" model="fleet.vehicle.feature">
+            <field name="name">Air Conditioning</field>
+            <field name="code">AC</field>
+            <field name="icon">fa-snowflake</field>
+            <field name="category">comfort</field>
+        </record>
+
+        <record id="feature_bluetooth" model="fleet.vehicle.feature">
+            <field name="name">Bluetooth</field>
+            <field name="code">BLUETOOTH</field>
+            <field name="icon">fa-bluetooth-b</field>
+            <field name="category">technology</field>
+        </record>
+
+        <record id="feature_usb" model="fleet.vehicle.feature">
+            <field name="name">USB Charging</field>
+            <field name="code">USB</field>
+            <field name="icon">fa-usb</field>
+            <field name="category">technology</field>
+        </record>
+
+        <record id="feature_cruise" model="fleet.vehicle.feature">
+            <field name="name">Cruise Control</field>
+            <field name="code">CRUISE</field>
+            <field name="icon">fa-tachometer-alt</field>
+            <field name="category">comfort</field>
+        </record>
+
+        <record id="feature_camera" model="fleet.vehicle.feature">
+            <field name="name">Backup Camera</field>
+            <field name="code">CAMERA</field>
+            <field name="icon">fa-camera</field>
+            <field name="category">safety</field>
+        </record>
+
+        <record id="feature_sensors" model="fleet.vehicle.feature">
+            <field name="name">Parking Sensors</field>
+            <field name="code">SENSORS</field>
+            <field name="icon">fa-satellite-dish</field>
+            <field name="category">safety</field>
+        </record>
+
+        <record id="feature_nav" model="fleet.vehicle.feature">
+            <field name="name">Built-in Navigation</field>
+            <field name="code">NAV</field>
+            <field name="icon">fa-map-marked-alt</field>
+            <field name="category">technology</field>
+        </record>
+
+        <record id="feature_leather" model="fleet.vehicle.feature">
+            <field name="name">Leather Seats</field>
+            <field name="code">LEATHER</field>
+            <field name="icon">fa-couch</field>
+            <field name="category">comfort</field>
+        </record>
+
+        <record id="feature_sunroof" model="fleet.vehicle.feature">
+            <field name="name">Sunroof</field>
+            <field name="code">SUNROOF</field>
+            <field name="icon">fa-sun</field>
+            <field name="category">comfort</field>
+        </record>
+    </data>
+</odoo>

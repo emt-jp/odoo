@@ -10,6 +10,9 @@ from . import fuel_management
 from . import insurance_documentation
 from . import financial_management
 from . import analytics_reporting
+from . import damage_inspection
+from . import pricing_rules
+from . import notifications
 
 
 

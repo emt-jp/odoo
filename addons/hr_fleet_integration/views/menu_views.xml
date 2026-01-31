@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Menu Items -->
+        <menuitem id="menu_hr_fleet_root"
+                  name="Fleet HR"
+                  parent="hr.menu_hr_root"
+                  sequence="50"
+                  groups="hr.group_hr_user"/>
+
+        <menuitem id="menu_hr_driver_dashboard"
+                  name="Driver Dashboard"
+                  parent="menu_hr_fleet_root"
+                  action="action_driver_availability_dashboard"
+                  sequence="5"/>
+
+        <menuitem id="menu_hr_drivers"
+                  name="All Drivers"
+                  parent="menu_hr_fleet_root"
+                  action="action_driver_employees"
+                  sequence="10"/>
+
+        <menuitem id="menu_hr_available_drivers"
+                  name="Available Now"
+                  parent="menu_hr_fleet_root"
+                  action="action_available_drivers"
+                  sequence="20"/>
+
+    </data>
+</odoo>

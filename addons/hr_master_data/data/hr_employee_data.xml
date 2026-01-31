@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Sample Employees -->
+
+        <!-- Management -->
+        <record id="employee_john_ceo" model="hr.employee">
+            <field name="name">John Smith</field>
+            <field name="job_id" ref="job_ceo"/>
+            <field name="department_id" ref="department_administration"/>
+            <field name="work_email">john.smith@company.com</field>
+            <field name="work_phone">+1-555-0101</field>
+        </record>
+
+        <record id="employee_sarah_ops" model="hr.employee">
+            <field name="name">Sarah Johnson</field>
+            <field name="job_id" ref="job_operations_manager"/>
+            <field name="department_id" ref="department_operations"/>
+            <field name="parent_id" ref="employee_john_ceo"/>
+            <field name="work_email">sarah.johnson@company.com</field>
+            <field name="work_phone">+1-555-0102</field>
+        </record>
+
+        <!-- Fleet Management -->
+        <record id="employee_michael_fleet" model="hr.employee">
+            <field name="name">Michael Brown</field>
+            <field name="job_id" ref="job_fleet_manager"/>
+            <field name="department_id" ref="department_fleet_management"/>
+            <field name="parent_id" ref="employee_sarah_ops"/>
+            <field name="work_email">michael.brown@company.com</field>
+            <field name="work_phone">+1-555-0103</field>
+        </record>
+
+        <!-- Drivers -->
+        <record id="employee_driver_1" model="hr.employee">
+            <field name="name">David Wilson</field>
+            <field name="job_id" ref="job_driver"/>
+            <field name="department_id" ref="department_fleet_management"/>
+            <field name="parent_id" ref="employee_michael_fleet"/>
+            <field name="work_email">david.wilson@company.com</field>
+            <field name="mobile_phone">+1-555-0201</field>
+        </record>
+
+        <record id="employee_driver_2" model="hr.employee">
+            <field name="name">James Martinez</field>
+            <field name="job_id" ref="job_driver"/>
+            <field name="department_id" ref="department_fleet_management"/>
+            <field name="parent_id" ref="employee_michael_fleet"/>
+            <field name="work_email">james.martinez@company.com</field>
+            <field name="mobile_phone">+1-555-0202</field>
+        </record>
+
+        <record id="employee_driver_3" model="hr.employee">
+            <field name="name">Robert Garcia</field>
+            <field name="job_id" ref="job_driver"/>
+            <field name="department_id" ref="department_fleet_management"/>
+            <field name="parent_id" ref="employee_michael_fleet"/>
+            <field name="work_email">robert.garcia@company.com</field>
+            <field name="mobile_phone">+1-555-0203</field>
+        </record>
+
+        <record id="employee_driver_4" model="hr.employee">
+            <field name="name">William Rodriguez</field>
+            <field name="job_id" ref="job_driver"/>
+            <field name="department_id" ref="department_fleet_management"/>
+            <field name="parent_id" ref="employee_michael_fleet"/>
+            <field name="work_email">william.rodriguez@company.com</field>
+            <field name="mobile_phone">+1-555-0204</field>
+        </record>
+
+        <record id="employee_driver_5" model="hr.employee">
+            <field name="name">Charles Anderson</field>
+            <field name="job_id" ref="job_driver"/>
+            <field name="department_id" ref="department_fleet_management"/>
+            <field name="parent_id" ref="employee_michael_fleet"/>
+            <field name="work_email">charles.anderson@company.com</field>
+            <field name="mobile_phone">+1-555-0205</field>
+        </record>
+
+        <!-- Mechanics -->
+        <record id="employee_mechanic_1" model="hr.employee">
+            <field name="name">Thomas Taylor</field>
+            <field name="job_id" ref="job_mechanic"/>
+            <field name="department_id" ref="department_fleet_management"/>
+            <field name="parent_id" ref="employee_michael_fleet"/>
+            <field name="work_email">thomas.taylor@company.com</field>
+            <field name="mobile_phone">+1-555-0301</field>
+        </record>
+
+        <record id="employee_mechanic_2" model="hr.employee">
+            <field name="name">Christopher Lee</field>
+            <field name="job_id" ref="job_mechanic"/>
+            <field name="department_id" ref="department_fleet_management"/>
+            <field name="parent_id" ref="employee_michael_fleet"/>
+            <field name="work_email">christopher.lee@company.com</field>
+            <field name="mobile_phone">+1-555-0302</field>
+        </record>
+
+        <!-- Customer Service -->
+        <record id="employee_cs_manager" model="hr.employee">
+            <field name="name">Jennifer White</field>
+            <field name="job_id" ref="job_cs_manager"/>
+            <field name="department_id" ref="department_customer_service"/>
+            <field name="parent_id" ref="employee_sarah_ops"/>
+            <field name="work_email">jennifer.white@company.com</field>
+            <field name="work_phone">+1-555-0401</field>
+        </record>
+
+        <record id="employee_cs_1" model="hr.employee">
+            <field name="name">Lisa Harris</field>
+            <field name="job_id" ref="job_cs_representative"/>
+            <field name="department_id" ref="department_customer_service"/>
+            <field name="parent_id" ref="employee_cs_manager"/>
+            <field name="work_email">lisa.harris@company.com</field>
+            <field name="work_phone">+1-555-0402</field>
+        </record>
+
+        <record id="employee_cs_2" model="hr.employee">
+            <field name="name">Nancy Clark</field>
+            <field name="job_id" ref="job_cs_representative"/>
+            <field name="department_id" ref="department_customer_service"/>
+            <field name="parent_id" ref="employee_cs_manager"/>
+            <field name="work_email">nancy.clark@company.com</field>
+            <field name="work_phone">+1-555-0403</field>
+        </record>
+
+        <!-- Finance -->
+        <record id="employee_finance_manager" model="hr.employee">
+            <field name="name">Richard Lewis</field>
+            <field name="job_id" ref="job_finance_manager"/>
+            <field name="department_id" ref="department_accounts_finance"/>
+            <field name="parent_id" ref="employee_john_ceo"/>
+            <field name="work_email">richard.lewis@company.com</field>
+            <field name="work_phone">+1-555-0501</field>
+        </record>
+
+        <record id="employee_accountant_1" model="hr.employee">
+            <field name="name">Patricia Walker</field>
+            <field name="job_id" ref="job_accountant"/>
+            <field name="department_id" ref="department_accounts_finance"/>
+            <field name="parent_id" ref="employee_finance_manager"/>
+            <field name="work_email">patricia.walker@company.com</field>
+            <field name="work_phone">+1-555-0502</field>
+        </record>
+
+        <!-- HR -->
+        <record id="employee_hr_manager" model="hr.employee">
+            <field name="name">Barbara Hall</field>
+            <field name="job_id" ref="job_hr_manager"/>
+            <field name="department_id" ref="department_human_resources"/>
+            <field name="parent_id" ref="employee_john_ceo"/>
+            <field name="work_email">barbara.hall@company.com</field>
+            <field name="work_phone">+1-555-0601</field>
+        </record>
+
+        <!-- Sales -->
+        <record id="employee_sales_manager" model="hr.employee">
+            <field name="name">Daniel Allen</field>
+            <field name="job_id" ref="job_sales_manager"/>
+            <field name="department_id" ref="department_marketing_sales"/>
+            <field name="parent_id" ref="employee_john_ceo"/>
+            <field name="work_email">daniel.allen@company.com</field>
+            <field name="work_phone">+1-555-0701</field>
+        </record>
+
+        <record id="employee_sales_1" model="hr.employee">
+            <field name="name">Mark Young</field>
+            <field name="job_id" ref="job_sales_executive"/>
+            <field name="department_id" ref="department_marketing_sales"/>
+            <field name="parent_id" ref="employee_sales_manager"/>
+            <field name="work_email">mark.young@company.com</field>
+            <field name="work_phone">+1-555-0702</field>
+        </record>
+
+        <record id="employee_sales_2" model="hr.employee">
+            <field name="name">Steven King</field>
+            <field name="job_id" ref="job_sales_executive"/>
+            <field name="department_id" ref="department_marketing_sales"/>
+            <field name="parent_id" ref="employee_sales_manager"/>
+            <field name="work_email">steven.king@company.com</field>
+            <field name="work_phone">+1-555-0703</field>
+        </record>
+
+    </data>
+</odoo>

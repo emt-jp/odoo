@@ -35,7 +35,10 @@
         'account',
         'mail',
     ],
-    'data': [],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/inventory_views.xml',
+    ],
     'demo': [],
     'assets': {},
     'installable': True,

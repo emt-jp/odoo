@@ -1,0 +1,149 @@
+.o_analytics_dashboard {
+    background-color: #f8f9fa;
+
+    .o_analytics_header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    .o_analytics_sidebar {
+        overflow-y: auto;
+
+        .list-group-item {
+            border-radius: 0.5rem;
+            margin-bottom: 0.25rem;
+
+            &.active {
+                background-color: #0d6efd;
+                border-color: #0d6efd;
+            }
+
+            &:hover:not(.active) {
+                background-color: #f0f0f0;
+            }
+        }
+    }
+
+    .o_analytics_main {
+        background-color: #f8f9fa;
+    }
+
+    .card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+        }
+    }
+
+    .chart-container {
+        position: relative;
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+    }
+
+    // KPI Card Colors
+    .kpi-card {
+        &.sales {
+            border-left: 4px solid #0d6efd;
+        }
+
+        &.financial {
+            border-left: 4px solid #198754;
+        }
+
+        &.inventory {
+            border-left: 4px solid #ffc107;
+        }
+
+        &.crm {
+            border-left: 4px solid #dc3545;
+        }
+    }
+
+    // Stats
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 600;
+    }
+
+    .stat-change {
+        &.positive {
+            color: #198754;
+
+            &::before {
+                content: "↑ ";
+            }
+        }
+
+        &.negative {
+            color: #dc3545;
+
+            &::before {
+                content: "↓ ";
+            }
+        }
+    }
+
+    // Table Styles
+    .table {
+        th {
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            color: #6c757d;
+        }
+    }
+
+    // Border dashed for add cards
+    .border-dashed {
+        border: 2px dashed #dee2e6 !important;
+
+        &:hover {
+            border-color: #0d6efd !important;
+            color: #0d6efd;
+        }
+    }
+}
+
+// Dark mode support
+.o_dark_mode .o_analytics_dashboard {
+    background-color: #1a1a2e;
+
+    .o_analytics_header {
+        background-color: #16213e !important;
+        border-color: #2a2a4a !important;
+    }
+
+    .o_analytics_sidebar {
+        background-color: #16213e !important;
+        border-color: #2a2a4a !important;
+    }
+
+    .o_analytics_main {
+        background-color: #1a1a2e;
+    }
+
+    .card {
+        background-color: #16213e;
+        border-color: #2a2a4a;
+
+        .card-header {
+            background-color: #0f3460 !important;
+            border-color: #2a2a4a !important;
+        }
+    }
+
+    .table {
+        color: #e0e0e0;
+
+        thead {
+            background-color: #0f3460;
+        }
+    }
+}

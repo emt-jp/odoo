@@ -61,10 +61,69 @@ class FleetAnalytics(models.Model):
     # Enterprise Features
     is_enterprise = fields.Boolean('Enterprise Feature', default=True)
     requires_license = fields.Boolean('Requires License', default=True)
-    
+
+    # Dashboard KPI Fields (computed)
+    total_vehicles = fields.Integer('Total Vehicles', compute='_compute_dashboard_kpis', store=False)
+    available_vehicles = fields.Integer('Available', compute='_compute_dashboard_kpis', store=False)
+    rented_vehicles = fields.Integer('Rented', compute='_compute_dashboard_kpis', store=False)
+    maintenance_vehicles = fields.Integer('In Maintenance', compute='_compute_dashboard_kpis', store=False)
+    utilization_rate = fields.Float('Utilization %', compute='_compute_dashboard_kpis', store=False)
+
+    total_rentals_count = fields.Integer('Total Rentals', compute='_compute_dashboard_kpis', store=False)
+    completed_rentals_count = fields.Integer('Completed', compute='_compute_dashboard_kpis', store=False)
+    in_progress_rentals_count = fields.Integer('In Progress', compute='_compute_dashboard_kpis', store=False)
+    total_revenue = fields.Float('Total Revenue', compute='_compute_dashboard_kpis', store=False)
+
+    pending_maintenance_count = fields.Integer('Pending Maintenance', compute='_compute_dashboard_kpis', store=False)
+    overdue_maintenance_count = fields.Integer('Overdue', compute='_compute_dashboard_kpis', store=False)
+    total_maintenance_cost = fields.Float('Maintenance Cost', compute='_compute_dashboard_kpis', store=False)
+
+    expiring_documents_count = fields.Integer('Expiring Soon', compute='_compute_dashboard_kpis', store=False)
+    expired_documents_count = fields.Integer('Expired', compute='_compute_dashboard_kpis', store=False)
+
+    pending_bookings_count = fields.Integer('Pending Bookings', compute='_compute_dashboard_kpis', store=False)
+    confirmed_bookings_count = fields.Integer('Confirmed', compute='_compute_dashboard_kpis', store=False)
+
+    @api.depends()
+    def _compute_dashboard_kpis(self):
+        """Compute dashboard KPIs"""
+        for record in self:
+            # Fleet metrics
+            vehicles = self.env['fleet.vehicle'].search([('is_rental_vehicle', '=', True)])
+            record.total_vehicles = len(vehicles)
+            record.available_vehicles = len(vehicles.filtered(lambda v: v.availability_status == 'available'))
+            record.rented_vehicles = len(vehicles.filtered(lambda v: v.availability_status == 'rented'))
+            record.maintenance_vehicles = len(vehicles.filtered(lambda v: v.availability_status == 'maintenance'))
+            record.utilization_rate = (record.rented_vehicles / record.total_vehicles * 100) if record.total_vehicles > 0 else 0
+
+            # Rental metrics
+            rentals = self.env['fleet.rental'].search([])
+            record.total_rentals_count = len(rentals)
+            record.completed_rentals_count = len(rentals.filtered(lambda r: r.state == 'completed'))
+            record.in_progress_rentals_count = len(rentals.filtered(lambda r: r.state == 'in_progress'))
+            record.total_revenue = sum(rentals.mapped('total_amount'))
+
+            # Maintenance metrics
+            maintenance = self.env['fleet.maintenance'].search([('status', 'in', ['pending', 'scheduled'])])
+            record.pending_maintenance_count = len(maintenance)
+            overdue = maintenance.filtered(lambda m: m.scheduled_date and m.scheduled_date < fields.Date.today())
+            record.overdue_maintenance_count = len(overdue)
+            all_maintenance = self.env['fleet.maintenance'].search([])
+            record.total_maintenance_cost = sum(all_maintenance.mapped('total_cost'))
+
+            # Document metrics
+            documents = self.env['fleet.vehicle.document'].search([])
+            record.expiring_documents_count = len(documents.filtered(lambda d: 0 < d.days_to_expiry <= 30))
+            record.expired_documents_count = len(documents.filtered(lambda d: d.is_expired))
+
+            # Booking metrics
+            bookings = self.env['fleet.booking'].search([('state', 'in', ['draft', 'confirmed'])])
+            record.pending_bookings_count = len(bookings.filtered(lambda b: b.state == 'draft'))
+            record.confirmed_bookings_count = len(bookings.filtered(lambda b: b.state == 'confirmed'))
+
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     @api.model
     def generate_fleet_overview(self, start_date=None, end_date=None):

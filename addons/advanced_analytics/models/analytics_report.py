@@ -61,10 +61,35 @@ class AnalyticsReport(models.Model):
     is_enterprise = fields.Boolean('Enterprise Feature', default=True)
     requires_license = fields.Boolean('Requires License', default=True)
     
+    # Scheduling
+    schedule_type = fields.Selection([
+        ('manual', 'Manual'),
+        ('daily', 'Daily'),
+        ('weekly', 'Weekly'),
+        ('monthly', 'Monthly'),
+    ], string='Schedule Type', default='manual')
+    last_run = fields.Datetime('Last Run')
+    next_run = fields.Datetime('Next Run')
+
+    # Recipients
+    recipient_ids = fields.Many2many('res.users', 'analytics_report_recipient_rel', 'report_id', 'user_id', string='Recipients')
+
     # Access control
-    user_ids = fields.Many2many('res.users', string='Allowed Users')
+    user_ids = fields.Many2many('res.users', 'analytics_report_user_rel', 'report_id', 'user_id', string='Allowed Users')
     group_ids = fields.Many2many('res.groups', string='Allowed Groups')
     
+    def action_generate_report(self):
+        """Action to generate the report"""
+        self.ensure_one()
+        self.last_run = fields.Datetime.now()
+        return self.generate_report(report_id=self.id)
+
+    def action_send_report(self):
+        """Action to send the report to recipients"""
+        self.ensure_one()
+        # Placeholder for sending report to recipients
+        return True
+
     @api.model
     def generate_report(self, report_id=None, date_from=None, date_to=None):
         """Generate report data"""
@@ -89,7 +114,7 @@ class AnalyticsReport(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     def _get_report_data(self):
         """Get report data based on configuration"""

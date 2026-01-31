@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Portal: My Account Links -->
+    <template id="portal_my_home_fleet" name="Show Fleet Bookings/Rentals" inherit_id="portal.portal_my_home" priority="30">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'fa fa-car'"/>
+                <t t-set="title">Bookings</t>
+                <t t-set="url" t-value="'/my/bookings'"/>
+                <t t-set="text">View your car rental bookings</t>
+                <t t-set="placeholder_count" t-value="'booking_count'"/>
+            </t>
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'fa fa-key'"/>
+                <t t-set="title">Rentals</t>
+                <t t-set="url" t-value="'/my/rentals'"/>
+                <t t-set="text">View your rental history</t>
+                <t t-set="placeholder_count" t-value="'rental_count'"/>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- Portal: Bookings List -->
+    <template id="portal_my_bookings" name="My Bookings">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Bookings</t>
+            </t>
+
+            <t t-if="not bookings">
+                <div class="alert alert-info" role="alert">
+                    You don't have any bookings yet.
+                    <a href="/fleet" class="alert-link">Browse our vehicles</a>
+                </div>
+            </t>
+
+            <t t-if="bookings">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Reference</th>
+                                <th>Pickup Date</th>
+                                <th>Return Date</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="bookings" t-as="booking">
+                                <tr>
+                                    <td>
+                                        <a t-attf-href="/my/booking/#{booking.id}">
+                                            <t t-esc="booking.name"/>
+                                        </a>
+                                    </td>
+                                    <td><t t-esc="booking.pickup_date" t-options='{"widget": "datetime"}'/></td>
+                                    <td><t t-esc="booking.return_date" t-options='{"widget": "datetime"}'/></td>
+                                    <td><t t-esc="booking.pickup_location"/></td>
+                                    <td>
+                                        <span t-attf-class="badge rounded-pill #{booking.state == 'confirmed' and 'text-bg-success' or booking.state == 'cancelled' and 'text-bg-danger' or 'text-bg-info'}">
+                                            <t t-esc="dict(booking._fields['state'].selection).get(booking.state)"/>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+                <div t-if="pager" class="o_portal_pager text-center">
+                    <t t-call="portal.pager"/>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <!-- Portal: Booking Detail -->
+    <template id="portal_my_booking" name="My Booking">
+        <t t-call="portal.portal_layout">
+            <t t-set="o_portal_fullwidth_alert" groups="sales_team.group_sale_salesman">
+                <t t-call="portal.portal_back_in_edit_mode">
+                    <t t-set="backend_url" t-value="'/web#model=fleet.booking&amp;id=%d&amp;view_type=form' % booking.id"/>
+                </t>
+            </t>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <h4 class="mb-0">
+                                <i class="fa fa-car me-2"/>Booking <t t-esc="booking.name"/>
+                            </h4>
+                        </div>
+                        <div class="col-lg-4 text-lg-end">
+                            <span t-attf-class="badge rounded-pill fs-6 #{booking.state == 'confirmed' and 'text-bg-success' or booking.state == 'cancelled' and 'text-bg-danger' or 'text-bg-info'}">
+                                <t t-esc="dict(booking._fields['state'].selection).get(booking.state)"/>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Booking Details</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Pickup Date:</strong></td>
+                                    <td><t t-esc="booking.pickup_date" t-options='{"widget": "datetime"}'/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Return Date:</strong></td>
+                                    <td><t t-esc="booking.return_date" t-options='{"widget": "datetime"}'/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Pickup Location:</strong></td>
+                                    <td><t t-esc="booking.pickup_location"/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Return Location:</strong></td>
+                                    <td><t t-esc="booking.return_location"/></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Vehicle Information</h5>
+                            <t t-if="booking.assigned_vehicle_id">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Vehicle:</strong></td>
+                                        <td><t t-esc="booking.assigned_vehicle_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Category:</strong></td>
+                                        <td><t t-esc="booking.rental_category"/></td>
+                                    </tr>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <p class="text-muted">Vehicle will be assigned soon</p>
+                            </t>
+                        </div>
+                    </div>
+                    <t t-if="booking.special_requirements">
+                        <hr/>
+                        <h5>Special Requirements</h5>
+                        <p><t t-esc="booking.special_requirements"/></p>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Portal: Rentals List -->
+    <template id="portal_my_rentals" name="My Rentals">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Rentals</t>
+            </t>
+
+            <t t-if="not rentals">
+                <div class="alert alert-info" role="alert">
+                    You don't have any rentals yet.
+                </div>
+            </t>
+
+            <t t-if="rentals">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Reference</th>
+                                <th>Vehicle</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="rentals" t-as="rental">
+                                <tr>
+                                    <td>
+                                        <a t-attf-href="/my/rental/#{rental.id}">
+                                            <t t-esc="rental.name"/>
+                                        </a>
+                                    </td>
+                                    <td><t t-esc="rental.vehicle_id.name"/></td>
+                                    <td><t t-esc="rental.start_date" t-options='{"widget": "datetime"}'/></td>
+                                    <td><t t-esc="rental.end_date" t-options='{"widget": "datetime"}'/></td>
+                                    <td><t t-esc="rental.total_amount" t-options='{"widget": "monetary", "display_currency": rental.currency_id}'/></td>
+                                    <td>
+                                        <span t-attf-class="badge rounded-pill #{rental.state == 'completed' and 'text-bg-success' or rental.state == 'in_progress' and 'text-bg-primary' or 'text-bg-info'}">
+                                            <t t-esc="dict(rental._fields['state'].selection).get(rental.state)"/>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+                <div t-if="pager" class="o_portal_pager text-center">
+                    <t t-call="portal.pager"/>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <!-- Portal: Rental Detail -->
+    <template id="portal_my_rental" name="My Rental">
+        <t t-call="portal.portal_layout">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <h4 class="mb-0">
+                                <i class="fa fa-key me-2"/>Rental <t t-esc="rental.name"/>
+                            </h4>
+                        </div>
+                        <div class="col-lg-4 text-lg-end">
+                            <span t-attf-class="badge rounded-pill fs-6 #{rental.state == 'completed' and 'text-bg-success' or rental.state == 'in_progress' and 'text-bg-primary' or 'text-bg-info'}">
+                                <t t-esc="dict(rental._fields['state'].selection).get(rental.state)"/>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Rental Details</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Start Date:</strong></td>
+                                    <td><t t-esc="rental.start_date" t-options='{"widget": "datetime"}'/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>End Date:</strong></td>
+                                    <td><t t-esc="rental.end_date" t-options='{"widget": "datetime"}'/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Pickup Location:</strong></td>
+                                    <td><t t-esc="rental.pickup_location"/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Return Location:</strong></td>
+                                    <td><t t-esc="rental.return_location"/></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Vehicle</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Vehicle:</strong></td>
+                                    <td><t t-esc="rental.vehicle_id.name"/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>License Plate:</strong></td>
+                                    <td><t t-esc="rental.vehicle_id.license_plate"/></td>
+                                </tr>
+                            </table>
+                            <hr/>
+                            <h5>Pricing</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Daily Rate:</strong></td>
+                                    <td><t t-esc="rental.daily_rate" t-options='{"widget": "monetary", "display_currency": rental.currency_id}'/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Total Amount:</strong></td>
+                                    <td><strong><t t-esc="rental.total_amount" t-options='{"widget": "monetary", "display_currency": rental.currency_id}'/></strong></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Portal: Vehicle List -->
+    <template id="portal_fleet_vehicles" name="Portal Fleet Vehicles">
+        <t t-call="website.layout">
+            <div class="container py-5">
+                <h1 class="mb-4">Our Fleet</h1>
+                <div class="row row-cols-1 row-cols-md-3 g-4">
+                    <t t-foreach="vehicles" t-as="vehicle">
+                        <div class="col">
+                            <div class="card h-100">
+                                <t t-if="vehicle.image_128">
+                                    <img t-att-src="image_data_uri(vehicle.image_128)" class="card-img-top" style="height: 200px; object-fit: cover;"/>
+                                </t>
+                                <div class="card-body">
+                                    <h5 class="card-title"><t t-esc="vehicle.name"/></h5>
+                                    <p class="card-text">
+                                        <span class="badge text-bg-secondary"><t t-esc="vehicle.rental_category"/></span>
+                                        <span class="badge text-bg-info"><t t-esc="vehicle.vehicle_type"/></span>
+                                    </p>
+                                    <p class="card-text text-primary fs-4">
+                                        <t t-esc="vehicle.daily_rate" t-options='{"widget": "monetary", "display_currency": vehicle.currency_id}'/>/day
+                                    </p>
+                                </div>
+                                <div class="card-footer">
+                                    <a t-attf-href="/fleet/vehicle/#{vehicle.id}" class="btn btn-outline-primary">View Details</a>
+                                    <a t-attf-href="/fleet/book/#{vehicle.id}" class="btn btn-primary">Book Now</a>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Website: Vehicle Detail -->
+    <template id="website_vehicle_detail" name="Vehicle Detail">
+        <t t-call="website.layout">
+            <div class="container py-5">
+                <div class="row">
+                    <div class="col-md-6">
+                        <t t-if="vehicle.image_front">
+                            <img t-att-src="image_data_uri(vehicle.image_front)" class="img-fluid rounded"/>
+                        </t>
+                    </div>
+                    <div class="col-md-6">
+                        <h1><t t-esc="vehicle.name"/></h1>
+                        <p>
+                            <span class="badge text-bg-secondary"><t t-esc="vehicle.rental_category"/></span>
+                            <span class="badge text-bg-info"><t t-esc="vehicle.vehicle_type"/></span>
+                        </p>
+                        <h3 class="text-primary">
+                            <t t-esc="vehicle.daily_rate" t-options='{"widget": "monetary", "display_currency": vehicle.currency_id}'/>/day
+                        </h3>
+                        <hr/>
+                        <h5>Specifications</h5>
+                        <ul class="list-unstyled">
+                            <li><i class="fa fa-users me-2"/>Seats: <t t-esc="vehicle.seating_capacity"/></li>
+                            <li><i class="fa fa-cog me-2"/>Transmission: <t t-esc="vehicle.transmission"/></li>
+                            <li><i class="fa fa-gas-pump me-2"/>Fuel: <t t-esc="vehicle.engine_type"/></li>
+                        </ul>
+                        <hr/>
+                        <a t-attf-href="/fleet/book/#{vehicle.id}" class="btn btn-primary btn-lg">Book This Vehicle</a>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Website: Booking Form -->
+    <template id="website_booking_form" name="Booking Form">
+        <t t-call="website.layout">
+            <div class="container py-5">
+                <h1 class="mb-4">Book <t t-esc="vehicle.name"/></h1>
+                <form action="/fleet/book/submit" method="POST" class="row g-3">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <input type="hidden" name="vehicle_id" t-att-value="vehicle.id"/>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Pickup Date</label>
+                        <input type="date" name="pickup_date" class="form-control" t-att-value="pickup_date" required="required"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Return Date</label>
+                        <input type="date" name="return_date" class="form-control" t-att-value="return_date" required="required"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Pickup Location</label>
+                        <input type="text" name="pickup_location" class="form-control" required="required"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Return Location</label>
+                        <input type="text" name="return_location" class="form-control"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Contact Phone</label>
+                        <input type="tel" name="contact_phone" class="form-control" t-att-value="partner.phone or partner.mobile" required="required"/>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Special Requirements</label>
+                        <textarea name="special_requirements" class="form-control" rows="3"/>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary btn-lg">Confirm Booking</button>
+                    </div>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <!-- Website: Search Results -->
+    <template id="website_fleet_search" name="Fleet Search">
+        <t t-call="website.layout">
+            <div class="container py-5">
+                <h1 class="mb-4">Search Vehicles</h1>
+                <form action="/fleet/search" method="GET" class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <input type="date" name="pickup_date" class="form-control" t-att-value="pickup_date" placeholder="Pickup Date"/>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="date" name="return_date" class="form-control" t-att-value="return_date" placeholder="Return Date"/>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            <t t-foreach="categories" t-as="cat">
+                                <option t-att-value="cat" t-att-selected="cat == selected_category"><t t-esc="cat"/></option>
+                            </t>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">Search</button>
+                    </div>
+                </form>
+
+                <div class="row row-cols-1 row-cols-md-3 g-4">
+                    <t t-foreach="vehicles" t-as="vehicle">
+                        <div class="col">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title"><t t-esc="vehicle.name"/></h5>
+                                    <p class="card-text text-primary fs-4">
+                                        <t t-esc="vehicle.daily_rate" t-options='{"widget": "monetary", "display_currency": vehicle.currency_id}'/>/day
+                                    </p>
+                                </div>
+                                <div class="card-footer">
+                                    <a t-attf-href="/fleet/book/#{vehicle.id}?pickup_date=#{pickup_date}&amp;return_date=#{return_date}" class="btn btn-primary">Book Now</a>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>

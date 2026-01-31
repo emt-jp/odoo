@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Booking Kanban View -->
+    <record id="view_fleet_booking_kanban" model="ir.ui.view">
+        <field name="name">fleet.booking.kanban</field>
+        <field name="model">fleet.booking</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="pickup_date"/>
+                <field name="return_date"/>
+                <field name="state"/>
+                <field name="vehicle_type"/>
+                <field name="rental_category"/>
+                <field name="estimated_total_amount"/>
+                <field name="currency_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_top">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title">
+                                            <i class="fa fa-calendar"/> <field name="name"/>
+                                        </strong>
+                                        <div class="o_kanban_record_subtitle">
+                                            <i class="fa fa-user"/> <field name="customer_id"/>
+                                        </div>
+                                    </div>
+                                    <!-- Status Badge -->
+                                    <span t-attf-class="badge badge-pill badge-#{record.state.raw_value}">
+                                        <field name="state"/>
+                                    </span>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <div>
+                                        <i class="fa fa-calendar"/> Pickup: <field name="pickup_date"/>
+                                    </div>
+                                    <div>
+                                        <i class="fa fa-calendar-check-o"/> Return: <field name="return_date"/>
+                                    </div>
+                                    <div>
+                                        <i class="fa fa-car"/> <field name="vehicle_type"/>
+                                        <span t-if="record.rental_category.raw_value" class="badge badge-secondary">
+                                            <field name="rental_category"/>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_bottom mt-2">
+                                    <div class="oe_kanban_bottom_left">
+                                        <strong class="text-primary">
+                                            <i class="fa fa-money"/> <field name="estimated_total_amount" widget="monetary"/>
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Booking List View -->
+    <record id="view_fleet_booking_list" model="ir.ui.view">
+        <field name="name">fleet.booking.list</field>
+        <field name="model">fleet.booking</field>
+        <field name="arch" type="xml">
+            <list string="Bookings"
+                  decoration-info="state == 'draft'"
+                  decoration-success="state == 'confirmed'"
+                  decoration-warning="state == 'assigned'"
+                  decoration-muted="state == 'cancelled'">
+                <!-- Always visible key fields -->
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="pickup_date"/>
+                <field name="return_date"/>
+
+                <!-- Status with badge widget (always visible) -->
+                <field name="state" string="Status" widget="badge" optional="show"
+                       decoration-muted="state == 'draft'"
+                       decoration-info="state == 'confirmed'"
+                       decoration-success="state == 'assigned'"
+                       decoration-danger="state == 'cancelled'"/>
+
+                <!-- Optional secondary fields -->
+                <field name="booking_date" optional="hide"/>
+                <field name="vehicle_type" optional="show"/>
+                <field name="rental_category" optional="hide"/>
+                <field name="assigned_vehicle_id" optional="show"/>
+                <field name="estimated_total_amount" widget="monetary" optional="show"/>
+                <field name="contact_phone" optional="hide"/>
+                <field name="contact_email" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Booking Calendar View -->
+    <record id="view_fleet_booking_calendar" model="ir.ui.view">
+        <field name="name">fleet.booking.calendar</field>
+        <field name="model">fleet.booking</field>
+        <field name="arch" type="xml">
+            <calendar string="Bookings" date_start="pickup_date" date_stop="return_date" color="state" mode="month" quick_create="0">
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- Booking Form View -->
+    <record id="view_fleet_booking_form" model="ir.ui.view">
+        <field name="name">fleet.booking.form</field>
+        <field name="model">fleet.booking</field>
+        <field name="arch" type="xml">
+            <form string="Booking">
+                <header>
+                    <button name="action_confirm" string="Confirm Booking" type="object"
+                            class="oe_highlight" icon="fa-check" invisible="state != 'draft'"/>
+                    <button name="action_assign_vehicle" string="Assign Vehicle" type="object"
+                            class="oe_highlight" icon="fa-car" invisible="state != 'confirmed'"/>
+                    <button name="action_cancel_booking" string="Cancel" type="object"
+                            icon="fa-times" invisible="state == 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,assigned"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Booking Reference"/></h1>
+                    </div>
+
+                    <!-- Booking Details -->
+                    <group string="📅 Booking Information">
+                        <group>
+                            <field name="customer_id" options="{'no_create': False}"/>
+                            <field name="booking_date"/>
+                        </group>
+                        <group>
+                            <field name="pickup_date"/>
+                            <field name="return_date"/>
+                        </group>
+                    </group>
+
+                    <!-- Location Details -->
+                    <group string="📍 Pickup &amp; Return">
+                        <group>
+                            <field name="pickup_location"/>
+                        </group>
+                        <group>
+                            <field name="return_location"/>
+                        </group>
+                    </group>
+
+                    <!-- Vehicle Preferences -->
+                    <group string="🚗 Vehicle Preferences">
+                        <group>
+                            <field name="vehicle_type"/>
+                            <field name="rental_category"/>
+                            <field name="assigned_vehicle_id" invisible="state == 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="estimated_daily_rate" widget="monetary"/>
+                            <field name="estimated_total_amount" widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Special Requirements in Alert Box -->
+                    <group string="⚙️ Special Requirements">
+                        <div class="alert alert-info" role="alert" invisible="not special_requirements and not additional_drivers and not child_seats and not gps_required and not insurance_required">
+                            <strong><i class="fa fa-info-circle"/> Requirements Summary:</strong>
+                            <ul>
+                                <li invisible="not additional_drivers">Additional Drivers: <field name="additional_drivers" readonly="1"/></li>
+                                <li invisible="not child_seats">Child Seats: <field name="child_seats" readonly="1"/></li>
+                                <li invisible="not gps_required">GPS Navigation Required</li>
+                                <li invisible="not insurance_required">Additional Insurance Required</li>
+                            </ul>
+                        </div>
+                        <field name="special_requirements" placeholder="Any special requirements..." nolabel="1"/>
+                        <group>
+                            <field name="additional_drivers"/>
+                            <field name="child_seats"/>
+                            <field name="gps_required"/>
+                            <field name="insurance_required"/>
+                        </group>
+                    </group>
+
+                    <!-- Contact Information -->
+                    <group string="📞 Contact Information">
+                        <group>
+                            <field name="contact_phone"/>
+                            <field name="contact_email"/>
+                        </group>
+                        <group>
+                            <field name="emergency_contact"/>
+                            <field name="emergency_phone"/>
+                        </group>
+                    </group>
+
+                    <!-- Notes in Tabs -->
+                    <notebook>
+                        <page string="Notes" name="notes">
+                            <group>
+                                <field name="customer_notes" placeholder="Customer notes..."/>
+                                <field name="internal_notes" placeholder="Internal notes..."/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Booking Search View -->
+    <record id="view_fleet_booking_search" model="ir.ui.view">
+        <field name="name">fleet.booking.search</field>
+        <field name="model">fleet.booking</field>
+        <field name="arch" type="xml">
+            <search string="Bookings">
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="assigned_vehicle_id"/>
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Confirmed" name="confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <filter string="Assigned" name="assigned" domain="[('state', '=', 'assigned')]"/>
+                <filter string="Cancelled" name="cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+                <group>
+                    <filter string="Status" name="group_status" context="{'group_by': 'state'}"/>
+                    <filter string="Vehicle Type" name="group_vehicle_type" context="{'group_by': 'vehicle_type'}"/>
+                    <filter string="Customer" name="group_customer" context="{'group_by': 'customer_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Booking Action -->
+    <record id="action_fleet_booking" model="ir.actions.act_window">
+        <field name="name">Bookings</field>
+        <field name="res_model">fleet.booking</field>
+        <field name="view_mode">kanban,calendar,list,form</field>
+        <field name="context">{'search_default_draft': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first booking!
+            </p>
+            <p>
+                Manage customer bookings and reservations for your fleet.
+            </p>
+        </field>
+    </record>
+
+    <!-- Driver List View -->
+    <record id="view_fleet_driver_list" model="ir.ui.view">
+        <field name="name">fleet.driver.list</field>
+        <field name="model">fleet.driver</field>
+        <field name="arch" type="xml">
+            <list string="Drivers">
+                <field name="name"/>
+                <field name="license_number"/>
+                <field name="license_type"/>
+                <field name="license_expiry_date"/>
+                <field name="phone"/>
+                <field name="is_active"/>
+                <field name="is_available"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Driver Form View -->
+    <record id="view_fleet_driver_form" model="ir.ui.view">
+        <field name="name">fleet.driver.form</field>
+        <field name="model">fleet.driver</field>
+        <field name="arch" type="xml">
+            <form string="Driver">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="partner_id" options="{'no_create': False}"/>
+                            <field name="license_number"/>
+                            <field name="license_type"/>
+                        </group>
+                        <group>
+                            <field name="license_issue_date"/>
+                            <field name="license_expiry_date"/>
+                            <field name="is_active"/>
+                            <field name="is_available"/>
+                        </group>
+                    </group>
+                    <group string="Contact Information">
+                        <group>
+                            <field name="phone"/>
+                            <field name="email"/>
+                        </group>
+                        <group>
+                            <field name="address" placeholder="Driver address..."/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Performance">
+                            <field name="total_rentals" readonly="1"/>
+                            <field name="average_rating" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Driver Search View -->
+    <record id="view_fleet_driver_search" model="ir.ui.view">
+        <field name="name">fleet.driver.search</field>
+        <field name="model">fleet.driver</field>
+        <field name="arch" type="xml">
+            <search string="Drivers">
+                <field name="name"/>
+                <field name="license_number"/>
+                <filter string="Active" name="active" domain="[('is_active', '=', True)]"/>
+                <filter string="Available" name="available" domain="[('is_available', '=', True)]"/>
+                <separator/>
+                <group>
+                    <filter string="License Type" name="group_license_type" context="{'group_by': 'license_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Driver Action -->
+    <record id="action_fleet_driver" model="ir.actions.act_window">
+        <field name="name">Drivers</field>
+        <field name="res_model">fleet.driver</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first driver!
+            </p>
+            <p>
+                Manage drivers for your fleet operations.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Items -->
+    <menuitem id="menu_fleet_booking_root" name="Bookings" parent="menu_car_rental_operations" sequence="10"/>
+    <menuitem id="menu_fleet_booking" name="Bookings" parent="menu_fleet_booking_root" action="action_fleet_booking" sequence="10"/>
+    <menuitem id="menu_fleet_driver" name="Drivers" parent="menu_fleet_booking_root" action="action_fleet_driver" sequence="20"/>
+
+</odoo>
+

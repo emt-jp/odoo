@@ -54,7 +54,7 @@ class FleetFinancialManagement(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     def _calculate_financial_metrics(self):
         """Calculate financial metrics"""

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extra Form View -->
+    <record id="view_rental_extra_form" model="ir.ui.view">
+        <field name="name">rental.extra.form</field>
+        <field name="model">rental.extra</field>
+        <field name="arch" type="xml">
+            <form string="Rental Extra">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                            <field name="active" widget="boolean_button" options='{"terminology": "archive"}'/>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group>
+                            <field name="price"/>
+                            <field name="price_type"/>
+                            <field name="max_price_per_rental"/>
+                            <field name="max_quantity"/>
+                        </group>
+                    </group>
+                    <group string="Compatibility">
+                        <field name="compatible_category_ids" widget="many2many_tags"/>
+                        <field name="min_seats"/>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="icon"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Extra List View - Editable for quick rate changes -->
+    <record id="view_rental_extra_list" model="ir.ui.view">
+        <field name="name">rental.extra.list</field>
+        <field name="model">rental.extra</field>
+        <field name="arch" type="xml">
+            <list string="Rental Extras" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="category"/>
+                <field name="price"/>
+                <field name="price_type"/>
+                <field name="max_price_per_rental"/>
+                <field name="max_quantity"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Extra Search View -->
+    <record id="view_rental_extra_search" model="ir.ui.view">
+        <field name="name">rental.extra.search</field>
+        <field name="model">rental.extra</field>
+        <field name="arch" type="xml">
+            <search string="Search Extras">
+                <field name="name"/>
+                <field name="code"/>
+                <filter name="filter_child_seat" string="Child Seats" domain="[('category', '=', 'child_seat')]"/>
+                <filter name="filter_navigation" string="Navigation" domain="[('category', '=', 'navigation')]"/>
+                <separator/>
+                <filter name="group_category" string="Category" context="{'group_by': 'category'}"/>
+                <filter name="group_price_type" string="Price Type" context="{'group_by': 'price_type'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Extra Action -->
+    <record id="action_rental_extra" model="ir.actions.act_window">
+        <field name="name">Rental Extras</field>
+        <field name="res_model">rental.extra</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_rental_extra_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add rental extras (child seats, GPS, etc.)
+            </p>
+        </field>
+    </record>
+</odoo>

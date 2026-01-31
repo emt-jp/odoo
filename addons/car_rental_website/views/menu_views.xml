@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main Menu -->
+    <menuitem id="menu_car_rental_root"
+              name="Car Rental"
+              web_icon="car_rental_website,static/description/icon.png"
+              sequence="45"/>
+
+    <!-- Bookings -->
+    <menuitem id="menu_rental_bookings"
+              name="Bookings"
+              parent="menu_car_rental_root"
+              sequence="10"/>
+
+    <menuitem id="menu_rental_booking_all"
+              name="All Bookings"
+              parent="menu_rental_bookings"
+              action="action_rental_booking"
+              sequence="10"/>
+
+    <menuitem id="menu_rental_booking_today"
+              name="Today's Pickups"
+              parent="menu_rental_bookings"
+              action="action_rental_booking_today"
+              sequence="20"/>
+
+    <!-- Customers -->
+    <menuitem id="menu_rental_customers"
+              name="Customers"
+              parent="menu_car_rental_root"
+              sequence="20"/>
+
+    <menuitem id="menu_rental_customer_all"
+              name="All Customers"
+              parent="menu_rental_customers"
+              action="action_rental_customers"
+              sequence="10"/>
+
+    <menuitem id="menu_rental_customer_pending"
+              name="Pending Verification"
+              parent="menu_rental_customers"
+              action="action_pending_license_verification"
+              sequence="20"/>
+
+    <!-- Fleet -->
+    <menuitem id="menu_rental_fleet"
+              name="Fleet"
+              parent="menu_car_rental_root"
+              sequence="30"/>
+
+    <menuitem id="menu_rental_vehicles"
+              name="Rental Vehicles"
+              parent="menu_rental_fleet"
+              action="action_rental_vehicles"
+              sequence="10"/>
+
+    <menuitem id="menu_rental_vehicle_features"
+              name="Vehicle Features"
+              parent="menu_rental_fleet"
+              action="action_fleet_vehicle_feature"
+              sequence="20"/>
+
+    <!-- Configuration -->
+    <menuitem id="menu_rental_config"
+              name="Configuration"
+              parent="menu_car_rental_root"
+              groups="car_rental_website.group_rental_manager"
+              sequence="100"/>
+
+    <menuitem id="menu_rental_locations"
+              name="Locations"
+              parent="menu_rental_config"
+              action="action_rental_location"
+              sequence="10"/>
+
+    <menuitem id="menu_rental_insurance"
+              name="Insurance Plans"
+              parent="menu_rental_config"
+              action="action_rental_insurance"
+              sequence="20"/>
+
+    <menuitem id="menu_rental_extras"
+              name="Rental Extras"
+              parent="menu_rental_config"
+              action="action_rental_extra"
+              sequence="30"/>
+</odoo>

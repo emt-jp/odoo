@@ -16,7 +16,7 @@ _logger = logging.getLogger(__name__)
 class AnalyticsExport(models.Model):
     _name = 'analytics.export'
     _description = 'Analytics Export'
-    
+
     name = fields.Char('Export Name', required=True)
     export_type = fields.Selection([
         ('csv', 'CSV'),
@@ -24,7 +24,24 @@ class AnalyticsExport(models.Model):
         ('pdf', 'PDF'),
         ('json', 'JSON'),
     ], string='Export Type', required=True, default='csv')
-    
+
+    # Alias for view compatibility
+    export_format = fields.Selection([
+        ('csv', 'CSV'),
+        ('excel', 'Excel'),
+        ('pdf', 'PDF'),
+        ('json', 'JSON'),
+    ], string='Export Format', default='csv')
+
+    export_date = fields.Datetime('Export Date', default=fields.Datetime.now)
+
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('in_progress', 'In Progress'),
+        ('done', 'Done'),
+        ('error', 'Error'),
+    ], string='State', default='draft')
+
     data = fields.Text('Export Data')
     file_data = fields.Binary('File Data')
     file_name = fields.Char('File Name')
@@ -66,7 +83,7 @@ class AnalyticsExport(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     def _export_to_csv(self, records, field_names):
         """Export data to CSV format"""

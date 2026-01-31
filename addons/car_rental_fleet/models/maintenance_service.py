@@ -45,10 +45,27 @@ class FleetMaintenance(models.Model):
     
     # Scheduling
     scheduled_date = fields.Datetime('Scheduled Date', required=True)
+    service_start_date = fields.Datetime('Service Start Date', help='Planned start date when vehicle will be unavailable for booking')
+    service_end_date = fields.Datetime('Service End Date', help='Planned end date when vehicle will become available again')
     actual_start_date = fields.Datetime('Actual Start Date')
     actual_end_date = fields.Datetime('Actual End Date')
     estimated_duration = fields.Float('Estimated Duration (Hours)', digits=(5, 2))
     actual_duration = fields.Float('Actual Duration (Hours)', digits=(5, 2), compute='_compute_actual_duration', store=True)
+
+    # Periodic Service
+    is_periodic = fields.Boolean('Periodic Service', default=False, help='Enable for recurring services like monthly, quarterly or annual checks')
+    periodic_type = fields.Selection([
+        ('monthly', 'Monthly Check'),
+        ('quarterly', 'Quarterly Check'),
+        ('semi_annual', 'Semi-Annual Check'),
+        ('annual', 'Annual Check'),
+    ], string='Periodic Type', help='Type of recurring service schedule')
+    parent_service_id = fields.Many2one('fleet.maintenance', string='Parent Service', help='Reference to the original periodic service')
+    child_service_ids = fields.One2many('fleet.maintenance', 'parent_service_id', string='Generated Services', help='Services generated from this periodic schedule')
+
+    # KM-Based Service
+    is_km_based = fields.Boolean('KM-Based Service', default=False, help='This service was auto-generated based on odometer reading')
+    km_threshold = fields.Integer('KM Threshold', help='The odometer reading that triggered this service')
     
     # Status
     status = fields.Selection([
@@ -58,6 +75,59 @@ class FleetMaintenance(models.Model):
         ('cancelled', 'Cancelled'),
         ('on_hold', 'On Hold'),
     ], string='Status', default='scheduled')
+    
+    @api.constrains('scheduled_date', 'actual_start_date', 'actual_end_date', 'service_start_date', 'service_end_date')
+    def _check_maintenance_dates(self):
+        """Validate maintenance dates"""
+        for maintenance in self:
+            if maintenance.actual_start_date and maintenance.scheduled_date:
+                if maintenance.actual_start_date < maintenance.scheduled_date:
+                    raise ValidationError(_('Actual start date cannot be before scheduled date.'))
+            if maintenance.actual_end_date and maintenance.actual_start_date:
+                if maintenance.actual_end_date < maintenance.actual_start_date:
+                    raise ValidationError(_('Actual end date cannot be before actual start date.'))
+            # Validate service dates
+            if maintenance.service_start_date and maintenance.service_end_date:
+                if maintenance.service_end_date < maintenance.service_start_date:
+                    raise ValidationError(_('Service end date cannot be before service start date.'))
+
+    @api.constrains('is_periodic', 'periodic_type')
+    def _check_periodic_service(self):
+        """Validate periodic service configuration"""
+        for maintenance in self:
+            if maintenance.is_periodic and not maintenance.periodic_type:
+                raise ValidationError(_('Please select a periodic type for periodic service.'))
+    
+    @api.constrains('labor_hours', 'labor_rate')
+    def _check_labor_cost(self):
+        """Validate labor cost values"""
+        for maintenance in self:
+            if maintenance.labor_hours and maintenance.labor_hours < 0:
+                raise ValidationError(_('Labor hours cannot be negative.'))
+            if maintenance.labor_rate and maintenance.labor_rate < 0:
+                raise ValidationError(_('Labor rate cannot be negative.'))
+    
+    def action_start(self):
+        """Start maintenance"""
+        for maintenance in self:
+            if maintenance.status != 'scheduled':
+                raise UserError(_("Only scheduled maintenance can be started."))
+            maintenance.write({
+                'status': 'in_progress',
+                'actual_start_date': fields.Datetime.now()
+            })
+        return True
+    
+    def action_complete(self):
+        """Complete maintenance"""
+        for maintenance in self:
+            if maintenance.status != 'in_progress':
+                raise UserError(_("Only in-progress maintenance can be completed."))
+            maintenance.write({
+                'status': 'completed',
+                'actual_end_date': fields.Datetime.now()
+            })
+        return True
     
     # Service Provider
     service_provider_id = fields.Many2one('res.partner', string='Service Provider')
@@ -138,7 +208,7 @@ class FleetMaintenance(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     @api.model
     def create(self, vals):
@@ -347,11 +417,11 @@ class FleetMaintenance(models.Model):
         """Get maintenance history for vehicle"""
         if not self._is_enterprise_available():
             return []
-        
+
         maintenance_records = self.search([
             ('vehicle_id', '=', vehicle_id),
         ], order='scheduled_date desc')
-        
+
         return [{
             'id': record.id,
             'name': record.name,
@@ -364,15 +434,183 @@ class FleetMaintenance(models.Model):
             'odometer_reading': record.odometer_reading,
         } for record in maintenance_records]
 
+    def action_generate_periodic_services(self):
+        """Generate periodic service records for the next 5 years"""
+        if not self._is_enterprise_available():
+            raise UserError(_("Periodic service generation requires the Enterprise edition."))
+
+        for maintenance in self:
+            if not maintenance.is_periodic or not maintenance.periodic_type:
+                raise UserError(_("Please enable periodic service and select a periodic type first."))
+
+            if not maintenance.service_start_date or not maintenance.service_end_date:
+                raise UserError(_("Please set service start and end dates for the periodic service."))
+
+            # Delete existing child services that are still scheduled
+            existing_scheduled = maintenance.child_service_ids.filtered(lambda s: s.status == 'scheduled')
+            existing_scheduled.unlink()
+
+            # Calculate interval based on periodic type
+            if maintenance.periodic_type == 'monthly':
+                interval_months = 1
+                description_prefix = 'Monthly Check'
+            elif maintenance.periodic_type == 'quarterly':
+                interval_months = 3
+                description_prefix = 'Quarterly Check'
+            elif maintenance.periodic_type == 'semi_annual':
+                interval_months = 6
+                description_prefix = 'Semi-Annual Check'
+            else:  # annual
+                interval_months = 12
+                description_prefix = 'Annual Check'
+
+            # Calculate service duration
+            service_duration = maintenance.service_end_date - maintenance.service_start_date
+
+            # Generate services for next 5 years
+            current_date = maintenance.service_start_date
+            end_date_limit = maintenance.service_start_date + relativedelta(years=5)
+            service_count = 0
+
+            while current_date < end_date_limit:
+                # Skip the first occurrence (the parent itself)
+                if service_count > 0:
+                    service_end = current_date + service_duration
+                    self.create({
+                        'vehicle_id': maintenance.vehicle_id.id,
+                        'maintenance_type': maintenance.maintenance_type,
+                        'description': f'{description_prefix} - {maintenance.vehicle_id.name}',
+                        'priority': maintenance.priority,
+                        'scheduled_date': current_date,
+                        'service_start_date': current_date,
+                        'service_end_date': service_end,
+                        'estimated_duration': maintenance.estimated_duration,
+                        'service_provider_id': maintenance.service_provider_id.id if maintenance.service_provider_id else False,
+                        'service_provider_type': maintenance.service_provider_type,
+                        'is_periodic': False,  # Child services are not periodic themselves
+                        'parent_service_id': maintenance.id,
+                        'status': 'scheduled',
+                    })
+                service_count += 1
+                current_date = current_date + relativedelta(months=interval_months)
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Periodic Services Generated'),
+                'message': _('Successfully generated periodic service entries for the next 5 years.'),
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+
+    @api.model
+    def get_vehicle_service_periods(self, vehicle_id, start_date, end_date):
+        """Get all service periods for a vehicle within a date range (used for booking availability)"""
+        domain = [
+            ('vehicle_id', '=', vehicle_id),
+            ('status', 'in', ['scheduled', 'in_progress']),
+            ('service_start_date', '!=', False),
+            ('service_end_date', '!=', False),
+            '|',
+            '&', ('service_start_date', '<=', start_date), ('service_end_date', '>=', start_date),
+            '&', ('service_start_date', '<=', end_date), ('service_end_date', '>=', end_date),
+        ]
+        return self.search(domain)
+
+    def is_vehicle_available_for_booking(self, vehicle_id, pickup_date, return_date):
+        """Check if vehicle is available for booking (not under scheduled service)"""
+        conflicting_services = self.search([
+            ('vehicle_id', '=', vehicle_id),
+            ('status', 'in', ['scheduled', 'in_progress']),
+            ('service_start_date', '!=', False),
+            ('service_end_date', '!=', False),
+            '|',
+            '&', ('service_start_date', '<=', pickup_date), ('service_end_date', '>=', pickup_date),
+            '&', ('service_start_date', '<=', return_date), ('service_end_date', '>=', return_date),
+        ])
+        return len(conflicting_services) == 0
+
+    @api.model
+    def _cron_generate_km_based_services(self):
+        """Cron job to automatically generate km-based service checks.
+        Runs daily to check all vehicles and create 5000km interval services.
+        Service is scheduled 1 week after threshold is crossed, with 2-day duration.
+        """
+        _logger.info("Running KM-based service generation cron job")
+
+        # Get all rental vehicles with km service enabled
+        vehicles = self.env['fleet.vehicle'].search([
+            ('is_rental_vehicle', '=', True),
+            ('km_service_enabled', '=', True),
+        ])
+
+        for vehicle in vehicles:
+            self._check_and_create_km_service(vehicle)
+
+        return True
+
+    def _check_and_create_km_service(self, vehicle):
+        """Check if vehicle needs a km-based service and create it if needed"""
+        if not vehicle.odometer or vehicle.odometer <= 0:
+            return
+
+        km_interval = vehicle.km_service_interval or 5000
+        current_odometer = vehicle.odometer
+
+        # Calculate the next km threshold
+        last_serviced_km = vehicle.last_km_service_odometer or 0
+        next_threshold = ((last_serviced_km // km_interval) + 1) * km_interval
+
+        # Check if current odometer has crossed the threshold
+        if current_odometer >= next_threshold:
+            # Check if service already exists for this threshold
+            existing_service = self.search([
+                ('vehicle_id', '=', vehicle.id),
+                ('is_km_based', '=', True),
+                ('km_threshold', '=', next_threshold),
+                ('status', '!=', 'cancelled'),
+            ], limit=1)
+
+            if not existing_service:
+                # Create new km-based service scheduled 1 week from now
+                service_duration_days = vehicle.km_service_duration_days or 2
+                service_start = fields.Datetime.now() + timedelta(days=7)
+                service_end = service_start + timedelta(days=service_duration_days)
+
+                self.create({
+                    'vehicle_id': vehicle.id,
+                    'maintenance_type': 'routine',
+                    'description': f'5000 KM Service Check - Odometer reached {next_threshold} km',
+                    'priority': 'medium',
+                    'scheduled_date': service_start,
+                    'service_start_date': service_start,
+                    'service_end_date': service_end,
+                    'estimated_duration': service_duration_days * 8,  # 8 hours per day
+                    'is_km_based': True,
+                    'km_threshold': next_threshold,
+                    'odometer_reading': current_odometer,
+                    'status': 'scheduled',
+                })
+
+                # Update vehicle's last km service odometer
+                vehicle.write({'last_km_service_odometer': next_threshold})
+
+                _logger.info(f"Created KM-based service for vehicle {vehicle.name} at {next_threshold} km")
+
 
 class FleetMaintenancePart(models.Model):
     _name = 'fleet.maintenance.part'
     _description = 'Fleet Maintenance Parts'
-    
+
+    part_name = fields.Char('Part Name', required=True)
+    part_number = fields.Char('Part Number')
     maintenance_id = fields.Many2one('fleet.maintenance', string='Maintenance', required=True, ondelete='cascade')
-    part_id = fields.Many2one('product.product', string='Part', required=True)
+    part_id = fields.Many2one('product.product', string='Part')
     quantity = fields.Float('Quantity', required=True, default=1.0)
-    unit_price = fields.Monetary('Unit Price', currency_field='currency_id', required=True)
+    unit_cost = fields.Monetary('Unit Cost', currency_field='currency_id', required=True)
+    unit_price = fields.Monetary('Unit Price', currency_field='currency_id', related='unit_cost')
     total_cost = fields.Monetary('Total Cost', currency_field='currency_id', compute='_compute_total_cost', store=True)
     currency_id = fields.Many2one('res.currency', string='Currency', related='maintenance_id.currency_id')
     
@@ -380,15 +618,15 @@ class FleetMaintenancePart(models.Model):
     is_enterprise = fields.Boolean('Enterprise Feature', default=True)
     requires_license = fields.Boolean('Requires License', default=True)
     
-    @api.depends('quantity', 'unit_price')
+    @api.depends('quantity', 'unit_cost')
     def _compute_total_cost(self):
         """Compute total cost"""
         for part in self:
-            part.total_cost = part.quantity * part.unit_price
+            part.total_cost = part.quantity * part.unit_cost
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
 
 
 class FleetQualityCheck(models.Model):
@@ -434,7 +672,7 @@ class FleetQualityCheck(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
 
 
 class FleetQualityCheckItem(models.Model):
@@ -454,7 +692,7 @@ class FleetQualityCheckItem(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
 
 
 

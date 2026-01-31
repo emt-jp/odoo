@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Report Builder Views -->
+    <record id="view_report_builder_tree" model="ir.ui.view">
+        <field name="name">report.builder.tree</field>
+        <field name="model">report.builder</field>
+        <field name="arch" type="xml">
+            <list string="Reports">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="report_type"/>
+                <field name="model_name"/>
+                <field name="chart_type"/>
+                <field name="period_type"/>
+                <field name="last_generated"/>
+                <field name="generation_count"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_report_builder_form" model="ir.ui.view">
+        <field name="name">report.builder.form</field>
+        <field name="model">report.builder</field>
+        <field name="arch" type="xml">
+            <form string="Report Builder">
+                <header>
+                    <button name="action_generate_report" type="object" string="Generate Report" class="btn-primary"/>
+                    <button name="action_preview_report" type="object" string="Preview"/>
+                    <button name="action_export_pdf" type="object" string="Export PDF"/>
+                    <button name="action_export_excel" type="object" string="Export Excel"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="action_view_history" icon="fa-history">
+                            <field name="generation_count" widget="statinfo" string="Runs"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Report Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Report Configuration">
+                            <field name="report_type"/>
+                            <field name="model_name"/>
+                            <field name="chart_type"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Time Period">
+                            <field name="period_type"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="Report description..."/>
+                        </page>
+                        <page string="Data Source" name="data_source">
+                            <group>
+                                <field name="domain" widget="domain" options="{'model': 'model_name'}"/>
+                            </group>
+                            <group string="Grouping">
+                                <field name="group_by_fields" placeholder="field1, field2, field3"/>
+                            </group>
+                        </page>
+                        <page string="Fields Configuration" name="fields">
+                            <field name="field_config" widget="ace" options="{'mode': 'json'}"/>
+                        </page>
+                        <page string="Aggregation" name="aggregation">
+                            <field name="aggregate_fields" widget="ace" options="{'mode': 'json'}"/>
+                        </page>
+                        <page string="Filters" name="filters">
+                            <field name="filter_config" widget="ace" options="{'mode': 'json'}"/>
+                        </page>
+                        <page string="Chart Configuration" name="chart">
+                            <field name="chart_config" widget="ace" options="{'mode': 'json'}"/>
+                        </page>
+                        <page string="Access Control" name="access">
+                            <group>
+                                <field name="user_ids" widget="many2many_tags"/>
+                                <field name="group_ids" widget="many2many_tags"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_report_builder_kanban" model="ir.ui.view">
+        <field name="name">report.builder.kanban</field>
+        <field name="model">report.builder</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_dashboard">
+                <field name="name"/>
+                <field name="report_type"/>
+                <field name="chart_type"/>
+                <field name="last_generated"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="o_kanban_card_header">
+                            <div class="o_kanban_card_header_title">
+                                <strong><field name="name"/></strong>
+                            </div>
+                        </div>
+                        <div class="o_kanban_card_content">
+                            <div class="row">
+                                <div class="col-6">
+                                    <span class="o_label">Type</span>
+                                    <span class="o_value"><field name="report_type"/></span>
+                                </div>
+                                <div class="col-6">
+                                    <span class="o_label">Chart</span>
+                                    <span class="o_value"><field name="chart_type"/></span>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-12">
+                                    <span class="text-muted small">Last run: <field name="last_generated"/></span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_report_builder_search" model="ir.ui.view">
+        <field name="name">report.builder.search</field>
+        <field name="model">report.builder</field>
+        <field name="arch" type="xml">
+            <search string="Search Reports">
+                <field name="name"/>
+                <field name="report_type"/>
+                <field name="model_name"/>
+                <separator/>
+                <filter string="Financial" name="financial" domain="[('report_type', '=', 'financial')]"/>
+                <filter string="Sales" name="sales" domain="[('report_type', '=', 'sales')]"/>
+                <filter string="Inventory" name="inventory" domain="[('report_type', '=', 'inventory')]"/>
+                <filter string="CRM" name="crm" domain="[('report_type', '=', 'crm')]"/>
+                <separator/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter string="Report Type" name="group_report_type" context="{'group_by': 'report_type'}"/>
+                <filter string="Chart Type" name="group_chart_type" context="{'group_by': 'chart_type'}"/>
+                <filter string="Period" name="group_period" context="{'group_by': 'period_type'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Actions -->
+    <record id="action_report_builder" model="ir.actions.act_window">
+        <field name="name">Report Builder</field>
+        <field name="res_model">report.builder</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_report_builder_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first custom report
+            </p>
+            <p>
+                Build custom reports with advanced filtering, grouping, and visualization options.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menus -->
+    <menuitem id="menu_advanced_reports_root" name="Report Builder" sequence="90" web_icon="advanced_reports,static/description/icon.png"/>
+
+    <menuitem id="menu_report_builder" name="Reports" parent="menu_advanced_reports_root" sequence="10" action="action_report_builder"/>
+
+    <menuitem id="menu_report_templates" name="Templates" parent="menu_advanced_reports_root" sequence="20"/>
+</odoo>

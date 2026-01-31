@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Booking Form View -->
+    <record id="view_rental_booking_form" model="ir.ui.view">
+        <field name="name">rental.booking.form</field>
+        <field name="model">rental.booking</field>
+        <field name="arch" type="xml">
+            <form string="Rental Booking">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object"
+                            class="btn-primary" invisible="state != 'new'"/>
+                    <button name="action_mark_paid" string="Mark as Paid" type="object"
+                            class="btn-primary" invisible="state != 'confirmed'"/>
+                    <button name="action_start_rental" string="Start Rental" type="object"
+                            class="btn-primary" invisible="state != 'paid'"/>
+                    <button name="action_complete" string="Complete" type="object"
+                            class="btn-primary" invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            class="btn-secondary" invisible="state in ['completed', 'cancelled']"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="new,confirmed,paid,in_progress,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="get_portal_url" type="object" class="oe_stat_button" icon="fa-globe">
+                            <span>Portal Link</span>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Customer">
+                            <field name="partner_id"/>
+                            <field name="partner_email"/>
+                            <field name="partner_phone"/>
+                        </group>
+                        <group string="Vehicle">
+                            <field name="vehicle_id"/>
+                            <field name="vehicle_image" widget="image" class="oe_avatar"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Dates">
+                            <field name="pickup_date"/>
+                            <field name="dropoff_date"/>
+                            <field name="rental_days"/>
+                        </group>
+                        <group string="Locations">
+                            <field name="pickup_location_id"/>
+                            <field name="dropoff_location_id"/>
+                            <field name="same_location" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Insurance &amp; Extras">
+                            <group>
+                                <group>
+                                    <field name="insurance_id"/>
+                                </group>
+                            </group>
+                            <field name="extra_line_ids">
+                                <list editable="bottom">
+                                    <field name="extra_id"/>
+                                    <field name="quantity"/>
+                                    <field name="unit_price"/>
+                                    <field name="subtotal"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Pricing">
+                            <group>
+                                <group>
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="daily_rate"/>
+                                    <field name="vehicle_total"/>
+                                    <field name="insurance_total"/>
+                                    <field name="extras_total"/>
+                                    <field name="location_fee"/>
+                                </group>
+                                <group>
+                                    <field name="subtotal"/>
+                                    <field name="tax_rate"/>
+                                    <field name="tax_amount"/>
+                                    <field name="total_amount" class="oe_subtotal_footer_separator"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Payment">
+                            <group>
+                                <group>
+                                    <field name="payment_state"/>
+                                    <field name="payment_method"/>
+                                    <field name="amount_paid"/>
+                                </group>
+                                <group>
+                                    <field name="stripe_payment_intent" readonly="1"/>
+                                    <field name="stripe_checkout_session" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Notes">
+                            <group>
+                                <field name="customer_notes" placeholder="Customer notes..."/>
+                                <field name="internal_notes" placeholder="Internal notes..."/>
+                            </group>
+                        </page>
+                        <page string="Cancellation" invisible="state != 'cancelled'">
+                            <group>
+                                <field name="cancelled_date"/>
+                                <field name="cancellation_reason"/>
+                                <field name="refund_amount"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Booking List View -->
+    <record id="view_rental_booking_list" model="ir.ui.view">
+        <field name="name">rental.booking.list</field>
+        <field name="model">rental.booking</field>
+        <field name="arch" type="xml">
+            <list string="Rental Bookings" decoration-info="state == 'draft'"
+                  decoration-warning="state == 'pending'" decoration-success="state == 'confirmed'"
+                  decoration-primary="state == 'in_progress'" decoration-muted="state == 'cancelled'">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="vehicle_id"/>
+                <field name="pickup_date"/>
+                <field name="dropoff_date"/>
+                <field name="rental_days"/>
+                <field name="total_amount" sum="Total"/>
+                <field name="payment_state"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Booking Kanban View -->
+    <record id="view_rental_booking_kanban" model="ir.ui.view">
+        <field name="name">rental.booking.kanban</field>
+        <field name="model">rental.booking</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="vehicle_id"/>
+                <field name="vehicle_image"/>
+                <field name="pickup_date"/>
+                <field name="total_amount"/>
+                <field name="state"/>
+                <field name="payment_state"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex">
+                            <field name="vehicle_image" widget="image" class="me-2"
+                                   options="{'preview_image': 'vehicle_image'}" style="width: 60px;"/>
+                            <div class="flex-grow-1">
+                                <strong><field name="name"/></strong>
+                                <div><field name="vehicle_id"/></div>
+                                <div class="text-muted"><field name="partner_id"/></div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <span class="badge bg-primary"><field name="pickup_date"/></span>
+                        </div>
+                        <div class="mt-1 d-flex justify-content-between">
+                            <strong><field name="total_amount" widget="monetary"/></strong>
+                            <field name="payment_state" widget="badge"
+                                   decoration-success="payment_state == 'paid'"
+                                   decoration-warning="payment_state == 'partial'"
+                                   decoration-danger="payment_state == 'not_paid'"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Booking Search View -->
+    <record id="view_rental_booking_search" model="ir.ui.view">
+        <field name="name">rental.booking.search</field>
+        <field name="model">rental.booking</field>
+        <field name="arch" type="xml">
+            <search string="Search Bookings">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="vehicle_id"/>
+                <separator/>
+                <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_pending" string="Pending Payment" domain="[('state', '=', 'pending')]"/>
+                <filter name="filter_confirmed" string="Confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <filter name="filter_in_progress" string="In Progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter name="filter_completed" string="Completed" domain="[('state', '=', 'completed')]"/>
+                <filter name="filter_cancelled" string="Cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+                <filter name="filter_today" string="Today's Pickups"
+                        domain="[('pickup_date', '&gt;=', datetime.datetime.combine(context_today(), datetime.time(0,0,0))),
+                                 ('pickup_date', '&lt;', datetime.datetime.combine(context_today(), datetime.time(23,59,59)))]"/>
+                <filter name="filter_unpaid" string="Unpaid" domain="[('payment_state', '=', 'not_paid')]"/>
+                <separator/>
+                <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                <filter name="group_vehicle" string="Vehicle" context="{'group_by': 'vehicle_id'}"/>
+                <filter name="group_partner" string="Customer" context="{'group_by': 'partner_id'}"/>
+                <filter name="group_pickup_date" string="Pickup Date" context="{'group_by': 'pickup_date:day'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Booking Calendar View -->
+    <record id="view_rental_booking_calendar" model="ir.ui.view">
+        <field name="name">rental.booking.calendar</field>
+        <field name="model">rental.booking</field>
+        <field name="arch" type="xml">
+            <calendar string="Bookings Calendar" date_start="pickup_date" date_stop="dropoff_date"
+                      color="vehicle_id" mode="month">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="vehicle_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- Booking Action -->
+    <record id="action_rental_booking" model="ir.actions.act_window">
+        <field name="name">Bookings</field>
+        <field name="res_model">rental.booking</field>
+        <field name="view_mode">list,kanban,calendar,form</field>
+        <field name="search_view_id" ref="view_rental_booking_search"/>
+        <field name="context">{'search_default_filter_confirmed': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first booking
+            </p>
+            <p>
+                Manage car rental bookings from here.
+            </p>
+        </field>
+    </record>
+
+    <!-- Today's Pickups Action -->
+    <record id="action_rental_booking_today" model="ir.actions.act_window">
+        <field name="name">Today's Pickups</field>
+        <field name="res_model">rental.booking</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('pickup_date', '&gt;=', datetime.datetime.combine(context_today(), datetime.time(0,0,0))),
+                              ('pickup_date', '&lt;', datetime.datetime.combine(context_today(), datetime.time(23,59,59))),
+                              ('state', '=', 'confirmed')]</field>
+    </record>
+</odoo>

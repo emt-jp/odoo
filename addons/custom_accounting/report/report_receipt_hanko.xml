@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Japanese Receipt with Hanko (領収書) -->
+    <template id="report_receipt_hanko_document">
+        <t t-call="web.external_layout">
+            <t t-set="o" t-value="o.with_context(lang=lang)"/>
+
+            <div class="page">
+                <!-- Receipt Header -->
+                <div class="row mb-4">
+                    <div class="col-12 text-center">
+                        <h1 class="mb-0">領収書</h1>
+                        <h3 class="text-muted">Receipt</h3>
+                    </div>
+                </div>
+
+                <!-- Receipt Number and Date -->
+                <div class="row mb-4">
+                    <div class="col-6">
+                        <p><strong>領収書番号:</strong> <span t-field="o.name"/></p>
+                    </div>
+                    <div class="col-6 text-end">
+                        <p><strong>発行日:</strong> <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y年%m月%d日')"/></p>
+                    </div>
+                </div>
+
+                <!-- Customer Info -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="border-bottom border-2 border-dark pb-2 mb-3">
+                            <h4 class="mb-0">
+                                <span t-field="o.partner_id.name"/> 様
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Amount Section -->
+                <div class="row mb-5">
+                    <div class="col-12">
+                        <div class="border border-2 border-dark p-4 text-center">
+                            <p class="mb-2">金額 (Amount)</p>
+                            <h1 class="display-4 mb-0">
+                                ¥<span t-field="o.amount_total" t-options='{"widget": "monetary", "display_currency": False}'/>-
+                            </h1>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Details -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td width="30%"><strong>但し書き:</strong></td>
+                                <td>
+                                    <t t-foreach="o.invoice_line_ids.filtered(lambda l: not l.display_type)[:3]" t-as="line">
+                                        <span t-field="line.name"/>
+                                        <t t-if="not line_last">, </t>
+                                    </t>
+                                    <t t-if="len(o.invoice_line_ids.filtered(lambda l: not l.display_type)) > 3">
+                                        他
+                                    </t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>請求書番号:</strong></td>
+                                <td><span t-field="o.name"/></td>
+                            </tr>
+                            <tr t-if="o.invoice_date">
+                                <td><strong>請求日:</strong></td>
+                                <td><span t-field="o.invoice_date"/></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tax Breakdown (if qualified invoice) -->
+                <div class="row mb-4" t-if="o.is_qualified_invoice">
+                    <div class="col-6">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th colspan="3" class="text-center">税額内訳</th>
+                                </tr>
+                                <tr>
+                                    <th>税率</th>
+                                    <th class="text-end">税抜金額</th>
+                                    <th class="text-end">消費税額</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-if="o.tax_base_reduced">
+                                    <td>8%</td>
+                                    <td class="text-end" t-field="o.tax_base_reduced"/>
+                                    <td class="text-end" t-field="o.tax_amount_reduced"/>
+                                </tr>
+                                <tr t-if="o.tax_base_standard">
+                                    <td>10%</td>
+                                    <td class="text-end" t-field="o.tax_base_standard"/>
+                                    <td class="text-end" t-field="o.tax_amount_standard"/>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Note -->
+                <div class="row mb-5">
+                    <div class="col-12">
+                        <p class="text-muted small">
+                            上記金額を正に領収いたしました。
+                            <br/>
+                            We acknowledge receipt of the above amount.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Issuer Info with Hanko -->
+                <div class="row mt-5">
+                    <div class="col-8">
+                        <strong>発行者 (Issuer):</strong>
+                        <div t-field="o.company_id.partner_id"
+                            t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True}'/>
+                        <div t-if="o.issuer_t_number" class="mt-2">
+                            <strong>登録番号: <span t-field="o.issuer_t_number"/></strong>
+                        </div>
+                    </div>
+                    <div class="col-4 text-end">
+                        <!-- Hanko (Company Seal) -->
+                        <div t-if="o.company_id.hanko_image" class="hanko-container"
+                             style="display: inline-block; position: relative;">
+                            <img t-att-src="image_data_uri(o.company_id.hanko_image)"
+                                 style="max-width: 100px; max-height: 100px; opacity: 0.9;"
+                                 alt="Company Seal"/>
+                        </div>
+                        <div t-else="" class="text-muted small">
+                            (印)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="row mt-5">
+                    <div class="col-12 text-center text-muted small">
+                        <p>この領収書は、お支払いの証明としてお使いいただけます。</p>
+                        <p>This receipt serves as proof of payment.</p>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Receipt Report Action -->
+    <template id="report_receipt_hanko">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="lang" t-value="o.partner_id.lang"/>
+                <t t-call="custom_accounting.report_receipt_hanko_document"/>
+            </t>
+        </t>
+    </template>
+
+    <!-- Report Definition -->
+    <record id="action_report_receipt_hanko" model="ir.actions.report">
+        <field name="name">Receipt with Hanko (領収書)</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">custom_accounting.report_receipt_hanko</field>
+        <field name="report_file">custom_accounting.report_receipt_hanko</field>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Payment Success Page -->
+    <template id="payment_success_page" name="Payment Success">
+        <t t-call="website.layout">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-6 text-center">
+                        <div class="mb-4">
+                            <i class="fa fa-check-circle text-success" style="font-size: 5rem;"/>
+                        </div>
+                        <h1 class="text-success">お支払いが完了しました</h1>
+                        <h3 class="text-muted">Payment Successful</h3>
+                        <p class="mt-4">
+                            ご入金ありがとうございます。領収書はメールでお送りします。
+                            <br/>
+                            Thank you for your payment. A receipt will be sent to your email.
+                        </p>
+                        <a href="/" class="btn btn-primary mt-3">ホームに戻る</a>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Payment Cancel Page -->
+    <template id="payment_cancel_page" name="Payment Cancelled">
+        <t t-call="website.layout">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-6 text-center">
+                        <div class="mb-4">
+                            <i class="fa fa-times-circle text-warning" style="font-size: 5rem;"/>
+                        </div>
+                        <h1 class="text-warning">お支払いがキャンセルされました</h1>
+                        <h3 class="text-muted">Payment Cancelled</h3>
+                        <p class="mt-4">
+                            お支払いがキャンセルされました。もう一度お試しください。
+                            <br/>
+                            Your payment was cancelled. Please try again.
+                        </p>
+                        <a href="/" class="btn btn-primary mt-3">ホームに戻る</a>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

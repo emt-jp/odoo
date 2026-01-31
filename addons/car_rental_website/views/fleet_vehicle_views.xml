@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Fleet Vehicle Form Extension for Rental -->
+    <record id="view_fleet_vehicle_form_rental" model="ir.ui.view">
+        <field name="name">fleet.vehicle.form.rental</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Online Rental" name="online_rental">
+                    <group>
+                        <group string="Rental Settings">
+                            <field name="rental_available"/>
+                            <field name="website_published"/>
+                            <field name="website_sequence"/>
+                        </group>
+                        <group string="Pricing">
+                            <field name="rental_daily_rate"/>
+                            <field name="rental_weekly_rate"/>
+                            <field name="rental_monthly_rate"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Availability Rules">
+                            <field name="min_rental_days"/>
+                            <field name="max_rental_days"/>
+                            <field name="advance_booking_days"/>
+                        </group>
+                        <group string="Location">
+                            <field name="current_location_id"/>
+                            <field name="home_location_id"/>
+                        </group>
+                    </group>
+                    <group string="Website Display">
+                        <field name="website_short_description"/>
+                        <field name="website_description"/>
+                    </group>
+                    <group string="Features">
+                        <field name="feature_ids" widget="many2many_tags"/>
+                    </group>
+                    <group string="Specifications">
+                        <group>
+                            <field name="spec_engine"/>
+                            <field name="spec_horsepower"/>
+                            <field name="spec_acceleration"/>
+                        </group>
+                        <group>
+                            <field name="spec_top_speed"/>
+                            <field name="spec_trunk_capacity"/>
+                        </group>
+                    </group>
+                    <group string="Gallery Images">
+                        <field name="image_ids" nolabel="1">
+                            <list editable="bottom">
+                                <field name="sequence" widget="handle"/>
+                                <field name="name"/>
+                                <field name="image" widget="image" options='{"size": [100, 100]}'/>
+                            </list>
+                        </field>
+                    </group>
+                </page>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="%(action_rental_booking)d" type="action" class="oe_stat_button" icon="fa-calendar"
+                        context="{'search_default_vehicle_id': id}">
+                    <field name="rental_booking_count" string="Bookings" widget="statinfo"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Fleet Vehicle List Extension - Editable for quick changes -->
+    <record id="view_fleet_vehicle_list_rental" model="ir.ui.view">
+        <field name="name">fleet.vehicle.list.rental</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='driver_id']" position="after">
+                <field name="rental_available" widget="boolean_toggle"/>
+                <field name="website_published" widget="boolean_toggle"/>
+                <field name="rental_daily_rate"/>
+                <field name="rental_booking_count"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Available for Rental Action -->
+    <record id="action_rental_vehicles" model="ir.actions.act_window">
+        <field name="name">Rental Vehicles</field>
+        <field name="res_model">fleet.vehicle</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('rental_available', '=', True)]</field>
+        <field name="context">{'default_rental_available': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add vehicles available for rental
+            </p>
+        </field>
+    </record>
+
+    <!-- Vehicle Feature Views -->
+    <record id="view_fleet_vehicle_feature_list" model="ir.ui.view">
+        <field name="name">fleet.vehicle.feature.list</field>
+        <field name="model">fleet.vehicle.feature</field>
+        <field name="arch" type="xml">
+            <list string="Vehicle Features" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="icon"/>
+                <field name="category"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_fleet_vehicle_feature" model="ir.actions.act_window">
+        <field name="name">Vehicle Features</field>
+        <field name="res_model">fleet.vehicle.feature</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

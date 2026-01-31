@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_payslip_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Payslip - <span t-field="o.number"/></h2>
+                        <div class="row mt32 mb32">
+                            <div class="col-6">
+                                <strong>Employee:</strong> <span t-field="o.employee_id"/><br/>
+                                <strong>Period:</strong> <span t-field="o.date_from"/> to <span t-field="o.date_to"/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Contract:</strong> <span t-field="o.contract_id"/><br/>
+                                <strong>Date:</strong> <span t-field="o.create_date" t-options='{"widget": "date"}'/>
+                            </div>
+                        </div>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th class="text-right">Rate</th>
+                                    <th class="text-right">Quantity</th>
+                                    <th class="text-right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.line_ids" t-as="line">
+                                    <tr>
+                                        <td><span t-field="line.name"/></td>
+                                        <td class="text-right"><span t-field="line.rate"/></td>
+                                        <td class="text-right"><span t-field="line.quantity"/></td>
+                                        <td class="text-right"><span t-field="line.total"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <div class="row">
+                            <div class="col-6 offset-6">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Gross Salary:</strong></td>
+                                        <td class="text-right"><span t-field="o.gross_wage"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Total Deductions:</strong></td>
+                                        <td class="text-right"><span t-field="o.total_deductions"/></td>
+                                    </tr>
+                                    <tr class="border-top">
+                                        <td><strong>Net Salary:</strong></td>
+                                        <td class="text-right"><strong><span t-field="o.net_wage"/></strong></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

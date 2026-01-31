@@ -32,7 +32,10 @@
         'contacts',
         'utm',
     ],
-    'data': [],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/crm_views.xml',
+    ],
     'demo': [],
     'assets': {},
     'installable': True,

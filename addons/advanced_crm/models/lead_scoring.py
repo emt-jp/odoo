@@ -6,6 +6,7 @@ from odoo.exceptions import UserError, ValidationError
 import logging
 from datetime import datetime, timedelta
 import re
+import json
 
 _logger = logging.getLogger(__name__)
 
@@ -96,7 +97,7 @@ class LeadScoring(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     def _evaluate_rule(self, lead):
         """Evaluate if this rule applies to the lead"""

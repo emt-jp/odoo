@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Partner Form View Extension for T-Number -->
+    <record id="view_partner_form_t_number" model="ir.ui.view">
+        <field name="name">res.partner.form.t_number</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='vat']" position="after">
+                <field name="t_number" placeholder="T1234567890123"/>
+                <field name="is_qualified_invoice_issuer" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Partner Tree View Extension -->
+    <record id="view_partner_tree_t_number" model="ir.ui.view">
+        <field name="name">res.partner.tree.t_number</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='phone']" position="before">
+                <field name="t_number" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Partner Search View Extension -->
+    <record id="view_partner_search_t_number" model="ir.ui.view">
+        <field name="name">res.partner.search.t_number</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="t_number"/>
+            </xpath>
+            <xpath expr="//filter[@name='type_company']" position="after">
+                <separator/>
+                <filter string="Qualified Invoice Issuers" name="qualified_issuer"
+                        domain="[('is_qualified_invoice_issuer', '=', True)]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

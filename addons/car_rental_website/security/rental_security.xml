@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Security Groups - Optional for fine-grained control -->
+        <record id="group_rental_user" model="res.groups">
+            <field name="name">Car Rental / User</field>
+        </record>
+
+        <record id="group_rental_manager" model="res.groups">
+            <field name="name">Car Rental / Manager</field>
+            <field name="implied_ids" eval="[Command.link(ref('group_rental_user'))]"/>
+        </record>
+
+        <!-- Record Rules - Apply to all internal users -->
+        <record id="rental_booking_rule_user" model="ir.rule">
+            <field name="name">Rental Booking: User sees own company</field>
+            <field name="model_id" ref="model_rental_booking"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+            <field name="groups" eval="[Command.link(ref('base.group_user'))]"/>
+        </record>
+
+        <record id="rental_location_rule_user" model="ir.rule">
+            <field name="name">Rental Location: User sees own company</field>
+            <field name="model_id" ref="model_rental_location"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+            <field name="groups" eval="[Command.link(ref('base.group_user'))]"/>
+        </record>
+    </data>
+</odoo>

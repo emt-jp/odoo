@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Enhanced Payslip Batch Dashboard View -->
+    <record id="view_hr_payslip_run_form" model="ir.ui.view">
+        <field name="name">hr.payslip.run.form</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="arch" type="xml">
+            <form string="Payslip Batch Processing">
+                <header>
+                    <button name="action_generate_payslips" string="Generate Payslips"
+                            type="object" icon="fa-cogs" invisible="state != 'draft'"
+                            class="oe_highlight"/>
+                    <button name="action_view_payslips" string="View All Payslips"
+                            type="object" icon="fa-list" class="oe_highlight"/>
+                    <button name="action_close" string="Close Batch"
+                            type="object" icon="fa-check-circle"
+                            invisible="state != 'draft'"
+                            groups="hr_payroll_custom.group_hr_payroll_manager"/>
+                    <button name="action_draft" string="Reopen Batch"
+                            type="object" icon="fa-unlock" invisible="state != 'close'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,close"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Payslip Batch Reference"/></h1>
+                        <p class="text-muted">
+                            Batch processing for period:
+                            <field name="date_start" readonly="1" nolabel="1"/> to
+                            <field name="date_end" readonly="1" nolabel="1"/>
+                        </p>
+                    </div>
+
+                    <!-- Batch Status Alert -->
+                    <div class="alert alert-success" role="alert" invisible="state != 'close'">
+                        <h4 class="alert-heading">
+                            <i class="fa fa-check-circle"/> BATCH CLOSED
+                        </h4>
+                        <p class="mb-0">This payslip batch has been finalized and closed.</p>
+                    </div>
+
+                    <div class="alert alert-info" role="alert" invisible="state != 'draft'">
+                        <h4 class="alert-heading">
+                            <i class="fa fa-clock-o"/> BATCH IN DRAFT
+                        </h4>
+                        <p class="mb-0">Generate payslips and review before closing the batch.</p>
+                    </div>
+
+                    <!-- Batch Summary Dashboard KPIs -->
+                    <group string="📊 Batch Summary">
+                        <div class="row">
+                            <div class="col-lg-4 col-md-6">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body">
+                                        <h2 class="mb-0"><field name="payslip_count" readonly="1" nolabel="1"/></h2>
+                                        <p class="mb-0"><i class="fa fa-users"/> Total Payslips</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-6">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body">
+                                        <h2 class="mb-0"><field name="total_amount" readonly="1" widget="monetary" nolabel="1"/></h2>
+                                        <p class="mb-0"><i class="fa fa-money"/> Total Amount</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-6">
+                                <div class="card border-info">
+                                    <div class="card-body text-center">
+                                        <h4 class="text-info mb-0">
+                                            <field name="state" widget="badge" readonly="1" nolabel="1"
+                                                   decoration-muted="state == 'draft'"
+                                                   decoration-success="state == 'close'"/>
+                                        </h4>
+                                        <p class="text-muted mb-0">Batch Status</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </group>
+
+                    <!-- Period Information -->
+                    <group string="📅 Payroll Period">
+                        <group>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                        </group>
+                        <group>
+                            <field name="company_id" invisible="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Payslips List with Enhanced Visualization -->
+                    <notebook>
+                        <page string="Payslips" name="payslips">
+                            <field name="slip_ids">
+                                <list string="Payslips"
+                                      decoration-muted="state == 'draft'"
+                                      decoration-info="state == 'verify'"
+                                      decoration-success="state == 'done'"
+                                      decoration-danger="state == 'cancel'">
+                                    <!-- Key fields -->
+                                    <field name="number"/>
+                                    <field name="employee_id"/>
+
+                                    <!-- Financial fields with monetary widget -->
+                                    <field name="gross_wage" widget="monetary"
+                                           decoration-info="gross_wage &gt; 0"/>
+                                    <field name="net_wage" widget="monetary"
+                                           decoration-success="net_wage &gt; 0"/>
+
+                                    <!-- Status badge -->
+                                    <field name="state" widget="badge"
+                                           decoration-muted="state == 'draft'"
+                                           decoration-info="state == 'verify'"
+                                           decoration-success="state == 'done'"
+                                           decoration-danger="state == 'cancel'"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Summary" name="summary">
+                            <group>
+                                <div class="alert alert-info" role="alert">
+                                    <h4><i class="fa fa-info-circle"/> Batch Processing Summary</h4>
+                                    <ul class="mb-0">
+                                        <li>Total Employees: <strong><field name="payslip_count" readonly="1" nolabel="1"/></strong></li>
+                                        <li>Gross Total: <strong><field name="total_amount" readonly="1" widget="monetary" nolabel="1"/></strong></li>
+                                        <li>Period: <field name="date_start" readonly="1" nolabel="1"/> to <field name="date_end" readonly="1" nolabel="1"/></li>
+                                        <li>Status: <field name="state" readonly="1" widget="badge" nolabel="1"/></li>
+                                    </ul>
+                                </div>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Enhanced List View with Badges -->
+    <record id="view_hr_payslip_run_list" model="ir.ui.view">
+        <field name="name">hr.payslip.run.list</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="arch" type="xml">
+            <list string="Payslip Batches"
+                  decoration-muted="state == 'draft'"
+                  decoration-success="state == 'close'">
+                <field name="name"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="payslip_count"/>
+                <field name="total_amount" widget="monetary"/>
+                <field name="state" widget="badge"
+                       decoration-muted="state == 'draft'"
+                       decoration-success="state == 'close'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_hr_payslip_run" model="ir.actions.act_window">
+        <field name="name">Payslip Batches</field>
+        <field name="res_model">hr.payslip.run</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+    <!-- Menu Item -->
+    <menuitem id="menu_hr_payroll_batches" name="Payslip Batches" parent="menu_hr_payroll_root" action="action_hr_payslip_run" sequence="20"/>
+</odoo>

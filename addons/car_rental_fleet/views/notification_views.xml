@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Notification Template Form View -->
+    <record id="view_fleet_notification_template_form" model="ir.ui.view">
+        <field name="name">fleet.notification.template.form</field>
+        <field name="model">fleet.notification.template</field>
+        <field name="arch" type="xml">
+            <form string="Notification Template">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Template Name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="notification_type"/>
+                            <field name="send_timing"/>
+                            <field name="hours_before" invisible="send_timing != 'scheduled'"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="send_email"/>
+                            <field name="send_sms"/>
+                            <field name="send_whatsapp"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Email Template" name="email" invisible="not send_email">
+                            <group>
+                                <field name="email_subject"/>
+                            </group>
+                            <field name="email_body_html"/>
+                        </page>
+                        <page string="SMS Template" name="sms" invisible="not send_sms">
+                            <group>
+                                <field name="sms_body" placeholder="SMS message (max 160 chars recommended)..."/>
+                            </group>
+                        </page>
+                        <page string="WhatsApp Template" name="whatsapp" invisible="not send_whatsapp">
+                            <group>
+                                <field name="whatsapp_body"/>
+                            </group>
+                        </page>
+                        <page string="Placeholders" name="placeholders">
+                            <field name="placeholder_help" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Notification Template List View -->
+    <record id="view_fleet_notification_template_list" model="ir.ui.view">
+        <field name="name">fleet.notification.template.list</field>
+        <field name="model">fleet.notification.template</field>
+        <field name="arch" type="xml">
+            <list string="Notification Templates">
+                <field name="name"/>
+                <field name="notification_type"/>
+                <field name="send_email" widget="boolean"/>
+                <field name="send_sms" widget="boolean"/>
+                <field name="send_whatsapp" widget="boolean"/>
+                <field name="send_timing"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Notification Template Search View -->
+    <record id="view_fleet_notification_template_search" model="ir.ui.view">
+        <field name="name">fleet.notification.template.search</field>
+        <field name="model">fleet.notification.template</field>
+        <field name="arch" type="xml">
+            <search string="Notification Templates">
+                <field name="name"/>
+                <field name="notification_type"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Email" name="email" domain="[('send_email', '=', True)]"/>
+                <filter string="SMS" name="sms" domain="[('send_sms', '=', True)]"/>
+                <group>
+                    <filter string="Type" name="group_type" context="{'group_by': 'notification_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Notification Template Action -->
+    <record id="action_fleet_notification_template" model="ir.actions.act_window">
+        <field name="name">Notification Templates</field>
+        <field name="res_model">fleet.notification.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first notification template!
+            </p>
+            <p>
+                Set up email and SMS templates for booking confirmations, reminders, and more.
+            </p>
+        </field>
+    </record>
+
+    <!-- Notification Log List View -->
+    <record id="view_fleet_notification_log_list" model="ir.ui.view">
+        <field name="name">fleet.notification.log.list</field>
+        <field name="model">fleet.notification.log</field>
+        <field name="arch" type="xml">
+            <list string="Notification Log" create="false" edit="false">
+                <field name="create_date"/>
+                <field name="notification_type"/>
+                <field name="customer_name"/>
+                <field name="customer_email"/>
+                <field name="customer_phone"/>
+                <field name="sent_email" widget="boolean"/>
+                <field name="sent_sms" widget="boolean"/>
+                <field name="status"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Notification Log Search View -->
+    <record id="view_fleet_notification_log_search" model="ir.ui.view">
+        <field name="name">fleet.notification.log.search</field>
+        <field name="model">fleet.notification.log</field>
+        <field name="arch" type="xml">
+            <search string="Notification Log">
+                <field name="customer_name"/>
+                <field name="customer_email"/>
+                <field name="notification_type"/>
+                <filter string="Sent" name="sent" domain="[('status', '=', 'sent')]"/>
+                <filter string="Failed" name="failed" domain="[('status', '=', 'failed')]"/>
+                <filter string="Today" name="today" domain="[('create_date', '>=', context_today().strftime('%Y-%m-%d'))]"/>
+                <group>
+                    <filter string="Type" name="group_type" context="{'group_by': 'notification_type'}"/>
+                    <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'create_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Notification Log Action -->
+    <record id="action_fleet_notification_log" model="ir.actions.act_window">
+        <field name="name">Notification History</field>
+        <field name="res_model">fleet.notification.log</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'search_default_today': 1}</field>
+    </record>
+
+    <!-- Notification Menu -->
+    <menuitem id="menu_fleet_notifications" name="Notifications" parent="menu_car_rental_config" sequence="35"/>
+    <menuitem id="menu_fleet_notification_templates" name="Templates" parent="menu_fleet_notifications" action="action_fleet_notification_template" sequence="10"/>
+    <menuitem id="menu_fleet_notification_log" name="History" parent="menu_fleet_notifications" action="action_fleet_notification_log" sequence="20"/>
+
+</odoo>

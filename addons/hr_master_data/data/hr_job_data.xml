@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Administration Jobs -->
+        <record id="job_ceo" model="hr.job">
+            <field name="name">Chief Executive Officer</field>
+            <field name="department_id" ref="department_administration"/>
+            <field name="no_of_recruitment">1</field>
+        </record>
+
+        <record id="job_operations_manager" model="hr.job">
+            <field name="name">Operations Manager</field>
+            <field name="department_id" ref="department_operations"/>
+            <field name="no_of_recruitment">1</field>
+        </record>
+
+        <!-- Fleet Management Jobs -->
+        <record id="job_fleet_manager" model="hr.job">
+            <field name="name">Fleet Manager</field>
+            <field name="department_id" ref="department_fleet_management"/>
+            <field name="no_of_recruitment">1</field>
+        </record>
+
+        <record id="job_driver" model="hr.job">
+            <field name="name">Driver</field>
+            <field name="department_id" ref="department_fleet_management"/>
+            <field name="no_of_recruitment">10</field>
+        </record>
+
+        <record id="job_mechanic" model="hr.job">
+            <field name="name">Vehicle Mechanic</field>
+            <field name="department_id" ref="department_fleet_management"/>
+            <field name="no_of_recruitment">3</field>
+        </record>
+
+        <record id="job_fleet_coordinator" model="hr.job">
+            <field name="name">Fleet Coordinator</field>
+            <field name="department_id" ref="department_fleet_management"/>
+            <field name="no_of_recruitment">2</field>
+        </record>
+
+        <!-- Customer Service Jobs -->
+        <record id="job_cs_manager" model="hr.job">
+            <field name="name">Customer Service Manager</field>
+            <field name="department_id" ref="department_customer_service"/>
+            <field name="no_of_recruitment">1</field>
+        </record>
+
+        <record id="job_cs_representative" model="hr.job">
+            <field name="name">Customer Service Representative</field>
+            <field name="department_id" ref="department_customer_service"/>
+            <field name="no_of_recruitment">5</field>
+        </record>
+
+        <!-- Finance Jobs -->
+        <record id="job_finance_manager" model="hr.job">
+            <field name="name">Finance Manager</field>
+            <field name="department_id" ref="department_accounts_finance"/>
+            <field name="no_of_recruitment">1</field>
+        </record>
+
+        <record id="job_accountant" model="hr.job">
+            <field name="name">Accountant</field>
+            <field name="department_id" ref="department_accounts_finance"/>
+            <field name="no_of_recruitment">2</field>
+        </record>
+
+        <!-- IT Jobs -->
+        <record id="job_it_manager" model="hr.job">
+            <field name="name">IT Manager</field>
+            <field name="department_id" ref="department_it_technology"/>
+            <field name="no_of_recruitment">1</field>
+        </record>
+
+        <record id="job_software_developer" model="hr.job">
+            <field name="name">Software Developer</field>
+            <field name="department_id" ref="department_it_technology"/>
+            <field name="no_of_recruitment">2</field>
+        </record>
+
+        <!-- HR Jobs -->
+        <record id="job_hr_manager" model="hr.job">
+            <field name="name">HR Manager</field>
+            <field name="department_id" ref="department_human_resources"/>
+            <field name="no_of_recruitment">1</field>
+        </record>
+
+        <record id="job_hr_officer" model="hr.job">
+            <field name="name">HR Officer</field>
+            <field name="department_id" ref="department_human_resources"/>
+            <field name="no_of_recruitment">1</field>
+        </record>
+
+        <!-- Sales & Marketing Jobs -->
+        <record id="job_sales_manager" model="hr.job">
+            <field name="name">Sales Manager</field>
+            <field name="department_id" ref="department_marketing_sales"/>
+            <field name="no_of_recruitment">1</field>
+        </record>
+
+        <record id="job_sales_executive" model="hr.job">
+            <field name="name">Sales Executive</field>
+            <field name="department_id" ref="department_marketing_sales"/>
+            <field name="no_of_recruitment">3</field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,32 @@
+==========================================
+Database Migration: 103.101.59.102 → Docker
+==========================================
+
+[0;34mStep 1: SSH Connection Setup[0m
+Using SSH user from config: as
+
+Using SSH key from config: /home/as/.ssh/id_ed25519_odoo
+
+[1;33mTesting SSH connection...[0m
+[0;32m✓ SSH connection successful[0m
+
+[0;34mStep 2: Detecting Odoo Installation[0m
+Searching for Odoo installation...
+[0;32m✓ Detected Docker-based Odoo installation[0m
+
+[0;34mStep 3: Reading Database Configuration[0m
+[0;32m✓ Found env file: /home/as/ws/odoo/odoo.env[0m
+[0;32m✓ Detected Odoo database: odoo_prod[0m
+[0;32m✓ Database: odoo_prod
+✓ User: odoo
+✓ Host: localhost:[0m
+[0;32m✓ Password found in remote config[0m
+
+[0;34mStep 4: Creating Database Backup[0m
+Creating backup on remote server...
+Using Docker pg_dump...
+Found PostgreSQL container: odoo-psql-1
+[0;31m✗ Docker backup failed![0m
+Trying alternative method...
+[0;31m✗ Backup failed![0m
+Please check database credentials and permissions.

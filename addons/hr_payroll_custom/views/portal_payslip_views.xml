@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="portal_my_payslips" name="My Payslips">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Payslips</t>
+            </t>
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Number</th>
+                                    <th>Period</th>
+                                    <th>Gross Salary</th>
+                                    <th>Net Salary</th>
+                                    <th>Status</th>
+                                    <th>Download</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="payslips" t-as="payslip">
+                                    <tr>
+                                        <td><span t-field="payslip.number"/></td>
+                                        <td><span t-field="payslip.date_from"/> - <span t-field="payslip.date_to"/></td>
+                                        <td><span t-field="payslip.gross_wage"/></td>
+                                        <td><span t-field="payslip.net_wage"/></td>
+                                        <td><span t-field="payslip.state"/></td>
+                                        <td><a t-if="payslip.state == 'done'" t-attf-href="/my/payslips/{{payslip.id}}/pdf" class="btn btn-sm btn-primary">
+                                            <i class="fa fa-download"/> Download
+                                        </a></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

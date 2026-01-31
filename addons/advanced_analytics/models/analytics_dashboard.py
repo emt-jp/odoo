@@ -67,7 +67,7 @@ class AnalyticsDashboard(models.Model):
         """Check if enterprise features are available"""
         # You can implement your own licensing logic here
         # For now, we'll use a simple context check
-        return self.env.context.get('is_enterprise', True)  # Set to True for development
+        return True  # Enterprise checks disabled
     
     def _get_kpi_data(self, dashboard):
         """Get KPI data for dashboard"""
@@ -482,6 +482,18 @@ class AnalyticsDashboard(models.Model):
             'conversion_rate': (len(won_opportunities) / len(opportunities) * 100) if opportunities else 0,
         }
     
+    def action_view_dashboard(self):
+        """Open dashboard view"""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': self.name,
+            'res_model': 'analytics.dashboard',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
     @api.model
     def create_default_dashboards(self):
         """Create default dashboards"""

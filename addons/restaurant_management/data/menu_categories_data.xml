@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Sequences -->
+    <record id="seq_restaurant_order" model="ir.sequence">
+        <field name="name">Restaurant Order</field>
+        <field name="code">restaurant.order</field>
+        <field name="prefix">ORD/</field>
+        <field name="padding">5</field>
+        <field name="number_next">1</field>
+        <field name="number_increment">1</field>
+    </record>
+
+    <record id="seq_restaurant_reservation" model="ir.sequence">
+        <field name="name">Restaurant Reservation</field>
+        <field name="code">restaurant.reservation</field>
+        <field name="prefix">RES/</field>
+        <field name="padding">5</field>
+        <field name="number_next">1</field>
+        <field name="number_increment">1</field>
+    </record>
+
+    <!-- Default Menu Categories -->
+    <record id="menu_category_appetizers" model="menu.category">
+        <field name="name">Appetizers</field>
+        <field name="sequence">10</field>
+    </record>
+
+    <record id="menu_category_salads" model="menu.category">
+        <field name="name">Salads</field>
+        <field name="sequence">20</field>
+    </record>
+
+    <record id="menu_category_soups" model="menu.category">
+        <field name="name">Soups</field>
+        <field name="sequence">30</field>
+    </record>
+
+    <record id="menu_category_main_course" model="menu.category">
+        <field name="name">Main Course</field>
+        <field name="sequence">40</field>
+    </record>
+
+    <record id="menu_category_seafood" model="menu.category">
+        <field name="name">Seafood</field>
+        <field name="sequence">50</field>
+    </record>
+
+    <record id="menu_category_vegetarian" model="menu.category">
+        <field name="name">Vegetarian</field>
+        <field name="sequence">60</field>
+    </record>
+
+    <record id="menu_category_desserts" model="menu.category">
+        <field name="name">Desserts</field>
+        <field name="sequence">70</field>
+    </record>
+
+    <record id="menu_category_beverages" model="menu.category">
+        <field name="name">Beverages</field>
+        <field name="sequence">80</field>
+    </record>
+
+    <record id="menu_category_hot_drinks" model="menu.category">
+        <field name="name">Hot Drinks</field>
+        <field name="parent_id" ref="menu_category_beverages"/>
+        <field name="sequence">81</field>
+    </record>
+
+    <record id="menu_category_cold_drinks" model="menu.category">
+        <field name="name">Cold Drinks</field>
+        <field name="parent_id" ref="menu_category_beverages"/>
+        <field name="sequence">82</field>
+    </record>
+</odoo>

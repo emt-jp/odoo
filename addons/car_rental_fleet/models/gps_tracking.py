@@ -15,7 +15,9 @@ class FleetGPSTracking(models.Model):
     _name = 'fleet.gps.tracking'
     _description = 'Fleet GPS Tracking'
     _order = 'timestamp desc'
-    
+
+    name = fields.Char('Reference', required=True, copy=False, default='New')
+    tracking_date = fields.Datetime('Tracking Date', related='timestamp', store=True)
     vehicle_id = fields.Many2one('fleet.vehicle', string='Vehicle', required=True)
     timestamp = fields.Datetime('Timestamp', required=True, default=fields.Datetime.now)
     
@@ -28,6 +30,7 @@ class FleetGPSTracking(models.Model):
     # Speed and Direction
     speed = fields.Float('Speed (km/h)', digits=(10, 2))
     direction = fields.Float('Direction (degrees)', digits=(10, 2))
+    heading = fields.Float('Heading', related='direction', store=True)
     
     # Location Information
     location_name = fields.Char('Location Name')
@@ -42,6 +45,12 @@ class FleetGPSTracking(models.Model):
         ('off', 'Engine Off'),
         ('idle', 'Idle'),
     ], string='Engine Status')
+    status = fields.Selection([
+        ('moving', 'Moving'),
+        ('stopped', 'Stopped'),
+        ('idle', 'Idle'),
+        ('offline', 'Offline'),
+    ], string='Status', default='stopped')
     
     fuel_level = fields.Float('Fuel Level (%)', digits=(5, 2))
     battery_level = fields.Float('Battery Level (%)', digits=(5, 2))
@@ -71,7 +80,7 @@ class FleetGPSTracking(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     @api.model
     def create_tracking_record(self, vehicle_id, latitude, longitude, **kwargs):
@@ -437,7 +446,7 @@ class FleetGeofence(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     @api.model
     def check_vehicle_in_geofence(self, vehicle_id, geofence_id):

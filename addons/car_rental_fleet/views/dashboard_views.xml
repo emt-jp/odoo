@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Fleet Dashboard Form View -->
+    <record id="view_fleet_dashboard_form" model="ir.ui.view">
+        <field name="name">fleet.dashboard.form</field>
+        <field name="model">fleet.analytics</field>
+        <field name="arch" type="xml">
+            <form string="Fleet Management Dashboard" create="false" edit="false" delete="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Fleet Management Dashboard</h1>
+                        <p class="text-muted">Real-time overview of your fleet operations</p>
+                    </div>
+
+                    <!-- Fleet Status KPIs -->
+                    <group string="🚗 Fleet Status Overview">
+                        <group>
+                            <field name="total_vehicles" readonly="1"/>
+                            <field name="available_vehicles" readonly="1"
+                                   decoration-success="available_vehicles &gt; 0"/>
+                            <field name="rented_vehicles" readonly="1"
+                                   decoration-danger="rented_vehicles &gt; 0"/>
+                        </group>
+                        <group>
+                            <field name="maintenance_vehicles" readonly="1"
+                                   decoration-warning="maintenance_vehicles &gt; 0"/>
+                            <field name="utilization_rate" readonly="1" widget="progressbar"/>
+                        </group>
+                    </group>
+
+                    <!-- Revenue & Rental Metrics -->
+                    <group string="💰 Revenue &amp; Rentals">
+                        <group>
+                            <field name="total_revenue" readonly="1" widget="monetary"/>
+                            <field name="total_rentals_count" readonly="1"/>
+                            <field name="completed_rentals_count" readonly="1"
+                                   decoration-success="completed_rentals_count &gt; 0"/>
+                        </group>
+                        <group>
+                            <field name="in_progress_rentals_count" readonly="1"
+                                   decoration-info="in_progress_rentals_count &gt; 0"/>
+                            <field name="pending_bookings_count" readonly="1"
+                                   decoration-warning="pending_bookings_count &gt; 0"/>
+                            <field name="confirmed_bookings_count" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Maintenance & Costs -->
+                    <group string="🔧 Maintenance &amp; Costs">
+                        <group>
+                            <field name="pending_maintenance_count" readonly="1"
+                                   decoration-warning="pending_maintenance_count &gt; 0"/>
+                            <field name="overdue_maintenance_count" readonly="1"
+                                   decoration-danger="overdue_maintenance_count &gt; 0"/>
+                        </group>
+                        <group>
+                            <field name="total_maintenance_cost" readonly="1" widget="monetary"/>
+                        </group>
+                    </group>
+
+                    <!-- Alerts -->
+                    <group string="⚠️ Alerts &amp; Action Required">
+                        <group>
+                            <field name="expired_documents_count" readonly="1"
+                                   decoration-danger="expired_documents_count &gt; 0"/>
+                            <field name="expiring_documents_count" readonly="1"
+                                   decoration-warning="expiring_documents_count &gt; 0"/>
+                        </group>
+                    </group>
+
+                    <!-- Info Box -->
+                    <group>
+                        <div class="alert alert-info" role="alert">
+                            <strong><i class="fa fa-info-circle"/> Dashboard Information:</strong>
+                            <ul>
+                                <li>KPIs are calculated in real-time</li>
+                                <li>Refresh the page to see updated metrics</li>
+                                <li>Use the menu to access detailed views and reports</li>
+                                <li>Red indicators show items requiring immediate attention</li>
+                            </ul>
+                        </div>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Fleet Dashboard Action -->
+    <record id="action_fleet_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">fleet.analytics</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_fleet_dashboard_form"/>
+        <field name="target">current</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Welcome to Fleet Dashboard!
+            </p>
+            <p>
+                View real-time KPIs and metrics for your fleet operations.
+            </p>
+        </field>
+    </record>
+
+    <!-- Add Dashboard Menu as First Item -->
+    <menuitem id="menu_fleet_dashboard"
+              name="Dashboard"
+              parent="menu_car_rental_root"
+              action="action_fleet_dashboard"
+              sequence="1"/>
+
+    <!-- Analytics Form View -->
+    <record id="view_fleet_analytics_form" model="ir.ui.view">
+        <field name="name">fleet.analytics.form</field>
+        <field name="model">fleet.analytics</field>
+        <field name="arch" type="xml">
+            <form string="Analytics Report">
+                <header>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="report_type"/>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                        </group>
+                        <group>
+                            <field name="vehicle_ids" widget="many2many_tags"/>
+                            <field name="rental_category"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Report Data" name="data">
+                            <field name="report_data"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Analytics List View -->
+    <record id="view_fleet_analytics_list" model="ir.ui.view">
+        <field name="name">fleet.analytics.list</field>
+        <field name="model">fleet.analytics</field>
+        <field name="arch" type="xml">
+            <list string="Analytics Reports">
+                <field name="name"/>
+                <field name="report_type"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Analytics Action -->
+    <record id="action_fleet_analytics" model="ir.actions.act_window">
+        <field name="name">Analytics Reports</field>
+        <field name="res_model">fleet.analytics</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Rental Report View (Pivot) -->
+    <record id="view_fleet_rental_pivot" model="ir.ui.view">
+        <field name="name">fleet.rental.pivot</field>
+        <field name="model">fleet.rental</field>
+        <field name="arch" type="xml">
+            <pivot string="Rental Analysis">
+                <field name="vehicle_id" type="row"/>
+                <field name="start_date" type="col" interval="month"/>
+                <field name="total_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Rental Report View (Graph) -->
+    <record id="view_fleet_rental_graph" model="ir.ui.view">
+        <field name="name">fleet.rental.graph</field>
+        <field name="model">fleet.rental</field>
+        <field name="arch" type="xml">
+            <graph string="Rental Analysis" type="bar">
+                <field name="start_date" type="row" interval="month"/>
+                <field name="total_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Maintenance Report View (Pivot) -->
+    <record id="view_fleet_maintenance_pivot" model="ir.ui.view">
+        <field name="name">fleet.maintenance.pivot</field>
+        <field name="model">fleet.maintenance</field>
+        <field name="arch" type="xml">
+            <pivot string="Maintenance Analysis">
+                <field name="vehicle_id" type="row"/>
+                <field name="maintenance_type" type="col"/>
+                <field name="total_cost" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Maintenance Report View (Graph) -->
+    <record id="view_fleet_maintenance_graph" model="ir.ui.view">
+        <field name="name">fleet.maintenance.graph</field>
+        <field name="model">fleet.maintenance</field>
+        <field name="arch" type="xml">
+            <graph string="Maintenance Analysis" type="pie">
+                <field name="maintenance_type"/>
+                <field name="total_cost" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Rental Analysis Action -->
+    <record id="action_fleet_rental_analysis" model="ir.actions.act_window">
+        <field name="name">Rental Analysis</field>
+        <field name="res_model">fleet.rental</field>
+        <field name="view_mode">pivot,graph,list</field>
+    </record>
+
+    <!-- Maintenance Analysis Action -->
+    <record id="action_fleet_maintenance_analysis" model="ir.actions.act_window">
+        <field name="name">Maintenance Analysis</field>
+        <field name="res_model">fleet.maintenance</field>
+        <field name="view_mode">pivot,graph,list</field>
+    </record>
+
+    <!-- Reports Menu -->
+    <menuitem id="menu_fleet_reports" name="Analytics" parent="menu_car_rental_reports" sequence="10"/>
+    <menuitem id="menu_fleet_analytics_reports" name="Analytics Reports" parent="menu_fleet_reports" action="action_fleet_analytics" sequence="10"/>
+    <menuitem id="menu_fleet_rental_analysis" name="Rental Analysis" parent="menu_fleet_reports" action="action_fleet_rental_analysis" sequence="20"/>
+    <menuitem id="menu_fleet_maintenance_analysis" name="Maintenance Analysis" parent="menu_fleet_reports" action="action_fleet_maintenance_analysis" sequence="30"/>
+
+</odoo>

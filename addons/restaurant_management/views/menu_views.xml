@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main Menu -->
+    <menuitem id="menu_restaurant_root"
+              name="Restaurant"
+              sequence="10"
+              web_icon="restaurant_management,static/description/icon.png"/>
+
+    <!-- Dashboard -->
+    <menuitem id="menu_restaurant_dashboard"
+              name="Dashboard"
+              parent="menu_restaurant_root"
+              action="action_restaurant_dashboard"
+              sequence="1"/>
+
+    <!-- Operations -->
+    <menuitem id="menu_restaurant_operations"
+              name="Operations"
+              parent="menu_restaurant_root"
+              sequence="10"/>
+
+    <menuitem id="menu_restaurant_orders"
+              name="Orders"
+              parent="menu_restaurant_operations"
+              action="action_restaurant_order"
+              sequence="10"/>
+
+    <menuitem id="menu_restaurant_kitchen"
+              name="Kitchen Display"
+              parent="menu_restaurant_operations"
+              action="action_kitchen_display"
+              sequence="20"/>
+
+    <menuitem id="menu_restaurant_tables"
+              name="Tables"
+              parent="menu_restaurant_operations"
+              action="action_restaurant_table"
+              sequence="30"/>
+
+    <menuitem id="menu_restaurant_reservations"
+              name="Reservations"
+              parent="menu_restaurant_operations"
+              action="action_restaurant_reservation"
+              sequence="40"/>
+
+    <!-- Menu Management -->
+    <menuitem id="menu_restaurant_menu_management"
+              name="Menu"
+              parent="menu_restaurant_root"
+              sequence="20"/>
+
+    <menuitem id="menu_restaurant_menu_items"
+              name="Menu Items"
+              parent="menu_restaurant_menu_management"
+              action="action_menu_item"
+              sequence="10"/>
+
+    <menuitem id="menu_restaurant_menu_categories"
+              name="Categories"
+              parent="menu_restaurant_menu_management"
+              action="action_menu_category"
+              sequence="20"/>
+
+    <!-- Configuration -->
+    <menuitem id="menu_restaurant_configuration"
+              name="Configuration"
+              parent="menu_restaurant_root"
+              sequence="100"/>
+
+    <menuitem id="menu_restaurant_floors"
+              name="Floors"
+              parent="menu_restaurant_configuration"
+              action="action_restaurant_floor"
+              sequence="10"/>
+</odoo>

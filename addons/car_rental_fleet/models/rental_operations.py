@@ -139,9 +139,28 @@ class FleetRental(models.Model):
             # Calculate total amount
             rental.total_amount = base_amount + total_charges - discount_amount
     
+    @api.constrains('start_date', 'end_date')
+    def _check_rental_dates(self):
+        """Validate that end date is after start date"""
+        for rental in self:
+            if rental.start_date and rental.end_date:
+                if rental.end_date <= rental.start_date:
+                    raise ValidationError(_('End date must be after start date.'))
+    
+    @api.constrains('discount_value', 'discount_type')
+    def _check_discount(self):
+        """Validate discount values"""
+        for rental in self:
+            if rental.discount_type == 'percentage' and rental.discount_value:
+                if rental.discount_value < 0 or rental.discount_value > 100:
+                    raise ValidationError(_('Discount percentage must be between 0 and 100.'))
+            elif rental.discount_type == 'fixed' and rental.discount_value:
+                if rental.discount_value < 0:
+                    raise ValidationError(_('Discount amount cannot be negative.'))
+    
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     @api.model
     def create(self, vals):
@@ -183,62 +202,44 @@ class FleetRental(models.Model):
     
     def action_confirm(self):
         """Confirm rental"""
-        if not self._is_enterprise_available():
-            raise UserError(_("Rental confirmation requires the Enterprise edition."))
-        
-        if self.state != 'draft':
-            raise UserError(_("Only draft rentals can be confirmed."))
-        
-        # Check vehicle availability
-        if self.vehicle_id.availability_status != 'available':
-            raise UserError(_("Vehicle is not available for rental."))
-        
-        # Update vehicle status
-        self.vehicle_id.write({'availability_status': 'rented'})
-        
-        # Update rental status
-        self.write({'state': 'confirmed'})
-        
-        # Create calendar event
-        self._create_calendar_event()
-        
+        for rental in self:
+            if rental.state != 'draft':
+                raise UserError(_("Only draft rentals can be confirmed."))
+            
+            # Check vehicle availability if vehicle_id exists
+            if rental.vehicle_id and hasattr(rental.vehicle_id, 'availability_status'):
+                if rental.vehicle_id.availability_status != 'available':
+                    raise UserError(_("Vehicle is not available for rental."))
+                rental.vehicle_id.write({'availability_status': 'rented'})
+            
+            rental.write({'state': 'confirmed'})
         return True
     
-    def action_start_rental(self):
+    def action_start(self):
         """Start rental"""
-        if not self._is_enterprise_available():
-            raise UserError(_("Rental operations require the Enterprise edition."))
-        
-        if self.state != 'confirmed':
-            raise UserError(_("Only confirmed rentals can be started."))
-        
-        self.write({
-            'state': 'in_progress',
-            'actual_start_date': fields.Datetime.now(),
-        })
-        
+        for rental in self:
+            if rental.state != 'confirmed':
+                raise UserError(_("Only confirmed rentals can be started."))
+            rental.write({
+                'state': 'in_progress',
+                'actual_start_date': fields.Datetime.now(),
+            })
         return True
     
-    def action_complete_rental(self):
+    def action_complete(self):
         """Complete rental"""
-        if not self._is_enterprise_available():
-            raise UserError(_("Rental operations require the Enterprise edition."))
-        
-        if self.state != 'in_progress':
-            raise UserError(_("Only in-progress rentals can be completed."))
-        
-        # Update vehicle status
-        self.vehicle_id.write({'availability_status': 'available'})
-        
-        # Update rental status
-        self.write({
-            'state': 'completed',
-            'actual_end_date': fields.Datetime.now(),
-        })
-        
-        # Create return inspection
-        self._create_return_inspection()
-        
+        for rental in self:
+            if rental.state != 'in_progress':
+                raise UserError(_("Only in-progress rentals can be completed."))
+            
+            # Update vehicle status if available
+            if rental.vehicle_id and hasattr(rental.vehicle_id, 'availability_status'):
+                rental.vehicle_id.write({'availability_status': 'available'})
+            
+            rental.write({
+                'state': 'completed',
+                'actual_end_date': fields.Datetime.now(),
+            })
         return True
     
     def action_cancel_rental(self):
@@ -374,7 +375,8 @@ class FleetRental(models.Model):
 class FleetRentalCharge(models.Model):
     _name = 'fleet.rental.charge'
     _description = 'Fleet Rental Additional Charges'
-    
+
+    name = fields.Char('Name', required=True)
     rental_id = fields.Many2one('fleet.rental', string='Rental', required=True, ondelete='cascade')
     charge_type = fields.Selection([
         ('insurance', 'Insurance'),
@@ -399,7 +401,7 @@ class FleetRentalCharge(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
 
 
 

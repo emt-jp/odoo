@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Company Form View Extension for T-Number -->
+    <record id="view_company_form_t_number" model="ir.ui.view">
+        <field name="name">res.company.form.t_number</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='vat']" position="after">
+                <separator string="Japanese Invoice System (インボイス制度)"/>
+                <group>
+                    <field name="use_japanese_invoice_system"/>
+                    <field name="t_number" placeholder="T1234567890123"
+                           invisible="not use_japanese_invoice_system"/>
+                    <field name="is_qualified_invoice_issuer" invisible="1"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

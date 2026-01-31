@@ -111,7 +111,7 @@ class RentalBookingWizard(models.TransientModel):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     def _get_available_vehicles(self):
         """Get available vehicles based on criteria"""

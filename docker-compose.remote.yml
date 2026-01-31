@@ -1,0 +1,22 @@
+services:
+  odoo:
+    image: odoo:latest
+    env_file: odoo.env
+    depends_on:
+      - psql
+    ports:
+      - "8069:8069" #port mapping(custom-port:8069)
+      - "8072:8072" 
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./config:/etc/odoo
+      - ./custom-addons:/mnt/extra-addons
+  psql:
+    image: postgres:15
+    env_file: odoo.env
+    volumes:
+      - odoo-db:/var/lib/pgsql/data/pgdata
+volumes:
+  odoo-data:
+  odoo-db:
+

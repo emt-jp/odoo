@@ -60,10 +60,50 @@ class AdvancedWarehouse(models.Model):
                 warehouse.current_capacity = warehouse._calculate_current_capacity()
             else:
                 warehouse.current_capacity = 0.0
-    
+
+    def action_view_analytics(self):
+        """View warehouse analytics"""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': f'Analytics - {self.name}',
+            'res_model': 'advanced.warehouse',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
+    def action_run_inventory_check(self):
+        """Run inventory check for warehouse"""
+        self.ensure_one()
+        # Placeholder for inventory check logic
+        return True
+
+    def action_view_stock(self):
+        """View stock for warehouse"""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': f'Stock - {self.name}',
+            'res_model': 'stock.quant',
+            'view_mode': 'list,form',
+            'target': 'current',
+        }
+
+    def action_view_operations(self):
+        """View operations for warehouse"""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': f'Operations - {self.name}',
+            'res_model': 'stock.picking',
+            'view_mode': 'list,form',
+            'target': 'current',
+        }
+
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     def _calculate_current_capacity(self):
         """Calculate current warehouse capacity"""
@@ -236,7 +276,7 @@ class AdvancedLocation(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     def _calculate_current_capacity(self):
         """Calculate current location capacity"""

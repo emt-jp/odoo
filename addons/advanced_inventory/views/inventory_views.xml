@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Advanced Warehouse Views -->
+    <record id="view_advanced_warehouse_tree" model="ir.ui.view">
+        <field name="name">advanced.warehouse.tree</field>
+        <field name="model">advanced.warehouse</field>
+        <field name="arch" type="xml">
+            <list string="Advanced Warehouses">
+                <field name="name"/>
+                <field name="warehouse_type"/>
+                <field name="picking_strategy"/>
+                <field name="max_capacity"/>
+                <field name="current_capacity"/>
+                <field name="barcode_enabled"/>
+                <field name="quality_control_required"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_advanced_warehouse_form" model="ir.ui.view">
+        <field name="name">advanced.warehouse.form</field>
+        <field name="model">advanced.warehouse</field>
+        <field name="arch" type="xml">
+            <form string="Advanced Warehouse">
+                <header>
+                    <button name="action_view_analytics" type="object" string="View Analytics" class="btn-primary"/>
+                    <button name="action_run_inventory_check" type="object" string="Run Inventory Check"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="action_view_stock" icon="fa-cubes">
+                            <span>Stock</span>
+                        </button>
+                        <button class="oe_stat_button" type="object" name="action_view_operations" icon="fa-exchange">
+                            <span>Operations</span>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Warehouse Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Warehouse Configuration">
+                            <field name="warehouse_type"/>
+                            <field name="max_capacity"/>
+                            <field name="current_capacity"/>
+                        </group>
+                        <group string="Operations">
+                            <field name="picking_strategy"/>
+                            <field name="barcode_enabled"/>
+                            <field name="barcode_prefix" invisible="not barcode_enabled"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Quality Control">
+                            <field name="quality_control_required"/>
+                            <field name="quality_control_location_id" invisible="not quality_control_required"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Location Hierarchy" name="locations">
+                            <field name="location_hierarchy" widget="ace" options="{'mode': 'json'}"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_advanced_warehouse_kanban" model="ir.ui.view">
+        <field name="name">advanced.warehouse.kanban</field>
+        <field name="model">advanced.warehouse</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_dashboard">
+                <field name="name"/>
+                <field name="warehouse_type"/>
+                <field name="max_capacity"/>
+                <field name="current_capacity"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="o_kanban_card_header">
+                            <div class="o_kanban_card_header_title">
+                                <strong><field name="name"/></strong>
+                            </div>
+                        </div>
+                        <div class="o_kanban_card_content">
+                            <div class="row">
+                                <div class="col-6">
+                                    <span class="o_label">Type</span>
+                                    <span class="o_value"><field name="warehouse_type"/></span>
+                                </div>
+                                <div class="col-6">
+                                    <span class="o_label">Capacity</span>
+                                    <span class="o_value"><field name="current_capacity"/>/<field name="max_capacity"/></span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Actions -->
+    <record id="action_advanced_warehouse" model="ir.actions.act_window">
+        <field name="name">Advanced Warehouses</field>
+        <field name="res_model">advanced.warehouse</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configure your first advanced warehouse
+            </p>
+            <p>
+                Set up advanced warehouse management with picking strategies, barcode scanning, and quality control.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menus -->
+    <menuitem id="menu_advanced_inventory_root" name="Advanced Inventory" parent="stock.menu_stock_root" sequence="100"/>
+
+    <menuitem id="menu_advanced_warehouse" name="Advanced Warehouses" parent="menu_advanced_inventory_root" sequence="10" action="action_advanced_warehouse"/>
+</odoo>

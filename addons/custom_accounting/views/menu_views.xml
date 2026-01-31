@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main Custom Accounting Menu -->
+    <menuitem id="menu_custom_accounting_root"
+              name="Custom Accounting"
+              sequence="35"
+              web_icon="custom_accounting,static/description/icon.png"
+              groups="account.group_account_user"/>
+
+    <!-- Dashboard Menu -->
+    <menuitem id="menu_custom_accounting_dashboard"
+              name="Dashboard"
+              parent="menu_custom_accounting_root"
+              sequence="1"/>
+
+    <menuitem id="menu_financial_dashboard"
+              name="Financial Dashboard"
+              parent="menu_custom_accounting_dashboard"
+              action="action_account_financial_dashboard"
+              sequence="10"/>
+
+    <!-- Budgets Menu -->
+    <menuitem id="menu_custom_accounting_budgets"
+              name="Budgets"
+              parent="menu_custom_accounting_root"
+              sequence="10"/>
+
+    <menuitem id="menu_budgets"
+              name="Budgets"
+              parent="menu_custom_accounting_budgets"
+              action="action_account_budget"
+              sequence="10"/>
+
+    <!-- Reports Menu -->
+    <menuitem id="menu_custom_accounting_reports"
+              name="Reports"
+              parent="menu_custom_accounting_root"
+              sequence="20"/>
+
+    <menuitem id="menu_financial_reports"
+              name="Financial Reports"
+              parent="menu_custom_accounting_reports"
+              action="action_financial_report_wizard"
+              sequence="10"/>
+
+    <menuitem id="menu_aging_reports"
+              name="Aging Reports"
+              parent="menu_custom_accounting_reports"
+              action="action_account_aging_report"
+              sequence="20"/>
+
+    <!-- Configuration Menu -->
+    <menuitem id="menu_custom_accounting_config"
+              name="Configuration"
+              parent="menu_custom_accounting_root"
+              sequence="100"
+              groups="account.group_account_manager"/>
+
+    <menuitem id="menu_financial_report_definitions"
+              name="Report Definitions"
+              parent="menu_custom_accounting_config"
+              action="action_account_financial_report_custom"
+              sequence="10"/>
+</odoo>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dashboard Form View -->
+    <record id="view_restaurant_dashboard_form" model="ir.ui.view">
+        <field name="name">restaurant.analytics.dashboard</field>
+        <field name="model">restaurant.analytics</field>
+        <field name="arch" type="xml">
+            <form string="Restaurant Dashboard" create="false" edit="false" delete="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Restaurant Dashboard</h1>
+                        <p class="text-muted">Real-time restaurant operations overview</p>
+                    </div>
+
+                    <!-- Today's Performance -->
+                    <group string="📊 Today's Performance">
+                        <group>
+                            <field name="today_orders" readonly="1" decoration-success="today_orders &gt; 0"/>
+                            <field name="today_revenue" readonly="1" widget="monetary"/>
+                            <field name="today_guests" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="avg_order_value" readonly="1" widget="monetary"/>
+                            <field name="avg_preparation_time" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Current Status -->
+                    <group string="🔴 Live Status">
+                        <group>
+                            <field name="active_orders" readonly="1" decoration-danger="active_orders &gt; 10" decoration-warning="active_orders &gt; 5"/>
+                            <field name="occupied_tables" readonly="1" decoration-info="occupied_tables &gt; 0"/>
+                            <field name="available_tables" readonly="1" decoration-success="available_tables &gt; 0"/>
+                        </group>
+                        <group>
+                            <field name="reservations_today" readonly="1"/>
+                            <field name="upcoming_reservations" readonly="1" decoration-warning="upcoming_reservations &gt; 0"/>
+                        </group>
+                    </group>
+
+                    <!-- Week & Month Stats -->
+                    <group string="📈 Period Statistics">
+                        <group>
+                            <field name="week_orders" readonly="1"/>
+                            <field name="week_revenue" readonly="1" widget="monetary"/>
+                        </group>
+                        <group>
+                            <field name="month_orders" readonly="1"/>
+                            <field name="month_revenue" readonly="1" widget="monetary"/>
+                        </group>
+                    </group>
+
+                    <field name="currency_id" invisible="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_restaurant_dashboard" model="ir.actions.server">
+        <field name="name">Dashboard</field>
+        <field name="model_id" ref="model_restaurant_analytics"/>
+        <field name="state">code</field>
+        <field name="code">
+dashboard = model.get_dashboard()
+action = {
+    'type': 'ir.actions.act_window',
+    'res_model': 'restaurant.analytics',
+    'view_mode': 'form',
+    'res_id': dashboard.id,
+    'target': 'current',
+    'context': {'form_view_initial_mode': 'readonly'},
+}
+        </field>
+    </record>
+</odoo>

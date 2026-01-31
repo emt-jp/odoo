@@ -210,14 +210,14 @@ class IrActionsReport(models.Model):
 
         field_names = set()
         if prefix:
-            field_names = reader.getFormTextFields()
+            field_names = reader.get_form_text_fields()
 
-        for page_id in range(reader.getNumPages()):
-            page = reader.getPage(page_id)
+        for page_id in range(len(reader.pages)):
+            page = reader.pages[page_id]
             if prefix and page.get('/Annots'):
                 # Modifying the annots that hold every information about the form fields
                 for j in range(len(page['/Annots'])):
-                    reader_annot = page['/Annots'][j].getObject()
+                    reader_annot = page['/Annots'][j].get_object()
                     if reader_annot.get('/T') in field_names:
                         # Prefix all form fields in the document with the document identifier.
                         # This is necessary to know which value needs to be taken when filling the forms.

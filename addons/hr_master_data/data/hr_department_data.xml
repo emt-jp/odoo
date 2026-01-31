@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Departments -->
+        <record id="department_administration" model="hr.department">
+            <field name="name">Administration</field>
+            <field name="color">1</field>
+        </record>
+
+        <record id="department_operations" model="hr.department">
+            <field name="name">Operations</field>
+            <field name="parent_id" ref="department_administration"/>
+            <field name="color">2</field>
+        </record>
+
+        <record id="department_fleet_management" model="hr.department">
+            <field name="name">Fleet Management</field>
+            <field name="parent_id" ref="department_operations"/>
+            <field name="color">3</field>
+        </record>
+
+        <record id="department_customer_service" model="hr.department">
+            <field name="name">Customer Service</field>
+            <field name="parent_id" ref="department_operations"/>
+            <field name="color">4</field>
+        </record>
+
+        <record id="department_accounts_finance" model="hr.department">
+            <field name="name">Accounts &amp; Finance</field>
+            <field name="color">5</field>
+        </record>
+
+        <record id="department_it_technology" model="hr.department">
+            <field name="name">IT &amp; Technology</field>
+            <field name="color">6</field>
+        </record>
+
+        <record id="department_human_resources" model="hr.department">
+            <field name="name">Human Resources</field>
+            <field name="color">7</field>
+        </record>
+
+        <record id="department_marketing_sales" model="hr.department">
+            <field name="name">Marketing &amp; Sales</field>
+            <field name="color">8</field>
+        </record>
+
+    </data>
+</odoo>

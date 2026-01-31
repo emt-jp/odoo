@@ -1,0 +1,5 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+access_lead_scoring_user,lead.scoring.user,model_lead_scoring,base.group_user,1,0,0,0
+access_lead_scoring_manager,lead.scoring.manager,model_lead_scoring,base.group_system,1,1,1,1
+access_customer_segmentation_user,customer.segmentation.user,model_customer_segmentation,base.group_user,1,0,0,0
+access_customer_segmentation_manager,customer.segmentation.manager,model_customer_segmentation,base.group_system,1,1,1,1

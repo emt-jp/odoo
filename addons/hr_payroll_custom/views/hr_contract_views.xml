@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- List View -->
+    <record id="view_payroll_contract_list" model="ir.ui.view">
+        <field name="name">hr.payroll.contract.list</field>
+        <field name="model">hr.payroll.contract</field>
+        <field name="arch" type="xml">
+            <list string="Contracts">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="job_id"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="wage" widget="monetary"/>
+                <field name="gross_salary" widget="monetary"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_payroll_contract_form" model="ir.ui.view">
+        <field name="name">hr.payroll.contract.form</field>
+        <field name="model">hr.payroll.contract</field>
+        <field name="arch" type="xml">
+            <form string="Contract">
+                <header>
+                    <button name="action_start_contract" string="Start Contract" type="object"
+                            invisible="state != 'draft'" class="oe_highlight"/>
+                    <button name="action_close_contract" string="Close Contract" type="object"
+                            invisible="state != 'open'"/>
+                    <button name="action_cancel_contract" string="Cancel Contract" type="object"
+                            invisible="state not in ['draft', 'open']"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Contract Information">
+                            <field name="name"/>
+                            <field name="employee_id"/>
+                            <field name="department_id"/>
+                            <field name="job_id"/>
+                        </group>
+                        <group string="Period">
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="struct_id"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Salary Details">
+                            <group>
+                                <group string="Earnings">
+                                    <field name="wage" string="Basic Salary"/>
+                                    <field name="hra"/>
+                                    <field name="da"/>
+                                    <field name="transport_allowance"/>
+                                    <field name="medical_allowance"/>
+                                    <field name="special_allowance"/>
+                                    <field name="other_allowance"/>
+                                </group>
+                                <group string="Gross Salary">
+                                    <field name="gross_salary" widget="monetary" readonly="1"/>
+                                    <field name="currency_id" invisible="1"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Deduction Configuration">
+                                    <field name="pf_employee"/>
+                                    <field name="pf_employer"/>
+                                    <field name="esi_employee"/>
+                                    <field name="esi_employer"/>
+                                    <field name="professional_tax"/>
+                                </group>
+                                <group string="Tax">
+                                    <field name="tax_regime"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_payroll_contract" model="ir.actions.act_window">
+        <field name="name">Contracts</field>
+        <field name="res_model">hr.payroll.contract</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new contract
+            </p>
+            <p>
+                Create employment contracts for your employees with salary details.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_hr_payroll_contracts" name="Contracts" parent="menu_hr_payroll_root" action="action_payroll_contract" sequence="5"/>
+</odoo>

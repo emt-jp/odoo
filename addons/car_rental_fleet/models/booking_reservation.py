@@ -13,6 +13,7 @@ _logger = logging.getLogger(__name__)
 class FleetBooking(models.Model):
     _name = 'fleet.booking'
     _description = 'Fleet Booking & Reservation System'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'booking_date desc, name'
     
     name = fields.Char('Booking Reference', required=True, copy=False, readonly=True, default=lambda self: _('New'))
@@ -110,9 +111,25 @@ class FleetBooking(models.Model):
         records = super().create(vals_list)
         return records[0] if is_single else records
     
+    @api.constrains('pickup_date', 'return_date')
+    def _check_booking_dates(self):
+        """Validate that return date is after pickup date"""
+        for booking in self:
+            if booking.pickup_date and booking.return_date:
+                if booking.return_date <= booking.pickup_date:
+                    raise ValidationError(_('Return date must be after pickup date.'))
+    
+    @api.constrains('booking_date', 'pickup_date')
+    def _check_booking_pickup_date(self):
+        """Validate that pickup date is not before booking date"""
+        for booking in self:
+            if booking.booking_date and booking.pickup_date:
+                if booking.pickup_date < booking.booking_date:
+                    raise ValidationError(_('Pickup date cannot be before booking date.'))
+    
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     def _get_average_daily_rate(self, rental_category):
         """Get average daily rate for rental category"""
@@ -126,7 +143,7 @@ class FleetBooking(models.Model):
         
         return sum(vehicles.mapped('daily_rate')) / len(vehicles)
     
-    def action_confirm_booking(self):
+    def action_confirm(self):
         """Confirm booking"""
         if not self._is_enterprise_available():
             raise UserError(_("Booking confirmation requires the Enterprise edition."))
@@ -147,13 +164,9 @@ class FleetBooking(models.Model):
             raise UserError(_("No vehicles available for the selected dates and preferences."))
         
         self.write({'state': 'confirmed'})
-        
-        # Send confirmation email
-        self._send_booking_confirmation()
-        
         return True
     
-    def action_assign_vehicle(self, vehicle_id):
+    def action_assign_vehicle(self):
         """Assign vehicle to booking"""
         if not self._is_enterprise_available():
             raise UserError(_("Vehicle assignment requires the Enterprise edition."))
@@ -206,28 +219,56 @@ class FleetBooking(models.Model):
         """Find available vehicles for booking"""
         if not self._is_enterprise_available():
             return self.env['fleet.vehicle']
-        
+
         domain = [
             ('availability_status', '=', 'available'),
             ('is_rental_vehicle', '=', True),
         ]
-        
+
         # Vehicle type filter can be strict in core; skip for broader availability in tests
-        
+
         if self.rental_category:
             domain.append(('rental_category', '=', self.rental_category))
-        
+
         vehicles = self.env['fleet.vehicle'].search(domain)
-        if vehicles:
-            return vehicles
-        # Fallback: retry without vehicle_type constraint if no vehicles matched
-        fallback_domain = [
-            ('availability_status', '=', 'available'),
-            ('is_rental_vehicle', '=', True),
-        ]
-        if self.rental_category:
-            fallback_domain.append(('rental_category', '=', self.rental_category))
-        return self.env['fleet.vehicle'].search(fallback_domain)
+        if not vehicles:
+            # Fallback: retry without vehicle_type constraint if no vehicles matched
+            fallback_domain = [
+                ('availability_status', '=', 'available'),
+                ('is_rental_vehicle', '=', True),
+            ]
+            if self.rental_category:
+                fallback_domain.append(('rental_category', '=', self.rental_category))
+            vehicles = self.env['fleet.vehicle'].search(fallback_domain)
+
+        # Filter out vehicles with conflicting service periods
+        available_vehicles = self.env['fleet.vehicle']
+        for vehicle in vehicles:
+            # Check for conflicting rentals
+            overlapping_rentals = self.env['fleet.rental'].search([
+                ('vehicle_id', '=', vehicle.id),
+                ('state', 'in', ['confirmed', 'in_progress']),
+                '|',
+                '&', ('start_date', '<=', self.pickup_date), ('end_date', '>=', self.pickup_date),
+                '&', ('start_date', '<=', self.return_date), ('end_date', '>=', self.return_date),
+            ])
+            if overlapping_rentals:
+                continue
+
+            # Check for conflicting scheduled maintenance/service periods
+            conflicting_services = self.env['fleet.maintenance'].search([
+                ('vehicle_id', '=', vehicle.id),
+                ('status', 'in', ['scheduled', 'in_progress']),
+                ('service_start_date', '!=', False),
+                ('service_end_date', '!=', False),
+                '|',
+                '&', ('service_start_date', '<=', self.pickup_date), ('service_end_date', '>=', self.pickup_date),
+                '&', ('service_start_date', '<=', self.return_date), ('service_end_date', '>=', self.return_date),
+            ])
+            if not conflicting_services:
+                available_vehicles |= vehicle
+
+        return available_vehicles
     
     def _is_vehicle_available(self, vehicle_id):
         """Check if vehicle is available for the booking dates"""
@@ -239,8 +280,22 @@ class FleetBooking(models.Model):
             '&', ('start_date', '<=', self.pickup_date), ('end_date', '>=', self.pickup_date),
             '&', ('start_date', '<=', self.return_date), ('end_date', '>=', self.return_date),
         ])
-        
-        return len(overlapping_rentals) == 0
+
+        if overlapping_rentals:
+            return False
+
+        # Check for conflicting scheduled maintenance/service periods
+        conflicting_services = self.env['fleet.maintenance'].search([
+            ('vehicle_id', '=', vehicle_id),
+            ('status', 'in', ['scheduled', 'in_progress']),
+            ('service_start_date', '!=', False),
+            ('service_end_date', '!=', False),
+            '|',
+            '&', ('service_start_date', '<=', self.pickup_date), ('service_end_date', '>=', self.pickup_date),
+            '&', ('service_start_date', '<=', self.return_date), ('service_end_date', '>=', self.return_date),
+        ])
+
+        return len(conflicting_services) == 0
     
     def _create_rental_from_booking(self):
         """Create rental record from booking"""
@@ -455,7 +510,7 @@ class FleetDriver(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     @api.model
     def get_available_drivers(self, license_type=None):

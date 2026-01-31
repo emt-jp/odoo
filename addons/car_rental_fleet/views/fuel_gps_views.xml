@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Fuel Management List View -->
+    <record id="view_fleet_fuel_management_list" model="ir.ui.view">
+        <field name="name">fleet.fuel.management.list</field>
+        <field name="model">fleet.fuel.management</field>
+        <field name="arch" type="xml">
+            <list string="Fuel Management">
+                <field name="name"/>
+                <field name="vehicle_id"/>
+                <field name="fuel_date"/>
+                <field name="fuel_type"/>
+                <field name="quantity"/>
+                <field name="cost"/>
+                <field name="odometer_reading"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Fuel Management Form View -->
+    <record id="view_fleet_fuel_management_form" model="ir.ui.view">
+        <field name="name">fleet.fuel.management.form</field>
+        <field name="model">fleet.fuel.management</field>
+        <field name="arch" type="xml">
+            <form string="Fuel Management">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="vehicle_id" options="{'no_create': False}"/>
+                            <field name="fuel_date"/>
+                            <field name="fuel_type"/>
+                        </group>
+                        <group>
+                            <field name="quantity"/>
+                            <field name="unit_price"/>
+                            <field name="cost"/>
+                            <field name="odometer_reading"/>
+                        </group>
+                    </group>
+                    <group string="Location">
+                        <field name="fuel_station"/>
+                        <field name="location"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Fuel Management Search View -->
+    <record id="view_fleet_fuel_management_search" model="ir.ui.view">
+        <field name="name">fleet.fuel.management.search</field>
+        <field name="model">fleet.fuel.management</field>
+        <field name="arch" type="xml">
+            <search string="Fuel Management">
+                <field name="name"/>
+                <field name="vehicle_id"/>
+                <field name="fuel_type"/>
+                <group>
+                    <filter string="Vehicle" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
+                    <filter string="Fuel Type" name="group_fuel_type" context="{'group_by': 'fuel_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Fuel Management Action -->
+    <record id="action_fleet_fuel_management" model="ir.actions.act_window">
+        <field name="name">Fuel Management</field>
+        <field name="res_model">fleet.fuel.management</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Record your first fuel transaction!
+            </p>
+            <p>
+                Track fuel consumption and costs for your fleet.
+            </p>
+        </field>
+    </record>
+
+    <!-- GPS Tracking List View -->
+    <record id="view_fleet_gps_tracking_list" model="ir.ui.view">
+        <field name="name">fleet.gps.tracking.list</field>
+        <field name="model">fleet.gps.tracking</field>
+        <field name="arch" type="xml">
+            <list string="GPS Tracking">
+                <field name="name"/>
+                <field name="vehicle_id"/>
+                <field name="tracking_date"/>
+                <field name="latitude"/>
+                <field name="longitude"/>
+                <field name="speed"/>
+                <field name="status"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- GPS Tracking Form View -->
+    <record id="view_fleet_gps_tracking_form" model="ir.ui.view">
+        <field name="name">fleet.gps.tracking.form</field>
+        <field name="model">fleet.gps.tracking</field>
+        <field name="arch" type="xml">
+            <form string="GPS Tracking">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="vehicle_id" options="{'no_create': False}"/>
+                            <field name="tracking_date"/>
+                            <field name="status"/>
+                        </group>
+                        <group>
+                            <field name="latitude"/>
+                            <field name="longitude"/>
+                            <field name="speed"/>
+                            <field name="heading"/>
+                        </group>
+                    </group>
+                    <group string="Location">
+                        <field name="address"/>
+                        <field name="city"/>
+                        <field name="state"/>
+                        <field name="country"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- GPS Tracking Search View -->
+    <record id="view_fleet_gps_tracking_search" model="ir.ui.view">
+        <field name="name">fleet.gps.tracking.search</field>
+        <field name="model">fleet.gps.tracking</field>
+        <field name="arch" type="xml">
+            <search string="GPS Tracking">
+                <field name="name"/>
+                <field name="vehicle_id"/>
+                <filter string="Active" name="active" domain="[('status', '=', 'active')]"/>
+                <group>
+                    <filter string="Vehicle" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
+                    <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- GPS Tracking Action -->
+    <record id="action_fleet_gps_tracking" model="ir.actions.act_window">
+        <field name="name">GPS Tracking</field>
+        <field name="res_model">fleet.gps.tracking</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Start tracking your vehicles!
+            </p>
+            <p>
+                Monitor vehicle locations and movements in real-time.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Items -->
+    <menuitem id="menu_fleet_fuel" name="Fuel" parent="menu_car_rental_operations" action="action_fleet_fuel_management" sequence="50"/>
+    <menuitem id="menu_fleet_gps" name="GPS Tracking" parent="menu_car_rental_operations" action="action_fleet_gps_tracking" sequence="60"/>
+
+</odoo>
+

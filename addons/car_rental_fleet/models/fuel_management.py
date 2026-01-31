@@ -14,8 +14,10 @@ class FleetFuelManagement(models.Model):
     _name = 'fleet.fuel.management'
     _description = 'Fleet Fuel Management'
     _order = 'refuel_date desc'
-    
+
+    name = fields.Char('Reference', required=True, copy=False, default='New')
     vehicle_id = fields.Many2one('fleet.vehicle', string='Vehicle', required=True)
+    fuel_date = fields.Datetime('Fuel Date', related='refuel_date', store=True)
     refuel_date = fields.Datetime('Refuel Date', required=True, default=fields.Datetime.now)
     
     # Fuel Details
@@ -29,20 +31,24 @@ class FleetFuelManagement(models.Model):
     ], string='Fuel Type', required=True)
     
     fuel_quantity = fields.Float('Fuel Quantity', digits=(10, 3), required=True)
+    quantity = fields.Float('Quantity', related='fuel_quantity', store=True)
     fuel_unit = fields.Selection([
         ('liters', 'Liters'),
         ('gallons', 'Gallons'),
         ('kwh', 'kWh (Electric)'),
     ], string='Fuel Unit', required=True, default='liters')
-    
+
     # Cost Information
     unit_price = fields.Monetary('Unit Price', currency_field='currency_id', required=True)
     total_cost = fields.Monetary('Total Cost', currency_field='currency_id', compute='_compute_total_cost', store=True)
+    cost = fields.Monetary('Cost', related='total_cost', store=True)
     currency_id = fields.Many2one('res.currency', string='Currency', default=lambda self: self.env.company.currency_id)
-    
+
     # Location
     refuel_location = fields.Char('Refuel Location')
+    location = fields.Char('Location', related='refuel_location', store=True)
     station_name = fields.Char('Station Name')
+    fuel_station = fields.Char('Fuel Station', related='station_name', store=True)
     station_address = fields.Text('Station Address')
     
     # Odometer
@@ -113,7 +119,7 @@ class FleetFuelManagement(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     @api.model
     def create_fuel_record(self, vehicle_id, fuel_data):
@@ -439,7 +445,7 @@ class FleetFuelCard(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     @api.model
     def get_card_usage_analytics(self, card_id, start_date=None, end_date=None):

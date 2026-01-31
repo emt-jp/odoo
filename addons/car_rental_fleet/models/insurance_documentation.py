@@ -15,6 +15,10 @@ class FleetInsurance(models.Model):
     _description = 'Fleet Insurance Management'
     _order = 'expiry_date desc'
     
+    _sql_constraints = [
+        ('policy_number_unique', 'UNIQUE(policy_number)', 'Policy number must be unique!'),
+    ]
+    
     vehicle_id = fields.Many2one('fleet.vehicle', string='Vehicle', required=True)
     
     # Insurance Details
@@ -46,7 +50,7 @@ class FleetInsurance(models.Model):
         ('expired', 'Expired'),
         ('cancelled', 'Cancelled'),
         ('pending', 'Pending'),
-    ], string='Status', default='active')
+    ], string='Status', default='active', compute='_compute_status', store=True, readonly=False)
     
     # Contact Information
     agent_name = fields.Char('Agent Name')
@@ -79,9 +83,42 @@ class FleetInsurance(models.Model):
                 insurance.claims_count = 0
                 insurance.total_claims_amount = 0.0
     
+    @api.depends('expiry_date')
+    def _compute_status(self):
+        """Auto-update status based on expiry date"""
+        today = fields.Date.today()
+        for insurance in self:
+            if insurance.status == 'cancelled':
+                continue  # Don't auto-update cancelled policies
+            if insurance.expiry_date and insurance.expiry_date < today:
+                insurance.status = 'expired'
+            elif insurance.status == 'expired' and insurance.expiry_date and insurance.expiry_date >= today:
+                insurance.status = 'active'
+    
+    @api.constrains('start_date', 'expiry_date')
+    def _check_dates(self):
+        """Validate that expiry date is after start date"""
+        for insurance in self:
+            if insurance.start_date and insurance.expiry_date:
+                if insurance.expiry_date <= insurance.start_date:
+                    raise ValidationError(_('Expiry date must be after start date.'))
+    
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
+    
+    def action_view_claims(self):
+        """Open claims for this insurance policy"""
+        self.ensure_one()
+        action = {
+            'name': _('Insurance Claims'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'fleet.insurance.claim',
+            'view_mode': 'tree,form',
+            'domain': [('insurance_id', '=', self.id)],
+            'context': {'default_insurance_id': self.id},
+        }
+        return action
     
     @api.model
     def check_expiring_insurance(self, days=30):
@@ -278,7 +315,33 @@ class FleetInsuranceClaim(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
+    
+    @api.constrains('claim_date', 'incident_date')
+    def _check_claim_dates(self):
+        """Validate that claim date is not before incident date"""
+        for claim in self:
+            if claim.claim_date and claim.incident_date:
+                if claim.claim_date < claim.incident_date:
+                    raise ValidationError(_('Claim date cannot be before incident date.'))
+    
+    @api.constrains('claim_amount', 'approved_amount')
+    def _check_approved_amount(self):
+        """Validate that approved amount does not exceed claim amount"""
+        for claim in self:
+            if claim.approved_amount and claim.claim_amount:
+                if claim.approved_amount > claim.claim_amount:
+                    raise ValidationError(_('Approved amount cannot exceed claim amount.'))
+    
+    @api.constrains('approved_amount', 'settlement_amount', 'status')
+    def _check_settlement_amount(self):
+        """Validate that settlement amount does not exceed approved amount"""
+        for claim in self:
+            if claim.settlement_amount and claim.approved_amount:
+                if claim.settlement_amount > claim.approved_amount:
+                    raise ValidationError(_('Settlement amount cannot exceed approved amount.'))
+            if claim.settlement_amount and claim.status not in ('approved', 'settled'):
+                raise ValidationError(_('Settlement amount can only be set for approved or settled claims.'))
     
     @api.model
     def create_claim(self, insurance_id, claim_data):
@@ -417,9 +480,17 @@ class FleetDocument(models.Model):
             else:
                 document.status = 'valid'
     
+    @api.constrains('issue_date', 'expiry_date')
+    def _check_document_dates(self):
+        """Validate that expiry date is after issue date if both are provided"""
+        for document in self:
+            if document.issue_date and document.expiry_date:
+                if document.expiry_date < document.issue_date:
+                    raise ValidationError(_('Expiry date must be after issue date.'))
+    
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     @api.model
     def get_expiring_documents(self, days=30):

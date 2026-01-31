@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Car Rental Root Menu -->
+    <menuitem id="menu_car_rental_root" name="Car Rental" web_icon="car_rental_fleet,static/description/icon.png" sequence="60"/>
+    <menuitem id="menu_car_rental_vehicles" name="Vehicles" parent="menu_car_rental_root" sequence="10"/>
+    <menuitem id="menu_car_rental_operations" name="Operations" parent="menu_car_rental_root" sequence="20"/>
+    <menuitem id="menu_car_rental_reports" name="Reports" parent="menu_car_rental_root" sequence="40"/>
+    <menuitem id="menu_car_rental_config" name="Configuration" parent="menu_car_rental_root" sequence="50"/>
+
+    <!-- Extend Fleet Vehicle Form View to add Pictures, Documents, and KM Service Settings -->
+    <record id="view_fleet_vehicle_form_rental" model="ir.ui.view">
+        <field name="name">fleet.vehicle.form.rental</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <!-- Vehicle Pictures Tab -->
+                <page string="Pictures" name="pictures">
+                    <group string="Main Vehicle Pictures">
+                        <group>
+                            <field name="image_front" widget="image" class="oe_avatar"/>
+                            <field name="image_back" widget="image" class="oe_avatar"/>
+                            <field name="image_left" widget="image" class="oe_avatar"/>
+                        </group>
+                        <group>
+                            <field name="image_right" widget="image" class="oe_avatar"/>
+                            <field name="image_interior" widget="image" class="oe_avatar"/>
+                            <field name="image_dashboard" widget="image" class="oe_avatar"/>
+                        </group>
+                    </group>
+                    <group string="Additional Pictures">
+                        <field name="additional_images_ids" nolabel="1"/>
+                    </group>
+                </page>
+
+                <!-- Legal Documents Tab -->
+                <page string="Legal Documents" name="legal_documents">
+                    <group string="Primary Documents">
+                        <group>
+                            <field name="registration_document" filename="registration_document_filename"/>
+                            <field name="registration_document_filename" invisible="1"/>
+                            <field name="insurance_document" filename="insurance_document_filename"/>
+                            <field name="insurance_document_filename" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="inspection_certificate" filename="inspection_certificate_filename"/>
+                            <field name="inspection_certificate_filename" invisible="1"/>
+                            <field name="ownership_document" filename="ownership_document_filename"/>
+                            <field name="ownership_document_filename" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="All Documents">
+                        <field name="additional_documents_ids" nolabel="1"/>
+                    </group>
+                </page>
+
+                <!-- KM Service Settings Tab -->
+                <page string="KM Service Settings" name="km_service">
+                    <group string="Automatic KM-Based Service">
+                        <group>
+                            <field name="km_service_enabled"/>
+                            <field name="km_service_interval" invisible="not km_service_enabled"/>
+                        </group>
+                        <group>
+                            <field name="km_service_duration_days" invisible="not km_service_enabled"/>
+                            <field name="last_km_service_odometer" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Information" invisible="not km_service_enabled">
+                        <div class="alert alert-info" role="alert">
+                            <strong>How it works:</strong>
+                            <ul>
+                                <li>A service check is automatically created every <field name="km_service_interval" readonly="1" class="oe_inline"/> km</li>
+                                <li>Service is scheduled 1 week after the odometer threshold is crossed</li>
+                                <li>Default service duration: <field name="km_service_duration_days" readonly="1" class="oe_inline"/> days (you can update this)</li>
+                                <li>Vehicle will be unavailable for booking during service period</li>
+                            </ul>
+                        </div>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Add KM service fields and status to list view with color decorations -->
+    <record id="view_fleet_vehicle_list_rental" model="ir.ui.view">
+        <field name="name">fleet.vehicle.list.rental</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_view_tree"/>
+        <field name="arch" type="xml">
+            <!-- Add status field after license_plate with badge and colors (always visible) -->
+            <xpath expr="//field[@name='license_plate']" position="after">
+                <field name="availability_status" string="Status" optional="show" widget="badge"
+                       decoration-success="availability_status == 'available'"
+                       decoration-info="availability_status == 'reserved'"
+                       decoration-warning="availability_status == 'maintenance'"
+                       decoration-danger="availability_status in ('rented', 'out_of_service')"
+                       decoration-muted="availability_status == 'sold'"/>
+            </xpath>
+
+            <!-- Add KM service fields after driver -->
+            <xpath expr="//field[@name='driver_id']" position="after">
+                <field name="km_service_enabled" optional="hide" string="KM Service"/>
+                <field name="last_km_service_odometer" optional="hide" string="Last KM Service"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Vehicle Image Form View -->
+    <record id="view_fleet_vehicle_image_form" model="ir.ui.view">
+        <field name="name">fleet.vehicle.image.form</field>
+        <field name="model">fleet.vehicle.image</field>
+        <field name="arch" type="xml">
+            <form string="Vehicle Image">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="vehicle_id"/>
+                            <field name="image_type"/>
+                            <field name="capture_date"/>
+                        </group>
+                        <group>
+                            <field name="image" widget="image"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vehicle Image List View -->
+    <record id="view_fleet_vehicle_image_list" model="ir.ui.view">
+        <field name="name">fleet.vehicle.image.list</field>
+        <field name="model">fleet.vehicle.image</field>
+        <field name="arch" type="xml">
+            <list string="Vehicle Images" editable="bottom">
+                <field name="name"/>
+                <field name="image_type"/>
+                <field name="capture_date"/>
+                <field name="notes"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vehicle Document Form View -->
+    <record id="view_fleet_vehicle_document_form" model="ir.ui.view">
+        <field name="name">fleet.vehicle.document.form</field>
+        <field name="model">fleet.vehicle.document</field>
+        <field name="arch" type="xml">
+            <form string="Vehicle Document">
+                <header>
+                    <button name="action_create_renewal_reminder" string="Create Renewal Reminder"
+                            type="object" class="oe_highlight" icon="fa-bell"
+                            invisible="not expiry_date or reminder_created"/>
+                </header>
+                <sheet>
+                    <!-- Expiration Alert Banners -->
+                    <div class="alert alert-danger" role="alert" invisible="not is_expired">
+                        <h4 class="alert-heading">
+                            <i class="fa fa-times-circle"/> EXPIRED
+                        </h4>
+                        <p>This document expired <strong><field name="days_to_expiry" readonly="1"/></strong> days ago!</p>
+                        <p class="mb-0"><strong>Action Required:</strong> Renew this document immediately.</p>
+                    </div>
+
+                    <div class="alert alert-warning" role="alert" invisible="is_expired or days_to_expiry &gt; 30 or not expiry_date">
+                        <h4 class="alert-heading">
+                            <i class="fa fa-exclamation-triangle"/> EXPIRING SOON
+                        </h4>
+                        <p>This document will expire in <strong><field name="days_to_expiry" readonly="1"/></strong> days!</p>
+                        <p class="mb-0">Expiry Date: <field name="expiry_date" readonly="1"/></p>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Document Name"/></h1>
+                    </div>
+
+                    <!-- Document Information -->
+                    <group string="📄 Document Details">
+                        <group>
+                            <field name="vehicle_id"/>
+                            <field name="document_type" widget="badge"/>
+                            <field name="document_number"/>
+                            <field name="issuing_authority"/>
+                        </group>
+                        <group>
+                            <field name="document_file" filename="document_filename"/>
+                            <field name="document_filename" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Validity Period -->
+                    <group string="📅 Validity Period">
+                        <group>
+                            <field name="issue_date"/>
+                            <field name="expiry_date"/>
+                        </group>
+                        <group>
+                            <field name="days_to_expiry" readonly="1" widget="badge"
+                                   decoration-danger="is_expired"
+                                   decoration-warning="days_to_expiry &lt;= 30 and days_to_expiry &gt; 0"
+                                   decoration-success="days_to_expiry &gt; 90"/>
+                            <field name="alert_before_days"/>
+                            <field name="is_expired" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Renewal Reminder Section -->
+                    <group string="🔔 Renewal Reminder" invisible="not reminder_created">
+                        <div class="alert alert-success" role="alert">
+                            <strong><i class="fa fa-check-circle"/> Reminder Created</strong>
+                            <p class="mb-0">A renewal reminder has been set up for this document.</p>
+                        </div>
+                        <group>
+                            <field name="reminder_created" readonly="1"/>
+                            <field name="calendar_event_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="maintenance_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Notes -->
+                    <group string="📝 Notes">
+                        <field name="notes" placeholder="Additional notes about this document..." nolabel="1"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vehicle Documents List View -->
+    <record id="view_fleet_vehicle_document_list" model="ir.ui.view">
+        <field name="name">fleet.vehicle.document.list</field>
+        <field name="model">fleet.vehicle.document</field>
+        <field name="arch" type="xml">
+            <list string="Vehicle Documents"
+                  decoration-danger="is_expired"
+                  decoration-warning="days_to_expiry &lt;= 30 and days_to_expiry &gt; 0"
+                  decoration-success="days_to_expiry &gt; 90">
+                <!-- Key fields always visible -->
+                <field name="vehicle_id"/>
+                <field name="name"/>
+                <field name="document_type" widget="badge" optional="show"/>
+
+                <!-- Expiration Status with Visual Countdown -->
+                <field name="days_to_expiry" string="Expires In" widget="badge"
+                       decoration-danger="is_expired"
+                       decoration-warning="days_to_expiry &lt;= 30 and days_to_expiry &gt; 0"
+                       decoration-info="days_to_expiry &gt; 30 and days_to_expiry &lt;= 90"
+                       decoration-success="days_to_expiry &gt; 90"/>
+
+                <!-- Important dates -->
+                <field name="expiry_date" optional="show"/>
+                <field name="issue_date" optional="hide"/>
+
+                <!-- Document details -->
+                <field name="document_number" optional="show"/>
+                <field name="issuing_authority" optional="hide"/>
+                <field name="alert_before_days" optional="hide"/>
+
+                <!-- Action indicators -->
+                <field name="reminder_created" string="Reminder" widget="boolean_badge"
+                       decoration-success="reminder_created"
+                       optional="show"/>
+
+                <!-- Hidden field for decoration logic -->
+                <field name="is_expired" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vehicle Documents Search View -->
+    <record id="view_fleet_vehicle_document_search" model="ir.ui.view">
+        <field name="name">fleet.vehicle.document.search</field>
+        <field name="model">fleet.vehicle.document</field>
+        <field name="arch" type="xml">
+            <search string="Vehicle Documents">
+                <field name="name"/>
+                <field name="vehicle_id"/>
+                <field name="document_type"/>
+                <filter string="Expired" name="expired" domain="[('is_expired', '=', True)]"/>
+                <filter string="Expiring Soon (30 days)" name="expiring_soon" domain="[('days_to_expiry', '&lt;=', 30), ('days_to_expiry', '&gt;', 0)]"/>
+                <separator/>
+                <filter string="Registration" name="registration" domain="[('document_type', '=', 'registration')]"/>
+                <filter string="Insurance" name="insurance" domain="[('document_type', '=', 'insurance')]"/>
+                <filter string="Inspection" name="inspection" domain="[('document_type', '=', 'inspection')]"/>
+                <group>
+                    <filter string="Vehicle" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
+                    <filter string="Document Type" name="group_type" context="{'group_by': 'document_type'}"/>
+                    <filter string="Expiry Date" name="group_expiry" context="{'group_by': 'expiry_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action for All Vehicle Documents -->
+    <record id="action_fleet_vehicle_documents" model="ir.actions.act_window">
+        <field name="name">Vehicle Documents</field>
+        <field name="res_model">fleet.vehicle.document</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_expiring_soon': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Upload your first vehicle document!
+            </p>
+            <p>
+                Keep track of all legal documents including registration, insurance, and inspection certificates.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item for Vehicle Documents -->
+    <menuitem id="menu_fleet_vehicle_documents" name="Vehicle Documents" parent="menu_car_rental_vehicles" action="action_fleet_vehicle_documents" sequence="35"/>
+
+</odoo>

@@ -11,24 +11,18 @@ _logger = logging.getLogger(__name__)
 
 
 class FleetVehicle(models.Model):
-    _name = 'fleet.vehicle'
+    _inherit = 'fleet.vehicle'
     _description = 'Fleet Vehicle Management'
-    _inherit = ['fleet.vehicle']
-    
+
+    # Set default values for unit fields to make them optional
+    odometer_unit = fields.Selection(default='kilometers', required=False)
+    co2_emission_unit = fields.Selection(default='g/km', required=False)
+    power_unit = fields.Selection(default='horsepower', required=False)
+    range_unit = fields.Selection(default='km', required=False)
+
     # Vehicle Details
-    vehicle_type = fields.Selection([
-        ('sedan', 'Sedan'),
-        ('suv', 'SUV'),
-        ('hatchback', 'Hatchback'),
-        ('coupe', 'Coupe'),
-        ('convertible', 'Convertible'),
-        ('wagon', 'Wagon'),
-        ('truck', 'Truck'),
-        ('van', 'Van'),
-        ('motorcycle', 'Motorcycle'),
-        ('bus', 'Bus'),
-    ], string='Vehicle Type', required=True)
-    
+    # Note: vehicle_type is inherited as a related field from model_id.vehicle_type
+
     # Rental Specific Fields
     is_rental_vehicle = fields.Boolean('Rental Vehicle', default=True)
     rental_category = fields.Selection([
@@ -54,12 +48,13 @@ class FleetVehicle(models.Model):
         ('cng', 'CNG'),
     ], string='Engine Type', default='gasoline')
     
-    transmission = fields.Selection([
-        ('manual', 'Manual'),
-        ('automatic', 'Automatic'),
-        ('semi_automatic', 'Semi-Automatic'),
-        ('cvt', 'CVT'),
-    ], string='Transmission', default='automatic')
+    transmission = fields.Selection(
+        selection_add=[
+            ('semi_automatic', 'Semi-Automatic'),
+            ('cvt', 'CVT'),
+        ],
+        ondelete={'semi_automatic': 'cascade', 'cvt': 'cascade'}
+    )
     
     fuel_capacity = fields.Float('Fuel Capacity (Liters)', digits=(10, 2))
     fuel_consumption = fields.Float('Fuel Consumption (L/100km)', digits=(10, 2))
@@ -74,7 +69,7 @@ class FleetVehicle(models.Model):
     daily_rate = fields.Monetary('Daily Rate', currency_field='currency_id')
     weekly_rate = fields.Monetary('Weekly Rate', currency_field='currency_id')
     monthly_rate = fields.Monetary('Monthly Rate', currency_field='currency_id')
-    currency_id = fields.Many2one('res.currency', string='Currency', default=lambda self: self.env.company.currency_id)
+    # Note: currency_id is inherited from fleet.vehicle with a default, so we don't redefine it
     
     # Availability & Status
     availability_status = fields.Selection([
@@ -97,6 +92,12 @@ class FleetVehicle(models.Model):
     next_service_date = fields.Date('Next Service Date')
     service_interval_km = fields.Integer('Service Interval (KM)', default=10000)
     service_interval_days = fields.Integer('Service Interval (Days)', default=365)
+
+    # KM-Based Automatic Service Settings
+    km_service_enabled = fields.Boolean('Enable KM-Based Service', default=True, help='Automatically create service checks every 5000 km')
+    km_service_interval = fields.Integer('KM Service Interval', default=5000, help='Create service check every X kilometers')
+    km_service_duration_days = fields.Integer('Service Duration (Days)', default=2, help='Default duration for km-based service (admin can update)')
+    last_km_service_odometer = fields.Integer('Last KM Service Odometer', default=0, help='Odometer reading at last km-based service')
     
     # Insurance & Documentation
     insurance_company = fields.Char('Insurance Company')
@@ -105,6 +106,26 @@ class FleetVehicle(models.Model):
     registration_number = fields.Char('Registration Number')
     registration_date = fields.Date('Registration Date')
     registration_expiry_date = fields.Date('Registration Expiry Date')
+
+    # Vehicle Pictures
+    image_front = fields.Image('Front View', max_width=1920, max_height=1080)
+    image_back = fields.Image('Back View', max_width=1920, max_height=1080)
+    image_left = fields.Image('Left Side', max_width=1920, max_height=1080)
+    image_right = fields.Image('Right Side', max_width=1920, max_height=1080)
+    image_interior = fields.Image('Interior', max_width=1920, max_height=1080)
+    image_dashboard = fields.Image('Dashboard', max_width=1920, max_height=1080)
+    additional_images_ids = fields.One2many('fleet.vehicle.image', 'vehicle_id', string='Additional Pictures')
+
+    # Legal Documents
+    registration_document = fields.Binary('Registration Document')
+    registration_document_filename = fields.Char('Registration Document Filename')
+    insurance_document = fields.Binary('Insurance Document')
+    insurance_document_filename = fields.Char('Insurance Document Filename')
+    inspection_certificate = fields.Binary('Inspection Certificate')
+    inspection_certificate_filename = fields.Char('Inspection Certificate Filename')
+    ownership_document = fields.Binary('Ownership Document')
+    ownership_document_filename = fields.Char('Ownership Document Filename')
+    additional_documents_ids = fields.One2many('fleet.vehicle.document', 'vehicle_id', string='Additional Documents')
     
     # Financial Information
     purchase_price = fields.Monetary('Purchase Price', currency_field='currency_id')
@@ -142,7 +163,7 @@ class FleetVehicle(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     @api.model
     def create(self, vals_list):
@@ -238,22 +259,22 @@ class FleetVehicle(models.Model):
         """Get available vehicles for rental"""
         if not self._is_enterprise_available():
             raise UserError(_("Vehicle availability requires the Enterprise edition."))
-        
+
         domain = [
             ('availability_status', '=', 'available'),
             ('is_rental_vehicle', '=', True),
         ]
-        
+
         if vehicle_type:
             domain.append(('vehicle_type', '=', vehicle_type))
-        
+
         if rental_category:
             domain.append(('rental_category', '=', rental_category))
-        
-        # Check for overlapping rentals
+
+        # Check for overlapping rentals and service periods
         available_vehicles = []
         vehicles = self.search(domain)
-        
+
         for vehicle in vehicles:
             # Check if vehicle has overlapping rentals
             overlapping_rentals = self.env['fleet.rental'].search([
@@ -263,10 +284,24 @@ class FleetVehicle(models.Model):
                 '&', ('start_date', '<=', start_date), ('end_date', '>=', start_date),
                 '&', ('start_date', '<=', end_date), ('end_date', '>=', end_date),
             ])
-            
-            if not overlapping_rentals:
+
+            if overlapping_rentals:
+                continue
+
+            # Check for conflicting scheduled maintenance/service periods
+            conflicting_services = self.env['fleet.maintenance'].search([
+                ('vehicle_id', '=', vehicle.id),
+                ('status', 'in', ['scheduled', 'in_progress']),
+                ('service_start_date', '!=', False),
+                ('service_end_date', '!=', False),
+                '|',
+                '&', ('service_start_date', '<=', start_date), ('service_end_date', '>=', start_date),
+                '&', ('service_start_date', '<=', end_date), ('service_end_date', '>=', end_date),
+            ])
+
+            if not conflicting_services:
                 available_vehicles.append(vehicle)
-        
+
         return available_vehicles
     
     @api.model
@@ -448,8 +483,203 @@ class FleetLocationHistory(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
 
 
+class FleetVehicleImage(models.Model):
+    _name = 'fleet.vehicle.image'
+    _description = 'Fleet Vehicle Additional Images'
+    _order = 'sequence, id'
+
+    vehicle_id = fields.Many2one('fleet.vehicle', string='Vehicle', required=True, ondelete='cascade')
+    name = fields.Char('Description', required=True)
+    sequence = fields.Integer('Sequence', default=10)
+    image = fields.Image('Image', required=True, max_width=1920, max_height=1080)
+    image_type = fields.Selection([
+        ('exterior', 'Exterior'),
+        ('interior', 'Interior'),
+        ('engine', 'Engine'),
+        ('damage', 'Damage Report'),
+        ('other', 'Other'),
+    ], string='Image Type', default='other')
+    notes = fields.Text('Notes')
+    capture_date = fields.Date('Capture Date', default=fields.Date.today)
 
 
+class FleetVehicleDocument(models.Model):
+    _name = 'fleet.vehicle.document'
+    _description = 'Fleet Vehicle Legal Documents'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _order = 'expiry_date, name'
+
+    vehicle_id = fields.Many2one('fleet.vehicle', string='Vehicle', required=True, ondelete='cascade')
+    name = fields.Char('Document Name', required=True)
+    document_type = fields.Selection([
+        ('registration', 'Registration'),
+        ('insurance', 'Insurance'),
+        ('inspection', 'Inspection Certificate'),
+        ('permit', 'Permit'),
+        ('tax', 'Road Tax'),
+        ('ownership', 'Ownership/Title'),
+        ('warranty', 'Warranty'),
+        ('service_contract', 'Service Contract'),
+        ('other', 'Other'),
+    ], string='Document Type', required=True)
+    document_file = fields.Binary('Document File', required=True)
+    document_filename = fields.Char('Filename')
+    issue_date = fields.Date('Issue Date')
+    expiry_date = fields.Date('Expiry Date')
+    document_number = fields.Char('Document Number')
+    issuing_authority = fields.Char('Issuing Authority')
+    notes = fields.Text('Notes')
+
+    # Alert settings
+    alert_before_days = fields.Integer('Alert Before (Days)', default=30, help='Send alert this many days before expiry')
+    is_expired = fields.Boolean('Expired', compute='_compute_is_expired', store=True)
+    days_to_expiry = fields.Integer('Days to Expiry', compute='_compute_is_expired', store=True)
+
+    # Linked records
+    calendar_event_id = fields.Many2one('calendar.event', string='Renewal Reminder Event', ondelete='set null')
+    maintenance_id = fields.Many2one('fleet.maintenance', string='Renewal Service', ondelete='set null')
+    reminder_created = fields.Boolean('Reminder Created', default=False)
+
+    @api.depends('expiry_date')
+    def _compute_is_expired(self):
+        today = fields.Date.today()
+        for doc in self:
+            if doc.expiry_date:
+                doc.days_to_expiry = (doc.expiry_date - today).days
+                doc.is_expired = doc.expiry_date < today
+            else:
+                doc.days_to_expiry = 0
+                doc.is_expired = False
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Override create to schedule renewal reminders"""
+        records = super().create(vals_list)
+        for record in records:
+            if record.expiry_date:
+                record._schedule_renewal_reminder()
+        return records
+
+    def write(self, vals):
+        """Override write to update renewal reminders when expiry date changes"""
+        res = super().write(vals)
+        if 'expiry_date' in vals or 'alert_before_days' in vals:
+            for record in self:
+                record._schedule_renewal_reminder()
+        return res
+
+    def _schedule_renewal_reminder(self):
+        """Create calendar event and maintenance service for document renewal"""
+        self.ensure_one()
+        if not self.expiry_date:
+            return
+
+        # Calculate reminder date (alert_before_days before expiry)
+        reminder_date = self.expiry_date - timedelta(days=self.alert_before_days)
+
+        # Don't create reminders for past dates
+        if reminder_date < fields.Date.today():
+            reminder_date = fields.Date.today()
+
+        # Delete existing reminders if they exist
+        if self.calendar_event_id:
+            self.calendar_event_id.unlink()
+        if self.maintenance_id and self.maintenance_id.status == 'scheduled':
+            self.maintenance_id.unlink()
+
+        # Create calendar event for renewal reminder
+        event_name = f"[RENEWAL] {self.document_type.replace('_', ' ').title()} - {self.vehicle_id.name}"
+        calendar_event = self.env['calendar.event'].create({
+            'name': event_name,
+            'start': fields.Datetime.to_datetime(reminder_date),
+            'stop': fields.Datetime.to_datetime(reminder_date) + timedelta(hours=1),
+            'allday': False,
+            'description': f"""Document Renewal Reminder
+
+Vehicle: {self.vehicle_id.name}
+Document: {self.name}
+Document Type: {self.document_type.replace('_', ' ').title()}
+Document Number: {self.document_number or 'N/A'}
+Expiry Date: {self.expiry_date}
+Days Until Expiry: {self.days_to_expiry}
+
+Please renew this document before it expires.""",
+            'privacy': 'confidential',
+        })
+
+        # Create maintenance/service record for the renewal
+        service_date = fields.Datetime.to_datetime(reminder_date)
+        maintenance = self.env['fleet.maintenance'].create({
+            'vehicle_id': self.vehicle_id.id,
+            'maintenance_type': 'inspection',
+            'description': f"Document Renewal: {self.document_type.replace('_', ' ').title()} - {self.name}\nExpiry Date: {self.expiry_date}\nDocument Number: {self.document_number or 'N/A'}",
+            'priority': 'high' if self.days_to_expiry <= 7 else 'medium',
+            'scheduled_date': service_date,
+            'service_start_date': service_date,
+            'service_end_date': service_date + timedelta(days=1),
+            'estimated_duration': 2.0,
+            'status': 'scheduled',
+        })
+
+        # Link the records
+        self.write({
+            'calendar_event_id': calendar_event.id,
+            'maintenance_id': maintenance.id,
+            'reminder_created': True,
+        })
+
+    def action_create_renewal_reminder(self):
+        """Manual action to create renewal reminder"""
+        for doc in self:
+            if not doc.expiry_date:
+                raise UserError(_("Please set an expiry date first."))
+            doc._schedule_renewal_reminder()
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Reminder Created'),
+                'message': _('Calendar event and service reminder have been created for document renewal.'),
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+
+    @api.model
+    def _cron_check_document_expiry(self):
+        """Cron job to check document expiry and create reminders"""
+        _logger.info("Running document expiry check cron job")
+
+        # Find documents that need reminders
+        today = fields.Date.today()
+        documents = self.search([
+            ('expiry_date', '!=', False),
+            ('reminder_created', '=', False),
+        ])
+
+        for doc in documents:
+            reminder_date = doc.expiry_date - timedelta(days=doc.alert_before_days)
+            if reminder_date <= today:
+                doc._schedule_renewal_reminder()
+                _logger.info(f"Created renewal reminder for document: {doc.name} (Vehicle: {doc.vehicle_id.name})")
+
+        return True
+
+    def action_open_calendar_event(self):
+        """Open the linked calendar event"""
+        self.ensure_one()
+        if not self.calendar_event_id:
+            raise UserError(_("No calendar event linked to this document."))
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Renewal Reminder',
+            'res_model': 'calendar.event',
+            'res_id': self.calendar_event_id.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }

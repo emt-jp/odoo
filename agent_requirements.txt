@@ -1,0 +1,2 @@
+# Odoo Agent Dependencies
+anthropic>=0.39.0

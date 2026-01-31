@@ -32,11 +32,16 @@ class CustomerSegmentation(models.Model):
     
     # Criteria configuration
     criteria_rules = fields.One2many('customer.segmentation.rule', 'segment_id', string='Criteria Rules')
-    
+    domain = fields.Text('Domain', help='Domain filter for segment customers')
+    auto_refresh = fields.Boolean('Auto Refresh', default=False, help='Automatically refresh segment customers')
+
     # Segment characteristics
     color = fields.Char('Color', default='#007bff', help='Color code for the segment')
     icon = fields.Char('Icon', default='fa fa-users', help='Icon for the segment')
-    
+
+    # Customers in segment
+    partner_ids = fields.Many2many('res.partner', 'customer_segmentation_partner_rel', 'segment_id', 'partner_id', string='Customers')
+
     # Customer count
     customer_count = fields.Integer('Customer Count', compute='_compute_customer_count', store=True)
     
@@ -44,18 +49,39 @@ class CustomerSegmentation(models.Model):
     is_enterprise = fields.Boolean('Enterprise Feature', default=True)
     requires_license = fields.Boolean('Requires License', default=True)
     
-    @api.depends('criteria_rules')
+    @api.depends('criteria_rules', 'partner_ids')
     def _compute_customer_count(self):
         """Compute the number of customers in this segment"""
         for segment in self:
-            if segment._is_enterprise_available():
+            if segment.partner_ids:
+                segment.customer_count = len(segment.partner_ids)
+            elif segment._is_enterprise_available():
                 segment.customer_count = segment._get_customer_count()
             else:
                 segment.customer_count = 0
+
+    def action_refresh_segment(self):
+        """Refresh the segment customers based on criteria"""
+        self.ensure_one()
+        customers = self._get_segment_customers()
+        self.partner_ids = [(6, 0, customers.ids)]
+        return True
+
+    def action_view_customers(self):
+        """View customers in this segment"""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': f'Customers - {self.name}',
+            'res_model': 'res.partner',
+            'view_mode': 'list,form',
+            'domain': [('id', 'in', self.partner_ids.ids)],
+            'context': {'default_customer_rank': 1},
+        }
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     def _get_customer_count(self):
         """Get the number of customers in this segment"""

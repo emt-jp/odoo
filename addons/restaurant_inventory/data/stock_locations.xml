@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Restaurant-specific Stock Locations -->
+        <record id="stock_location_kitchen" model="stock.location">
+            <field name="name">Kitchen</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+        </record>
+
+        <record id="stock_location_dry_storage" model="stock.location">
+            <field name="name">Dry Storage</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock_location_kitchen"/>
+        </record>
+
+        <record id="stock_location_refrigerator" model="stock.location">
+            <field name="name">Refrigerator</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock_location_kitchen"/>
+        </record>
+
+        <record id="stock_location_freezer" model="stock.location">
+            <field name="name">Freezer</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock_location_kitchen"/>
+        </record>
+
+        <record id="stock_location_bar" model="stock.location">
+            <field name="name">Bar</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+        </record>
+
+        <record id="stock_location_prep_area" model="stock.location">
+            <field name="name">Prep Area</field>
+            <field name="usage">production</field>
+            <field name="location_id" ref="stock_location_kitchen"/>
+        </record>
+
+        <!-- Sequence for waste tracking -->
+        <record id="sequence_waste_tracking" model="ir.sequence">
+            <field name="name">Waste Tracking</field>
+            <field name="code">waste.tracking</field>
+            <field name="prefix">WASTE/</field>
+            <field name="padding">5</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+    </data>
+</odoo>

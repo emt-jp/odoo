@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Pricing Rule Form View -->
+    <record id="view_fleet_pricing_rule_form" model="ir.ui.view">
+        <field name="name">fleet.pricing.rule.form</field>
+        <field name="model">fleet.pricing.rule</field>
+        <field name="arch" type="xml">
+            <form string="Pricing Rule">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Rule Name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="rule_type"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                            <field name="can_stack"/>
+                        </group>
+                        <group>
+                            <field name="adjustment_type"/>
+                            <field name="adjustment_value"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Applicability" name="applicability">
+                            <group>
+                                <group>
+                                    <field name="apply_to"/>
+                                    <field name="vehicle_ids" widget="many2many_tags" invisible="apply_to != 'vehicle'"/>
+                                    <field name="rental_category" invisible="apply_to != 'category'"/>
+                                </group>
+                                <group>
+                                    <field name="date_from"/>
+                                    <field name="date_to"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Duration" name="duration" invisible="rule_type not in ['duration', 'early_bird', 'last_minute']">
+                            <group>
+                                <group>
+                                    <field name="min_duration_days"/>
+                                    <field name="max_duration_days"/>
+                                </group>
+                                <group>
+                                    <field name="booking_days_before" invisible="rule_type not in ['early_bird', 'last_minute']"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Weekend Days" name="weekend" invisible="rule_type != 'weekend'">
+                            <group>
+                                <group>
+                                    <field name="monday"/>
+                                    <field name="tuesday"/>
+                                    <field name="wednesday"/>
+                                    <field name="thursday"/>
+                                </group>
+                                <group>
+                                    <field name="friday"/>
+                                    <field name="saturday"/>
+                                    <field name="sunday"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Promo Code" name="promo" invisible="rule_type != 'promo_code'">
+                            <group>
+                                <field name="promo_code"/>
+                                <field name="promo_usage_limit"/>
+                                <field name="promo_used_count"/>
+                            </group>
+                        </page>
+                        <page string="Loyalty" name="loyalty" invisible="rule_type != 'loyalty'">
+                            <group>
+                                <field name="min_previous_rentals"/>
+                            </group>
+                        </page>
+                        <page string="Description" name="description">
+                            <group>
+                                <field name="description" placeholder="Internal description..."/>
+                                <field name="customer_description" placeholder="Description shown to customers..."/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Pricing Rule List View -->
+    <record id="view_fleet_pricing_rule_list" model="ir.ui.view">
+        <field name="name">fleet.pricing.rule.list</field>
+        <field name="model">fleet.pricing.rule</field>
+        <field name="arch" type="xml">
+            <list string="Pricing Rules">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="rule_type"/>
+                <field name="adjustment_type"/>
+                <field name="adjustment_value"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="can_stack"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Pricing Rule Search View -->
+    <record id="view_fleet_pricing_rule_search" model="ir.ui.view">
+        <field name="name">fleet.pricing.rule.search</field>
+        <field name="model">fleet.pricing.rule</field>
+        <field name="arch" type="xml">
+            <search string="Pricing Rules">
+                <field name="name"/>
+                <field name="rule_type"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Seasonal" name="seasonal" domain="[('rule_type', '=', 'seasonal')]"/>
+                <filter string="Discounts" name="discounts" domain="[('adjustment_value', '&lt;', 0)]"/>
+                <filter string="Surcharges" name="surcharges" domain="[('adjustment_value', '&gt;', 0)]"/>
+                <group>
+                    <filter string="Type" name="group_type" context="{'group_by': 'rule_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Pricing Rule Action -->
+    <record id="action_fleet_pricing_rule" model="ir.actions.act_window">
+        <field name="name">Pricing Rules</field>
+        <field name="res_model">fleet.pricing.rule</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first pricing rule!
+            </p>
+            <p>
+                Set up seasonal rates, discounts, promo codes, and more.
+            </p>
+        </field>
+    </record>
+
+    <!-- Seasonal Rate Form View -->
+    <record id="view_fleet_seasonal_rate_form" model="ir.ui.view">
+        <field name="name">fleet.seasonal.rate.form</field>
+        <field name="model">fleet.seasonal.rate</field>
+        <field name="arch" type="xml">
+            <form string="Seasonal Rate">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                        <group>
+                            <field name="rate_multiplier"/>
+                            <field name="apply_to_all"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group invisible="apply_to_all">
+                        <field name="rental_category_ids" widget="many2many_tags"/>
+                    </group>
+                    <group>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Seasonal Rate List View -->
+    <record id="view_fleet_seasonal_rate_list" model="ir.ui.view">
+        <field name="name">fleet.seasonal.rate.list</field>
+        <field name="model">fleet.seasonal.rate</field>
+        <field name="arch" type="xml">
+            <list string="Seasonal Rates">
+                <field name="name"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="rate_multiplier"/>
+                <field name="apply_to_all"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Seasonal Rate Action -->
+    <record id="action_fleet_seasonal_rate" model="ir.actions.act_window">
+        <field name="name">Seasonal Rates</field>
+        <field name="res_model">fleet.seasonal.rate</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Pricing Calculator Wizard -->
+    <record id="view_fleet_pricing_calculator_form" model="ir.ui.view">
+        <field name="name">fleet.pricing.calculator.form</field>
+        <field name="model">fleet.pricing.calculator</field>
+        <field name="arch" type="xml">
+            <form string="Pricing Calculator">
+                <group>
+                    <group>
+                        <field name="vehicle_id"/>
+                        <field name="pickup_date"/>
+                        <field name="return_date"/>
+                    </group>
+                    <group>
+                        <field name="customer_id"/>
+                        <field name="promo_code"/>
+                    </group>
+                </group>
+                <group string="Results" invisible="not final_total">
+                    <group>
+                        <field name="base_daily_rate"/>
+                        <field name="duration_days"/>
+                        <field name="base_total"/>
+                    </group>
+                    <group>
+                        <field name="discount_amount"/>
+                        <field name="surcharge_amount"/>
+                        <field name="final_total"/>
+                    </group>
+                </group>
+                <group invisible="not applied_rules">
+                    <field name="applied_rules" readonly="1"/>
+                </group>
+                <footer>
+                    <button name="action_calculate" string="Calculate Price" type="object" class="oe_highlight"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Pricing Calculator Action -->
+    <record id="action_fleet_pricing_calculator" model="ir.actions.act_window">
+        <field name="name">Pricing Calculator</field>
+        <field name="res_model">fleet.pricing.calculator</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Pricing Menu - Under Car Rental root -->
+    <menuitem id="menu_fleet_pricing" name="Pricing" parent="menu_car_rental_config" sequence="25"/>
+    <menuitem id="menu_fleet_pricing_rules" name="Pricing Rules" parent="menu_fleet_pricing" action="action_fleet_pricing_rule" sequence="10"/>
+    <menuitem id="menu_fleet_seasonal_rates" name="Seasonal Rates" parent="menu_fleet_pricing" action="action_fleet_seasonal_rate" sequence="20"/>
+    <menuitem id="menu_fleet_pricing_calculator" name="Price Calculator" parent="menu_fleet_pricing" action="action_fleet_pricing_calculator" sequence="30"/>
+
+</odoo>

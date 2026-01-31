@@ -1,0 +1,15 @@
+==========================================
+Database Migration: 103.101.59.102 → Docker
+==========================================
+
+[0;34mStep 1: SSH Connection Setup[0m
+Using SSH user from config: as
+
+Using SSH key from config: /home/as/.ssh/id_ed25519_odoo
+
+[1;33mTesting SSH connection...[0m
+[0;32m✓ SSH connection successful[0m
+
+[0;34mStep 2: Detecting Odoo Installation[0m
+Searching for Odoo installation...
+[1;33m⚠ Could not auto-detect Odoo path[0m

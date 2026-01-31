@@ -81,7 +81,48 @@ class ReportBuilder(models.Model):
     # Report generation
     last_generated = fields.Datetime('Last Generated')
     generation_count = fields.Integer('Generation Count', default=0)
-    
+
+    def action_generate_report(self):
+        """Action to generate the report"""
+        self.ensure_one()
+        return self.generate_report(report_id=self.id)
+
+    def action_preview_report(self):
+        """Action to preview the report"""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': f'Preview - {self.name}',
+            'res_model': 'report.builder',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'new',
+        }
+
+    def action_export_pdf(self):
+        """Action to export report to PDF"""
+        self.ensure_one()
+        # Placeholder for PDF export
+        return True
+
+    def action_export_excel(self):
+        """Action to export report to Excel"""
+        self.ensure_one()
+        # Placeholder for Excel export
+        return True
+
+    def action_view_history(self):
+        """Action to view report generation history"""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': f'History - {self.name}',
+            'res_model': 'report.builder',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
     @api.model
     def generate_report(self, report_id=None, context=None):
         """Generate report data"""
@@ -114,7 +155,7 @@ class ReportBuilder(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     def _get_report_data(self):
         """Get report data based on configuration"""

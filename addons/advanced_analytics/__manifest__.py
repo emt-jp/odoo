@@ -31,9 +31,17 @@
         'stock',
         'product',
     ],
-    'data': [],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/analytics_views.xml',
+    ],
     'demo': [],
-    'assets': {},
+    'assets': {
+        'web.assets_backend': [
+            'advanced_analytics/static/src/components/**/*',
+            'advanced_analytics/static/src/xml/**/*',
+        ],
+    },
     'installable': True,
     'application': True,
     'auto_install': False,

@@ -1,0 +1,137 @@
+/* Car Rental Website Styles */
+
+.o_car_rental {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* Vehicle Card */
+.vehicle-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+}
+
+.vehicle-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+}
+
+.vehicle-card .card-img-top {
+    border-radius: 0.375rem 0.375rem 0 0;
+}
+
+/* Feature badges */
+.vehicle-card .badge {
+    font-weight: 500;
+    font-size: 0.75rem;
+}
+
+/* Price display */
+.vehicle-card .h4 {
+    font-weight: 700;
+}
+
+/* Search/Filter card */
+.o_car_rental .card-header {
+    background-color: #fff;
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* Insurance cards */
+.o_car_rental .form-check-input:checked ~ .form-check-label {
+    color: #0d6efd;
+}
+
+/* Booking summary sticky sidebar */
+.o_car_rental .sticky-top {
+    z-index: 100;
+}
+
+/* Success/Cancel pages */
+.o_car_rental .fa-check-circle,
+.o_car_rental .fa-times-circle,
+.o_car_rental .fa-exclamation-triangle {
+    display: block;
+}
+
+/* Gallery thumbnails */
+.o_car_rental .col-4 img,
+.o_car_rental .col-md-2 img {
+    transition: opacity 0.2s ease;
+}
+
+.o_car_rental .col-4 img:hover,
+.o_car_rental .col-md-2 img:hover {
+    opacity: 0.8;
+}
+
+/* Breadcrumb */
+.o_car_rental .breadcrumb {
+    background-color: transparent;
+    padding: 0;
+}
+
+/* Form styling */
+.o_car_rental .form-control:focus,
+.o_car_rental .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+/* Insurance option cards */
+.o_car_rental .card h-100 {
+    cursor: pointer;
+}
+
+.o_car_rental .form-check-input[type="radio"]:checked ~ .form-check-label strong {
+    color: #0d6efd;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+    .o_car_rental h1 {
+        font-size: 1.75rem;
+    }
+
+    .vehicle-card .card-body {
+        padding: 1rem;
+    }
+
+    .o_car_rental .sticky-top {
+        position: relative !important;
+        top: 0 !important;
+    }
+}
+
+/* Portal styles */
+.o_portal_rental .badge {
+    font-size: 0.8rem;
+}
+
+/* Calendar availability colors */
+.date-available {
+    background-color: #d4edda;
+}
+
+.date-unavailable {
+    background-color: #f8d7da;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* Loading spinner for AJAX */
+.o_car_rental .spinner-border {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Price summary table */
+.o_car_rental table.table-sm td {
+    padding: 0.5rem 0;
+    border: none;
+}
+
+.o_car_rental table.table-sm tr.fw-bold td {
+    border-top: 2px solid #dee2e6;
+    padding-top: 1rem;
+}

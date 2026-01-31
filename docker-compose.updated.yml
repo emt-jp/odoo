@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database (matching remote: psql)
+  # Note: Service name changed from 'db' to 'psql' to match remote
+  psql:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: odoo
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - odoo-db:/var/lib/postgresql/data/pgdata
+      - ./ops/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - odoo_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo -d odoo"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # Odoo Application (matching remote structure but using local build)
+  odoo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      psql:
+        condition: service_healthy
+    environment:
+      - HOST=psql
+      - USER=odoo
+      - PASSWORD=odoo
+      - DATABASE=odoo
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./ops/config:/etc/odoo
+      - ./addons:/mnt/extra-addons
+      - ./var/logs:/opt/odoo/var/log
+      - ./var/backups:/opt/odoo/var/backups
+    ports:
+      - "8069:8069"
+      - "8072:8072"
+    networks:
+      - odoo_network
+    command: >
+      python3 odoo-bin
+      -c /etc/odoo/odoo.conf
+      --dev=reload,qweb,werkzeug,xml
+      --log-level=debug
+      --logfile=/opt/odoo/var/log/odoo.log
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8069/web/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  # Redis Cache (keep for local development)
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --requirepass odoo_redis_password
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - odoo_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # Mailhog for Email Testing (keep for local development)
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - odoo_network
+    restart: unless-stopped
+
+volumes:
+  odoo-data:
+  odoo-db:
+  redis_data:
+
+networks:
+  odoo_network:
+    driver: bridge
+

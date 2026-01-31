@@ -35,7 +35,10 @@
         'product',
         'mail',
     ],
-    'data': [],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/report_views.xml',
+    ],
     'demo': [],
     'assets': {},
     'installable': True,

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Basic Salary -->
+        <record id="rule_basic" model="hr.salary.rule">
+            <field name="name">Basic Salary</field>
+            <field name="code">BASIC</field>
+            <field name="category_id" ref="category_basic"/>
+            <field name="sequence">1</field>
+            <field name="struct_id" ref="structure_default"/>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = contract.wage</field>
+        </record>
+
+        <!-- Earnings -->
+        <record id="rule_hra" model="hr.salary.rule">
+            <field name="name">House Rent Allowance (HRA)</field>
+            <field name="code">HRA</field>
+            <field name="category_id" ref="category_earning"/>
+            <field name="sequence">10</field>
+            <field name="struct_id" ref="structure_default"/>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = contract.hra</field>
+        </record>
+
+        <record id="rule_da" model="hr.salary.rule">
+            <field name="name">Dearness Allowance (DA)</field>
+            <field name="code">DA</field>
+            <field name="category_id" ref="category_earning"/>
+            <field name="sequence">11</field>
+            <field name="struct_id" ref="structure_default"/>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = contract.da</field>
+        </record>
+
+        <record id="rule_transport" model="hr.salary.rule">
+            <field name="name">Transport Allowance</field>
+            <field name="code">TRANS</field>
+            <field name="category_id" ref="category_earning"/>
+            <field name="sequence">12</field>
+            <field name="struct_id" ref="structure_default"/>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = contract.transport_allowance</field>
+        </record>
+
+        <record id="rule_medical" model="hr.salary.rule">
+            <field name="name">Medical Allowance</field>
+            <field name="code">MEDICAL</field>
+            <field name="category_id" ref="category_earning"/>
+            <field name="sequence">13</field>
+            <field name="struct_id" ref="structure_default"/>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = contract.medical_allowance</field>
+        </record>
+
+        <record id="rule_special" model="hr.salary.rule">
+            <field name="name">Special Allowance</field>
+            <field name="code">SPECIAL</field>
+            <field name="category_id" ref="category_earning"/>
+            <field name="sequence">14</field>
+            <field name="struct_id" ref="structure_default"/>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = contract.special_allowance</field>
+        </record>
+
+        <!-- Deductions -->
+        <record id="rule_pf" model="hr.salary.rule">
+            <field name="name">Provident Fund (PF)</field>
+            <field name="code">PF</field>
+            <field name="category_id" ref="category_deduction"/>
+            <field name="sequence">100</field>
+            <field name="struct_id" ref="structure_default"/>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = contract.wage * contract.pf_employee / 100</field>
+        </record>
+
+        <record id="rule_esi" model="hr.salary.rule">
+            <field name="name">Employee State Insurance (ESI)</field>
+            <field name="code">ESI</field>
+            <field name="category_id" ref="category_deduction"/>
+            <field name="sequence">101</field>
+            <field name="struct_id" ref="structure_default"/>
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = contract.gross_salary &lt;= 21000</field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = contract.gross_salary * contract.esi_employee / 100</field>
+        </record>
+
+        <record id="rule_pt" model="hr.salary.rule">
+            <field name="name">Professional Tax</field>
+            <field name="code">PT</field>
+            <field name="category_id" ref="category_deduction"/>
+            <field name="sequence">102</field>
+            <field name="struct_id" ref="structure_default"/>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = contract.professional_tax</field>
+        </record>
+
+    </data>
+</odoo>

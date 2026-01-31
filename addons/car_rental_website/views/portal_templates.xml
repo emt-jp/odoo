@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Portal My Account Extension -->
+    <template id="portal_my_home_rental" name="Portal My Home - Car Rentals" inherit_id="portal.portal_my_home" priority="40">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'/car_rental_website/static/src/img/car-icon.svg'"/>
+                <t t-set="title">Car Rentals</t>
+                <t t-set="url" t-value="'/my/rentals'"/>
+                <t t-set="text">View your car rental bookings</t>
+                <t t-set="placeholder_count" t-value="'rental_count'"/>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- My Rentals List -->
+    <template id="portal_my_rentals" name="My Rentals">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">My Rentals</t>
+            </t>
+
+            <t t-if="not rentals">
+                <div class="alert alert-info" role="alert">
+                    <p class="mb-0">You don't have any car rental bookings yet.</p>
+                </div>
+                <a href="/cars" class="btn btn-primary">Browse Cars</a>
+            </t>
+            <t t-else="">
+                <t t-call="portal.portal_table">
+                    <thead>
+                        <tr>
+                            <th>Reference</th>
+                            <th>Vehicle</th>
+                            <th>Pickup Date</th>
+                            <th>Return Date</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="rentals" t-as="rental">
+                            <tr>
+                                <td>
+                                    <a t-att-href="'/my/rental/%s?access_token=%s' % (rental.id, rental.access_token)">
+                                        <t t-esc="rental.name"/>
+                                    </a>
+                                </td>
+                                <td><t t-esc="rental.vehicle_name"/></td>
+                                <td><t t-esc="rental.pickup_date.strftime('%Y-%m-%d %H:%M')"/></td>
+                                <td><t t-esc="rental.dropoff_date.strftime('%Y-%m-%d %H:%M')"/></td>
+                                <td><t t-esc="'%.2f' % rental.total_amount"/> <t t-esc="rental.currency_id.symbol"/></td>
+                                <td>
+                                    <span t-attf-class="badge rounded-pill #{
+                                        'bg-secondary' if rental.state == 'draft' else
+                                        'bg-warning' if rental.state == 'pending' else
+                                        'bg-success' if rental.state == 'confirmed' else
+                                        'bg-primary' if rental.state == 'in_progress' else
+                                        'bg-info' if rental.state == 'completed' else
+                                        'bg-danger'}">
+                                        <t t-esc="dict(rental._fields['state'].selection).get(rental.state)"/>
+                                    </span>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- Rental Detail Page -->
+    <template id="portal_my_rental" name="My Rental Details">
+        <t t-call="portal.portal_layout">
+            <t t-set="o_portal_fullwidth_alert" groups="car_rental_website.group_rental_user">
+                <t t-call="portal.portal_back_in_edit_mode">
+                    <t t-set="backend_url" t-value="'/odoo/action-car_rental_website.action_rental_booking/%s' % rental.id"/>
+                </t>
+            </t>
+
+            <t t-call="portal.portal_record_layout">
+                <t t-set="card_header">
+                    <div class="row">
+                        <div class="col-12 col-md-6">
+                            <h4 class="mb-0">
+                                <span>Booking: <t t-esc="rental.name"/></span>
+                                <span t-attf-class="badge rounded-pill ms-2 #{
+                                    'bg-secondary' if rental.state == 'draft' else
+                                    'bg-warning' if rental.state == 'pending' else
+                                    'bg-success' if rental.state == 'confirmed' else
+                                    'bg-primary' if rental.state == 'in_progress' else
+                                    'bg-info' if rental.state == 'completed' else
+                                    'bg-danger'}">
+                                    <t t-esc="dict(rental._fields['state'].selection).get(rental.state)"/>
+                                </span>
+                            </h4>
+                        </div>
+                        <div class="col-12 col-md-6 text-md-end">
+                            <span class="h4 text-primary">
+                                <t t-esc="rental.currency_id.symbol"/><t t-esc="'%.2f' % rental.total_amount"/>
+                            </span>
+                        </div>
+                    </div>
+                </t>
+                <t t-set="card_body">
+                    <div class="row">
+                        <!-- Vehicle Info -->
+                        <div class="col-12 col-md-6 mb-4">
+                            <h5>Vehicle</h5>
+                            <div class="d-flex align-items-center">
+                                <t t-if="rental.vehicle_image">
+                                    <img t-att-src="'/web/image/rental.booking/%s/vehicle_image' % rental.id"
+                                         class="rounded me-3" style="width: 100px; height: 75px; object-fit: cover;"/>
+                                </t>
+                                <div>
+                                    <strong><t t-esc="rental.vehicle_name"/></strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Status -->
+                        <div class="col-12 col-md-6 mb-4">
+                            <h5>Payment</h5>
+                            <span t-attf-class="badge rounded-pill #{
+                                'bg-success' if rental.payment_state == 'paid' else
+                                'bg-warning' if rental.payment_state == 'partial' else
+                                'bg-danger'}">
+                                <t t-esc="dict(rental._fields['payment_state'].selection).get(rental.payment_state)"/>
+                            </span>
+                            <t t-if="rental.payment_state == 'paid'">
+                                <p class="text-muted small mt-2 mb-0">
+                                    Paid: <t t-esc="rental.currency_id.symbol"/><t t-esc="'%.2f' % rental.amount_paid"/>
+                                </p>
+                            </t>
+                        </div>
+
+                        <!-- Pickup Details -->
+                        <div class="col-12 col-md-6 mb-4">
+                            <h5>Pickup</h5>
+                            <p class="mb-1">
+                                <strong><t t-esc="rental.pickup_date.strftime('%B %d, %Y')"/></strong>
+                                at <t t-esc="rental.pickup_date.strftime('%H:%M')"/>
+                            </p>
+                            <p class="mb-0">
+                                <i class="fa fa-map-marker-alt me-2"></i>
+                                <t t-esc="rental.pickup_location_id.name"/>
+                            </p>
+                            <p class="text-muted small mb-0">
+                                <t t-esc="rental.pickup_location_id.get_full_address()"/>
+                            </p>
+                        </div>
+
+                        <!-- Return Details -->
+                        <div class="col-12 col-md-6 mb-4">
+                            <h5>Return</h5>
+                            <p class="mb-1">
+                                <strong><t t-esc="rental.dropoff_date.strftime('%B %d, %Y')"/></strong>
+                                at <t t-esc="rental.dropoff_date.strftime('%H:%M')"/>
+                            </p>
+                            <p class="mb-0">
+                                <i class="fa fa-map-marker-alt me-2"></i>
+                                <t t-esc="rental.dropoff_location_id.name"/>
+                            </p>
+                            <p class="text-muted small mb-0">
+                                <t t-esc="rental.dropoff_location_id.get_full_address()"/>
+                            </p>
+                        </div>
+
+                        <!-- Insurance -->
+                        <t t-if="rental.insurance_id">
+                            <div class="col-12 col-md-6 mb-4">
+                                <h5>Insurance</h5>
+                                <p class="mb-0"><t t-esc="rental.insurance_id.name"/></p>
+                                <p class="text-muted small mb-0"><t t-esc="rental.insurance_id.description or ''"/></p>
+                            </div>
+                        </t>
+
+                        <!-- Extras -->
+                        <t t-if="rental.extra_line_ids">
+                            <div class="col-12 col-md-6 mb-4">
+                                <h5>Extras</h5>
+                                <ul class="list-unstyled mb-0">
+                                    <t t-foreach="rental.extra_line_ids" t-as="line">
+                                        <li>
+                                            <i class="fa fa-check text-success me-2"></i>
+                                            <t t-esc="line.extra_id.name"/>
+                                            <t t-if="line.quantity > 1"> x<t t-esc="line.quantity"/></t>
+                                        </li>
+                                    </t>
+                                </ul>
+                            </div>
+                        </t>
+                    </div>
+
+                    <!-- Price Breakdown -->
+                    <hr/>
+                    <h5>Price Breakdown</h5>
+                    <table class="table table-sm">
+                        <tbody>
+                            <tr>
+                                <td>Vehicle (<t t-esc="rental.rental_days"/> days x <t t-esc="rental.currency_id.symbol"/><t t-esc="'%.2f' % rental.daily_rate"/>)</td>
+                                <td class="text-end"><t t-esc="rental.currency_id.symbol"/><t t-esc="'%.2f' % rental.vehicle_total"/></td>
+                            </tr>
+                            <t t-if="rental.insurance_total">
+                                <tr>
+                                    <td>Insurance</td>
+                                    <td class="text-end"><t t-esc="rental.currency_id.symbol"/><t t-esc="'%.2f' % rental.insurance_total"/></td>
+                                </tr>
+                            </t>
+                            <t t-if="rental.extras_total">
+                                <tr>
+                                    <td>Extras</td>
+                                    <td class="text-end"><t t-esc="rental.currency_id.symbol"/><t t-esc="'%.2f' % rental.extras_total"/></td>
+                                </tr>
+                            </t>
+                            <t t-if="rental.location_fee">
+                                <tr>
+                                    <td>Location Fees</td>
+                                    <td class="text-end"><t t-esc="rental.currency_id.symbol"/><t t-esc="'%.2f' % rental.location_fee"/></td>
+                                </tr>
+                            </t>
+                            <tr>
+                                <td>Subtotal</td>
+                                <td class="text-end"><t t-esc="rental.currency_id.symbol"/><t t-esc="'%.2f' % rental.subtotal"/></td>
+                            </tr>
+                            <tr>
+                                <td>Tax (<t t-esc="'%.0f' % rental.tax_rate"/>%)</td>
+                                <td class="text-end"><t t-esc="rental.currency_id.symbol"/><t t-esc="'%.2f' % rental.tax_amount"/></td>
+                            </tr>
+                            <tr class="fw-bold">
+                                <td>Total</td>
+                                <td class="text-end"><t t-esc="rental.currency_id.symbol"/><t t-esc="'%.2f' % rental.total_amount"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Customer Notes -->
+                    <t t-if="rental.customer_notes">
+                        <hr/>
+                        <h5>Your Notes</h5>
+                        <p><t t-esc="rental.customer_notes"/></p>
+                    </t>
+
+                    <!-- Actions -->
+                    <t t-if="rental.state in ['draft', 'pending']">
+                        <hr/>
+                        <div class="d-flex gap-2">
+                            <a t-att-href="'/cars/book/checkout/%s?access_token=%s' % (rental.id, rental.access_token)"
+                               class="btn btn-primary">Complete Payment</a>
+                            <form t-att-action="'/my/rental/%s/cancel?access_token=%s' % (rental.id, rental.access_token)"
+                                  method="POST" class="d-inline">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <button type="submit" class="btn btn-outline-danger"
+                                        onclick="return confirm('Are you sure you want to cancel this booking?');">
+                                    Cancel Booking
+                                </button>
+                            </form>
+                        </div>
+                    </t>
+                    <t t-elif="rental.state == 'confirmed'">
+                        <hr/>
+                        <div class="alert alert-info">
+                            <i class="fa fa-info-circle me-2"></i>
+                            Your booking is confirmed. Please arrive at the pickup location on time with your driving license and ID.
+                        </div>
+                        <form t-att-action="'/my/rental/%s/cancel?access_token=%s' % (rental.id, rental.access_token)"
+                              method="POST">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <button type="submit" class="btn btn-outline-danger"
+                                    onclick="return confirm('Are you sure you want to cancel this booking? Cancellation fees may apply.');">
+                                Cancel Booking
+                            </button>
+                        </form>
+                    </t>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- Driving License Information Page - Standalone Template -->
+    <template id="portal_driving_license" name="Driving License Information">
+        <t t-call="portal.portal_layout">
+            <t t-call="portal.portal_record_layout">
+                <t t-set="card_header">
+                    <div class="row">
+                        <div class="col-12">
+                            <h4 class="mb-0">Driving License Information</h4>
+                        </div>
+                    </div>
+                </t>
+                <t t-set="card_body">
+                    <form action="/my/license/update" method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                        <h5 class="mt-4">Driving License Details</h5>
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="driving_license_number">License Number</label>
+                                    <input type="text" name="driving_license_number" id="driving_license_number"
+                                           class="form-control"
+                                           t-att-value="partner.driving_license_number or ''"/>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="driving_license_expiry">License Expiry Date</label>
+                                    <input type="date" name="driving_license_expiry" id="driving_license_expiry"
+                                           class="form-control"
+                                           t-att-value="partner.driving_license_expiry.isoformat() if partner.driving_license_expiry else ''"/>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="driving_license_country_id">License Country</label>
+                                    <select name="driving_license_country_id" id="driving_license_country_id" class="form-select">
+                                        <option value="">Select Country</option>
+                                        <t t-foreach="countries" t-as="country">
+                                            <option t-att-value="country.id"
+                                                    t-att-selected="partner.driving_license_country_id.id == country.id">
+                                                <t t-esc="country.name"/>
+                                            </option>
+                                        </t>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="birthdate">Date of Birth</label>
+                                    <input type="date" name="birthdate" id="birthdate" class="form-control"
+                                           t-att-value="partner.birthdate.isoformat() if partner.birthdate else ''"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h5 class="mt-4">Upload License Images</h5>
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="driving_license_front">Front of License</label>
+                                    <input type="file" name="driving_license_front" id="driving_license_front"
+                                           class="form-control" accept="image/*"/>
+                                    <t t-if="partner.driving_license_front">
+                                        <small class="text-success">
+                                            <i class="fa fa-check me-1"></i>Front image uploaded
+                                        </small>
+                                    </t>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="driving_license_back">Back of License</label>
+                                    <input type="file" name="driving_license_back" id="driving_license_back"
+                                           class="form-control" accept="image/*"/>
+                                    <t t-if="partner.driving_license_back">
+                                        <small class="text-success">
+                                            <i class="fa fa-check me-1"></i>Back image uploaded
+                                        </small>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-lg-6">
+                                <span class="badge bg-success" t-if="partner.driving_license_verified">
+                                    <i class="fa fa-check me-1"></i>License Verified
+                                </span>
+                                <span class="badge bg-warning" t-else="">
+                                    <i class="fa fa-clock me-1"></i>License Pending Verification
+                                </span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Update License Information</button>
+                    </form>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

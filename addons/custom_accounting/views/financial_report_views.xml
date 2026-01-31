@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Financial Report Custom Form View -->
+    <record id="view_account_financial_report_custom_form" model="ir.ui.view">
+        <field name="name">account.financial.report.custom.form</field>
+        <field name="model">account.financial.report.custom</field>
+        <field name="arch" type="xml">
+            <form string="Financial Report Definition">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="sequence"/>
+                            <field name="parent_id"/>
+                            <field name="level"/>
+                        </group>
+                        <group>
+                            <field name="report_type"/>
+                            <field name="sign"/>
+                            <field name="display_detail"/>
+                            <field name="style_overwrite"/>
+                        </group>
+                    </group>
+                    <group string="Accounts" invisible="report_type not in ('accounts', 'account_type')">
+                        <field name="account_ids" widget="many2many_tags"
+                               invisible="report_type != 'accounts'"/>
+                        <field name="account_types"
+                               invisible="report_type != 'account_type'"
+                               placeholder="income,expense,asset_receivable"/>
+                    </group>
+                    <group string="Children" invisible="report_type != 'sum'">
+                        <field name="child_ids">
+                            <list>
+                                <field name="sequence" widget="handle"/>
+                                <field name="name"/>
+                                <field name="report_type"/>
+                            </list>
+                        </field>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Financial Report Custom Tree View -->
+    <record id="view_account_financial_report_custom_tree" model="ir.ui.view">
+        <field name="name">account.financial.report.custom.tree</field>
+        <field name="model">account.financial.report.custom</field>
+        <field name="arch" type="xml">
+            <list string="Financial Report Definitions">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="parent_id"/>
+                <field name="report_type"/>
+                <field name="sign"/>
+                <field name="level"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Financial Report Custom Action -->
+    <record id="action_account_financial_report_custom" model="ir.actions.act_window">
+        <field name="name">Financial Report Definitions</field>
+        <field name="res_model">account.financial.report.custom</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Define custom financial report structures
+            </p>
+            <p>
+                Create hierarchical report definitions to generate Profit &amp; Loss, Balance Sheet, and other financial statements.
+            </p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Japanese Qualified Invoice Report Template -->
+    <template id="report_invoice_t_number_document">
+        <t t-call="web.external_layout">
+            <t t-set="o" t-value="o.with_context(lang=lang)"/>
+            <t t-set="forced_vat" t-value="o.fiscal_position_id.foreign_vat"/>
+
+            <div class="page">
+                <!-- Header with T-Number Badge -->
+                <div class="row mb-4">
+                    <div class="col-12 text-end">
+                        <span class="badge bg-info fs-5" t-if="o.is_qualified_invoice">
+                            適格請求書
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Invoice Title -->
+                <h2 class="text-center mb-4">
+                    <span t-if="o.move_type == 'out_invoice'">請求書 (Invoice)</span>
+                    <span t-if="o.move_type == 'out_refund'">クレジットノート (Credit Note)</span>
+                </h2>
+
+                <!-- Company and Customer Info -->
+                <div class="row mb-4">
+                    <!-- Customer Info (Left) -->
+                    <div class="col-6">
+                        <strong>御中 (To):</strong>
+                        <address class="mb-0" t-field="o.partner_id"
+                            t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
+                        <div t-if="o.partner_id.vat">
+                            VAT: <span t-field="o.partner_id.vat"/>
+                        </div>
+                        <div t-if="o.recipient_t_number">
+                            T-Number: <span t-field="o.recipient_t_number"/>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Info (Right) -->
+                    <div class="col-6 text-end">
+                        <div><strong>請求書番号 (Invoice No.):</strong> <span t-field="o.name"/></div>
+                        <div><strong>発行日 (Date):</strong> <span t-field="o.invoice_date"/></div>
+                        <div t-if="o.invoice_date_due">
+                            <strong>支払期日 (Due Date):</strong> <span t-field="o.invoice_date_due"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Issuer Info with T-Number -->
+                <div class="row mb-4 border-top pt-3">
+                    <div class="col-12">
+                        <strong>発行者 (Issuer):</strong>
+                        <div t-field="o.company_id.partner_id"
+                            t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True}'/>
+                        <div t-if="o.issuer_t_number" class="mt-2">
+                            <strong class="text-primary">登録番号 (T-Number): <span t-field="o.issuer_t_number"/></strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Invoice Lines -->
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>品目 (Description)</th>
+                            <th class="text-end">数量 (Qty)</th>
+                            <th class="text-end">単価 (Unit Price)</th>
+                            <th class="text-center">税率 (Tax)</th>
+                            <th class="text-end">金額 (Amount)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="o.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
+                            <tr>
+                                <td>
+                                    <span t-field="line.name"/>
+                                    <span t-if="line.is_reduced_tax_rate" class="badge bg-success ms-1">軽減</span>
+                                </td>
+                                <td class="text-end">
+                                    <span t-field="line.quantity"/>
+                                    <span t-field="line.product_uom_id"/>
+                                </td>
+                                <td class="text-end">
+                                    <span t-field="line.price_unit"/>
+                                </td>
+                                <td class="text-center">
+                                    <t t-foreach="line.tax_ids" t-as="tax">
+                                        <span t-esc="'%s%%' % int(tax.amount)"/>
+                                    </t>
+                                </td>
+                                <td class="text-end">
+                                    <span t-field="line.price_subtotal"/>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+
+                <!-- Tax Breakdown Section (Required for Qualified Invoice) -->
+                <div class="row mt-4" t-if="o.is_qualified_invoice">
+                    <div class="col-6">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th colspan="3" class="text-center">税額内訳 (Tax Breakdown)</th>
+                                </tr>
+                                <tr>
+                                    <th>税率</th>
+                                    <th class="text-end">税抜金額</th>
+                                    <th class="text-end">消費税額</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-if="o.tax_base_reduced">
+                                    <td>8% (軽減税率)</td>
+                                    <td class="text-end" t-field="o.tax_base_reduced"/>
+                                    <td class="text-end" t-field="o.tax_amount_reduced"/>
+                                </tr>
+                                <tr t-if="o.tax_base_standard">
+                                    <td>10% (標準税率)</td>
+                                    <td class="text-end" t-field="o.tax_base_standard"/>
+                                    <td class="text-end" t-field="o.tax_amount_standard"/>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Totals -->
+                    <div class="col-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>小計 (Subtotal):</strong></td>
+                                <td class="text-end" t-field="o.amount_untaxed"/>
+                            </tr>
+                            <tr>
+                                <td><strong>消費税 (Tax):</strong></td>
+                                <td class="text-end" t-field="o.amount_tax"/>
+                            </tr>
+                            <tr class="border-top">
+                                <td><strong class="fs-5">合計 (Total):</strong></td>
+                                <td class="text-end fs-5" t-field="o.amount_total"/>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Regular totals if not qualified invoice -->
+                <div class="row mt-4" t-if="not o.is_qualified_invoice">
+                    <div class="col-6 offset-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Subtotal:</strong></td>
+                                <td class="text-end" t-field="o.amount_untaxed"/>
+                            </tr>
+                            <tr t-foreach="o.amount_by_group" t-as="amount_by_group">
+                                <td><span t-esc="amount_by_group[0]"/></td>
+                                <td class="text-end">
+                                    <span t-esc="amount_by_group[1]"/>
+                                </td>
+                            </tr>
+                            <tr class="border-top">
+                                <td><strong class="fs-5">Total:</strong></td>
+                                <td class="text-end fs-5" t-field="o.amount_total"/>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Payment Terms / Notes -->
+                <div class="row mt-4" t-if="o.narration">
+                    <div class="col-12">
+                        <strong>備考 (Notes):</strong>
+                        <p t-field="o.narration"/>
+                    </div>
+                </div>
+
+                <!-- Footer Note for Qualified Invoice -->
+                <div class="row mt-4" t-if="o.is_qualified_invoice">
+                    <div class="col-12 text-muted small">
+                        <p>※ この請求書は、消費税法に基づく適格請求書（インボイス）です。</p>
+                        <p>This invoice is a Qualified Invoice under the Japanese Consumption Tax Act.</p>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Report Action -->
+    <template id="report_invoice_t_number">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="lang" t-value="o.partner_id.lang"/>
+                <t t-call="custom_accounting.report_invoice_t_number_document"/>
+            </t>
+        </t>
+    </template>
+
+    <!-- Report Definition -->
+    <record id="action_report_invoice_t_number" model="ir.actions.report">
+        <field name="name">Qualified Invoice (適格請求書)</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">custom_accounting.report_invoice_t_number</field>
+        <field name="report_file">custom_accounting.report_invoice_t_number</field>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

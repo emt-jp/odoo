@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend Fleet Maintenance Form with Rental Integration -->
+    <record id="view_fleet_maintenance_form_rental" model="ir.ui.view">
+        <field name="name">fleet.maintenance.form.rental</field>
+        <field name="model">fleet.maintenance</field>
+        <field name="inherit_id" ref="car_rental_fleet.view_fleet_maintenance_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[2]" position="after">
+                <group string="Rental Integration" name="rental_integration">
+                    <group>
+                        <field name="blocks_rental"/>
+                        <field name="maintenance_duration_days" invisible="not blocks_rental"/>
+                        <field name="end_date" invisible="not blocks_rental"/>
+                    </group>
+                    <group>
+                        <field name="is_recurring"/>
+                        <field name="recurrence_type" invisible="not is_recurring"/>
+                        <field name="recurrence_count" invisible="not is_recurring"/>
+                        <field name="next_occurrence_date" invisible="not is_recurring"/>
+                    </group>
+                </group>
+                <group string="Generated Occurrences" invisible="not child_maintenance_ids">
+                    <field name="child_maintenance_ids" nolabel="1">
+                        <list>
+                            <field name="name"/>
+                            <field name="scheduled_date"/>
+                            <field name="end_date"/>
+                            <field name="status"/>
+                            <field name="occurrence_number"/>
+                        </list>
+                    </field>
+                </group>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button name="action_generate_recurring" string="Generate Recurring" type="object"
+                        class="btn-secondary" invisible="not is_recurring"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Maintenance Calendar View for Rental -->
+    <record id="view_fleet_maintenance_calendar_rental" model="ir.ui.view">
+        <field name="name">fleet.maintenance.calendar.rental</field>
+        <field name="model">fleet.maintenance</field>
+        <field name="arch" type="xml">
+            <calendar string="Maintenance Calendar" date_start="scheduled_date" date_stop="end_date"
+                      color="vehicle_id" mode="month">
+                <field name="name"/>
+                <field name="vehicle_id"/>
+                <field name="maintenance_type"/>
+                <field name="status"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- Maintenance List for Rental -->
+    <record id="view_fleet_maintenance_list_rental" model="ir.ui.view">
+        <field name="name">fleet.maintenance.list.rental</field>
+        <field name="model">fleet.maintenance</field>
+        <field name="inherit_id" ref="car_rental_fleet.view_fleet_maintenance_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='status']" position="after">
+                <field name="blocks_rental" widget="boolean_toggle"/>
+                <field name="maintenance_duration_days"/>
+                <field name="end_date"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Vehicle Maintenance Quick View -->
+    <record id="action_vehicle_maintenance_rental" model="ir.actions.act_window">
+        <field name="name">Vehicle Maintenance</field>
+        <field name="res_model">fleet.maintenance</field>
+        <field name="view_mode">calendar,list,form</field>
+        <field name="domain">[('blocks_rental', '=', True)]</field>
+        <field name="context">{'default_blocks_rental': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Schedule vehicle maintenance
+            </p>
+            <p>
+                Maintenance periods will automatically block rental bookings.
+            </p>
+        </field>
+    </record>
+
+    <!-- Add maintenance stat button to vehicle form -->
+    <record id="view_fleet_vehicle_form_maintenance_button" model="ir.ui.view">
+        <field name="name">fleet.vehicle.form.maintenance.button</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="%(action_vehicle_maintenance_rental)d" type="action"
+                        class="oe_stat_button" icon="fa-wrench"
+                        context="{'search_default_vehicle_id': id}">
+                    <field name="scheduled_maintenance_count" string="Scheduled" widget="statinfo"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Cron job for generating recurring maintenance -->
+    <record id="ir_cron_generate_recurring_maintenance" model="ir.cron">
+        <field name="name">Generate Recurring Vehicle Maintenance</field>
+        <field name="model_id" ref="car_rental_fleet.model_fleet_maintenance"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_generate_recurring_maintenance()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

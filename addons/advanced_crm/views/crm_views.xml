@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Lead Scoring Views -->
+    <record id="view_lead_scoring_tree" model="ir.ui.view">
+        <field name="name">lead.scoring.tree</field>
+        <field name="model">lead.scoring</field>
+        <field name="arch" type="xml">
+            <list string="Lead Scoring Rules">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="scoring_type"/>
+                <field name="field_name"/>
+                <field name="operator"/>
+                <field name="score_points"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_lead_scoring_form" model="ir.ui.view">
+        <field name="name">lead.scoring.form</field>
+        <field name="model">lead.scoring</field>
+        <field name="arch" type="xml">
+            <form string="Lead Scoring Rule">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Rule Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Scoring Configuration">
+                            <field name="scoring_type"/>
+                            <field name="score_points"/>
+                            <field name="max_score"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Field Configuration" invisible="scoring_type == 'custom'">
+                            <field name="field_name" invisible="scoring_type in ('email_domain', 'company_size', 'industry', 'source')"/>
+                            <field name="field_value" invisible="scoring_type in ('field_presence', 'company_size')"/>
+                            <field name="operator" invisible="scoring_type in ('email_domain', 'industry', 'source')"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="Describe when this rule applies..."/>
+                        </page>
+                        <page string="Advanced Conditions" name="conditions">
+                            <group>
+                                <field name="condition_domain" widget="domain" options="{'model': 'crm.lead'}"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Customer Segmentation Views -->
+    <record id="view_customer_segmentation_tree" model="ir.ui.view">
+        <field name="name">customer.segmentation.tree</field>
+        <field name="model">customer.segmentation</field>
+        <field name="arch" type="xml">
+            <list string="Customer Segments">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="segment_type"/>
+                <field name="customer_count"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_customer_segmentation_form" model="ir.ui.view">
+        <field name="name">customer.segmentation.form</field>
+        <field name="model">customer.segmentation</field>
+        <field name="arch" type="xml">
+            <form string="Customer Segment">
+                <header>
+                    <button name="action_refresh_segment" type="object" string="Refresh Segment" class="btn-primary"/>
+                    <button name="action_view_customers" type="object" string="View Customers"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="action_view_customers" icon="fa-users">
+                            <field name="customer_count" widget="statinfo" string="Customers"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Segment Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="segment_type"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="color" widget="color_picker"/>
+                            <field name="auto_refresh"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="Describe this customer segment..."/>
+                        </page>
+                        <page string="Criteria" name="criteria">
+                            <group>
+                                <field name="domain" widget="domain" options="{'model': 'res.partner'}"/>
+                            </group>
+                        </page>
+                        <page string="Customers" name="customers">
+                            <field name="partner_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="email"/>
+                                    <field name="phone"/>
+                                    <field name="city"/>
+                                    <field name="country_id"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_customer_segmentation_kanban" model="ir.ui.view">
+        <field name="name">customer.segmentation.kanban</field>
+        <field name="model">customer.segmentation</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_dashboard">
+                <field name="name"/>
+                <field name="segment_type"/>
+                <field name="customer_count"/>
+                <field name="color"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="o_kanban_card_header">
+                            <div class="o_kanban_card_header_title">
+                                <strong><field name="name"/></strong>
+                            </div>
+                        </div>
+                        <div class="o_kanban_card_content">
+                            <div class="row">
+                                <div class="col-6">
+                                    <span class="o_value"><field name="customer_count"/></span>
+                                    <span class="o_label">Customers</span>
+                                </div>
+                                <div class="col-6">
+                                    <field name="segment_type"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Actions -->
+    <record id="action_lead_scoring" model="ir.actions.act_window">
+        <field name="name">Lead Scoring Rules</field>
+        <field name="res_model">lead.scoring</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first lead scoring rule
+            </p>
+            <p>
+                Define rules to automatically score leads based on various criteria.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_customer_segmentation" model="ir.actions.act_window">
+        <field name="name">Customer Segments</field>
+        <field name="res_model">customer.segmentation</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first customer segment
+            </p>
+            <p>
+                Group your customers into segments for targeted marketing and analysis.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menus -->
+    <menuitem id="menu_advanced_crm_root" name="Advanced CRM" parent="crm.crm_menu_root" sequence="100"/>
+
+    <menuitem id="menu_lead_scoring" name="Lead Scoring" parent="menu_advanced_crm_root" sequence="10" action="action_lead_scoring"/>
+
+    <menuitem id="menu_customer_segmentation" name="Customer Segments" parent="menu_advanced_crm_root" sequence="20" action="action_customer_segmentation"/>
+</odoo>

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Financial Dashboard Form View -->
+    <record id="view_account_financial_dashboard_form" model="ir.ui.view">
+        <field name="name">account.financial.dashboard.form</field>
+        <field name="model">account.financial.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Financial Dashboard">
+                <header>
+                    <button name="action_refresh" type="object" string="Refresh" class="btn-primary"/>
+                    <button name="action_set_this_month" type="object" string="This Month" class="btn-secondary"/>
+                    <button name="action_set_this_quarter" type="object" string="This Quarter" class="btn-secondary"/>
+                    <button name="action_set_this_year" type="object" string="This Year" class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Profit &amp; Loss Summary" name="profit_loss">
+                            <group>
+                                <group string="Revenue &amp; Expenses">
+                                    <field name="total_revenue" widget="monetary"/>
+                                    <field name="total_expenses" widget="monetary"/>
+                                    <field name="net_profit" widget="monetary"/>
+                                    <field name="profit_margin" widget="percentage"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Balance Summary" name="balance">
+                            <group>
+                                <group string="Assets &amp; Liabilities">
+                                    <field name="total_receivables" widget="monetary"/>
+                                    <field name="total_payables" widget="monetary"/>
+                                    <field name="cash_balance" widget="monetary"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Financial Dashboard Tree View -->
+    <record id="view_account_financial_dashboard_tree" model="ir.ui.view">
+        <field name="name">account.financial.dashboard.tree</field>
+        <field name="model">account.financial.dashboard</field>
+        <field name="arch" type="xml">
+            <list string="Financial Dashboards">
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="net_profit" widget="monetary"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Financial Dashboard Action -->
+    <record id="action_account_financial_dashboard" model="ir.actions.act_window">
+        <field name="name">Financial Dashboard</field>
+        <field name="res_model">account.financial.dashboard</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new financial dashboard
+            </p>
+            <p>
+                Track your revenue, expenses, receivables, and payables at a glance.
+            </p>
+        </field>
+    </record>
+
+    <!-- Aging Report Form View -->
+    <record id="view_account_aging_report_form" model="ir.ui.view">
+        <field name="name">account.aging.report.form</field>
+        <field name="model">account.aging.report</field>
+        <field name="arch" type="xml">
+            <form string="Aging Report">
+                <header>
+                    <button name="action_compute" type="object" string="Compute" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Report Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="report_type"/>
+                            <field name="as_of_date"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Summary">
+                        <group>
+                            <field name="total_current" widget="monetary"/>
+                            <field name="total_1_30" widget="monetary"/>
+                            <field name="total_31_60" widget="monetary"/>
+                        </group>
+                        <group>
+                            <field name="total_61_90" widget="monetary"/>
+                            <field name="total_90_plus" widget="monetary"/>
+                            <field name="total_amount" widget="monetary"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Details" name="details">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="partner_id"/>
+                                    <field name="current" widget="monetary"/>
+                                    <field name="days_1_30" widget="monetary"/>
+                                    <field name="days_31_60" widget="monetary"/>
+                                    <field name="days_61_90" widget="monetary"/>
+                                    <field name="days_90_plus" widget="monetary"/>
+                                    <field name="total" widget="monetary"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Aging Report Tree View -->
+    <record id="view_account_aging_report_tree" model="ir.ui.view">
+        <field name="name">account.aging.report.tree</field>
+        <field name="model">account.aging.report</field>
+        <field name="arch" type="xml">
+            <list string="Aging Reports">
+                <field name="name"/>
+                <field name="report_type"/>
+                <field name="as_of_date"/>
+                <field name="total_amount" widget="monetary"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Aging Report Action -->
+    <record id="action_account_aging_report" model="ir.actions.act_window">
+        <field name="name">Aging Reports</field>
+        <field name="res_model">account.aging.report</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new aging report
+            </p>
+            <p>
+                Analyze receivables and payables by age buckets.
+            </p>
+        </field>
+    </record>
+</odoo>

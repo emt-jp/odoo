@@ -71,6 +71,19 @@ class AnalyticsKPI(models.Model):
     compare_previous = fields.Boolean('Compare with Previous Period', default=True)
     compare_target = fields.Boolean('Compare with Target', default=False)
     target_value = fields.Float('Target Value', default=0.0)
+
+    # Thresholds for alerts
+    threshold_warning = fields.Float('Warning Threshold', help='Value at which to show warning status')
+    threshold_critical = fields.Float('Critical Threshold', help='Value at which to show critical status')
+
+    # Aggregation function (alternative to calculation_method for view compatibility)
+    aggregation_function = fields.Selection([
+        ('sum', 'Sum'),
+        ('avg', 'Average'),
+        ('min', 'Minimum'),
+        ('max', 'Maximum'),
+        ('count', 'Count'),
+    ], string='Aggregation Function', default='sum')
     
     # Formatting
     number_format = fields.Selection([
@@ -104,7 +117,7 @@ class AnalyticsKPI(models.Model):
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
-        return self.env.context.get('is_enterprise', True)
+        return True  # Enterprise checks disabled
     
     def _calculate_standard_value(self):
         """Calculate standard KPI value"""
