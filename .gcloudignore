@@ -1,0 +1,68 @@
+# Ignore git
+.git/
+.gitignore
+
+# Ignore terraform
+terraform/
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+
+# Ignore docker compose files (not needed for Cloud Build)
+docker-compose.yml
+docker-compose.override.yml
+docker/
+
+# Ignore IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Ignore environment files
+.env
+.env.local
+.env.*.local
+*.env
+
+# Ignore logs
+*.log
+logs/
+
+# Ignore backups and large files
+*.bak
+*.dump
+*.sql
+*.tar.gz
+odoo_backup.dump
+odoo_filestore.tar.gz
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore secrets
+secrets/
+*.pem
+*.key
+
+# Ignore Python cache (will be recreated)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignore virtual environments
+venv/
+.venv/
+ENV/
+env/
+
+# Ignore filestore and sessions (runtime data)
+filestore/
+sessions/
+
+# Ignore scripts (not needed for Docker build)
+scripts/
+
+# Include everything else (odoo source, addons, requirements, config)

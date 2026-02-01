@@ -1,12 +1,10 @@
-# Use Python 3.10 slim image as base
+# Odoo 17 Docker Image for Google Cloud Run
 FROM python:3.10-slim
 
-# Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV ODOO_RC=/etc/odoo/odoo.conf
 
-# Set work directory
 WORKDIR /opt/odoo
 
 # Install system dependencies
@@ -42,42 +40,43 @@ RUN apt-get update \
         xfonts-base \
     && rm -rf /var/lib/apt/lists/*
 
-# Install wkhtmltopdf (includes wkhtmltoimage)
+# Install wkhtmltopdf
 RUN wget -q https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_amd64.deb -O /tmp/wkhtmltox.deb \
     && apt-get update \
     && apt-get install -y --no-install-recommends /tmp/wkhtmltox.deb \
     && rm -rf /tmp/wkhtmltox.deb /var/lib/apt/lists/*
 
-# Install Python dependencies
-COPY requirements/requirements-basic.txt /opt/odoo/requirements.txt
+# Copy requirements and install Python packages
+COPY requirements/requirements-cloudrun.txt /opt/odoo/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Odoo
+# Copy Odoo source code
 COPY . /opt/odoo/
 
-# Create odoo user
+# Create odoo user and directories
 RUN adduser --system --home=/opt/odoo --group odoo
-
-# Create necessary directories
 RUN mkdir -p /opt/odoo/var/run \
     && mkdir -p /opt/odoo/var/log \
     && mkdir -p /opt/odoo/var/lib \
     && mkdir -p /opt/odoo/var/backups \
-    && mkdir -p /etc/odoo
+    && mkdir -p /etc/odoo \
+    && mkdir -p /var/lib/odoo
 
-# Set ownership
+# Copy entrypoint script
+COPY entrypoint.sh /opt/odoo/entrypoint.sh
+RUN chmod +x /opt/odoo/entrypoint.sh
+
+# Set permissions
 RUN chown -R odoo:odoo /opt/odoo \
-    && chown -R odoo:odoo /etc/odoo
+    && chown -R odoo:odoo /etc/odoo \
+    && chown -R odoo:odoo /var/lib/odoo
 
-# Switch to odoo user
 USER odoo
 
-# Expose port
 EXPOSE 8069
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=300s --retries=5 \
     CMD curl -f http://localhost:8069/web/health || exit 1
 
-# Default command
-CMD ["python3", "odoo-bin", "-c", "/etc/odoo/odoo.conf"]
+ENTRYPOINT ["/opt/odoo/entrypoint.sh"]
+CMD []

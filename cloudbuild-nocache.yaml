@@ -1,0 +1,11 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--no-cache'
+      - '-t'
+      - 'asia-northeast1-docker.pkg.dev/odoo-erp-prod/odoo/odoo:latest'
+      - '.'
+images:
+  - 'asia-northeast1-docker.pkg.dev/odoo-erp-prod/odoo/odoo:latest'
+timeout: 3600s

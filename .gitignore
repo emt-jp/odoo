@@ -8,6 +8,7 @@ _build/
 !.github
 !.mailmap
 !.weblate.json
+!.gcloudignore
 # compiled python files
 *.py[co]
 __pycache__/
@@ -56,3 +57,18 @@ package.json
 /var/logs/
 /var/backups/
 /var/test_results/
+
+# GCP / Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/tfplan
+terraform/.terraform.lock.hcl
+
+# Backup files
+*.dump
+*.tar.gz
+
+# GCP credentials
+*-credentials.json
+service-account*.json
