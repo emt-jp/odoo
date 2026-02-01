@@ -39,6 +39,13 @@ variable "odoo_admin_password" {
   sensitive   = true
 }
 
+# GitHub repository for WIF
+variable "github_repo" {
+  description = "GitHub repository (org/repo format)"
+  type        = string
+  default     = "emt-jp/odoo"
+}
+
 # Enable required APIs
 resource "google_project_service" "services" {
   for_each = toset([
@@ -47,9 +54,85 @@ resource "google_project_service" "services" {
     "secretmanager.googleapis.com",
     "vpcaccess.googleapis.com",
     "servicenetworking.googleapis.com",
+    "artifactregistry.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "iam.googleapis.com",
   ])
   project = var.project_id
   service = each.value
+}
+
+# Artifact Registry for Docker images
+resource "google_artifact_registry_repository" "odoo" {
+  location      = var.region
+  repository_id = "odoo"
+  description   = "Odoo Docker images"
+  format        = "DOCKER"
+  project       = var.project_id
+
+  depends_on = [google_project_service.services]
+}
+
+# Workload Identity Federation for GitHub Actions
+resource "google_iam_workload_identity_pool" "github" {
+  workload_identity_pool_id = "github-pool"
+  project                   = var.project_id
+  display_name              = "GitHub Actions Pool"
+  description               = "Identity pool for GitHub Actions"
+
+  depends_on = [google_project_service.services]
+}
+
+resource "google_iam_workload_identity_pool_provider" "github" {
+  workload_identity_pool_id          = google_iam_workload_identity_pool.github.workload_identity_pool_id
+  workload_identity_pool_provider_id = "github-provider"
+  project                            = var.project_id
+  display_name                       = "GitHub Provider"
+
+  attribute_mapping = {
+    "google.subject"       = "assertion.sub"
+    "attribute.actor"      = "assertion.actor"
+    "attribute.repository" = "assertion.repository"
+  }
+
+  oidc {
+    issuer_uri = "https://token.actions.githubusercontent.com"
+  }
+
+  attribute_condition = "assertion.repository == '${var.github_repo}'"
+}
+
+# Service account for GitHub Actions deployments
+resource "google_service_account" "github_actions" {
+  account_id   = "github-actions-sa"
+  display_name = "GitHub Actions Service Account"
+  project      = var.project_id
+}
+
+# Allow GitHub Actions to impersonate the service account
+resource "google_service_account_iam_member" "github_actions_wif" {
+  service_account_id = google_service_account.github_actions.name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_repo}"
+}
+
+# IAM roles for GitHub Actions service account
+resource "google_project_iam_member" "github_actions_run_admin" {
+  project = var.project_id
+  role    = "roles/run.admin"
+  member  = "serviceAccount:${google_service_account.github_actions.email}"
+}
+
+resource "google_project_iam_member" "github_actions_artifact_writer" {
+  project = var.project_id
+  role    = "roles/artifactregistry.writer"
+  member  = "serviceAccount:${google_service_account.github_actions.email}"
+}
+
+resource "google_project_iam_member" "github_actions_sa_user" {
+  project = var.project_id
+  role    = "roles/iam.serviceAccountUser"
+  member  = "serviceAccount:${google_service_account.github_actions.email}"
 }
 
 # VPC for private Cloud SQL
@@ -238,4 +321,20 @@ output "filestore_bucket" {
 
 output "service_account" {
   value = google_service_account.odoo.email
+}
+
+# GitHub Actions outputs
+output "wif_provider" {
+  description = "Workload Identity Provider for GitHub Actions (WIF_PROVIDER secret)"
+  value       = google_iam_workload_identity_pool_provider.github.name
+}
+
+output "wif_service_account" {
+  description = "Service Account for GitHub Actions (WIF_SERVICE_ACCOUNT secret)"
+  value       = google_service_account.github_actions.email
+}
+
+output "artifact_registry" {
+  description = "Artifact Registry URL"
+  value       = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.odoo.repository_id}"
 }
