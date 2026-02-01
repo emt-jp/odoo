@@ -68,6 +68,9 @@ jobs:
             --set-secrets=ADMIN_PASSWD=odoo-admin-password:latest,DB_PASSWORD=odoo-db-password:latest
             --set-env-vars=DB_HOST=/cloudsql/${{ env.PROJECT_ID }}:${{ env.REGION }}:odoo-db,DB_NAME=odoo,DB_USER=odoo
             --service-account=odoo-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
+            --add-volume=name=odoo-data,type=cloud-storage,bucket=${{ env.PROJECT_ID }}-odoo-filestore
+            --add-volume-mount=volume=odoo-data,mount-path=/var/lib/odoo
+            --execution-environment=gen2
             --memory=2Gi
             --cpu=2
             --min-instances=1
