@@ -64,7 +64,10 @@ jobs:
           flags: |
             --add-cloudsql-instances=${{ env.PROJECT_ID }}:${{ env.REGION }}:odoo-db
             --vpc-connector=odoo-vpc-connector
+            --vpc-egress=private-ranges-only
             --set-secrets=ADMIN_PASSWD=odoo-admin-password:latest,DB_PASSWORD=odoo-db-password:latest
+            --set-env-vars=DB_HOST=/cloudsql/${{ env.PROJECT_ID }}:${{ env.REGION }}:odoo-db,DB_NAME=odoo_new,DB_USER=odoo
+            --service-account=odoo-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
             --memory=2Gi
             --cpu=2
             --min-instances=1
