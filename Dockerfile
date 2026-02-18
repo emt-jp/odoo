@@ -21,6 +21,7 @@ RUN apt-get update \
         libwebp-dev \
         libxml2-dev \
         libxslt1-dev \
+        node-less \
         nodejs \
         npm \
         postgresql-client \
@@ -40,6 +41,9 @@ RUN apt-get update \
         xfonts-base \
         fonts-noto-cjk \
     && rm -rf /var/lib/apt/lists/*
+
+# Install rtlcss for CSS processing
+RUN npm install -g rtlcss
 
 # Install wkhtmltopdf
 RUN wget -q https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_amd64.deb -O /tmp/wkhtmltox.deb \
