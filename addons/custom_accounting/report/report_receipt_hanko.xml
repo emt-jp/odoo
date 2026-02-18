@@ -92,13 +92,13 @@
                             <tbody>
                                 <tr t-if="o.tax_base_reduced">
                                     <td>8%</td>
-                                    <td class="text-end" t-field="o.tax_base_reduced"/>
-                                    <td class="text-end" t-field="o.tax_amount_reduced"/>
+                                    <td class="text-end"><span t-field="o.tax_base_reduced"/></td>
+                                    <td class="text-end"><span t-field="o.tax_amount_reduced"/></td>
                                 </tr>
                                 <tr t-if="o.tax_base_standard">
                                     <td>10%</td>
-                                    <td class="text-end" t-field="o.tax_base_standard"/>
-                                    <td class="text-end" t-field="o.tax_amount_standard"/>
+                                    <td class="text-end"><span t-field="o.tax_base_standard"/></td>
+                                    <td class="text-end"><span t-field="o.tax_amount_standard"/></td>
                                 </tr>
                             </tbody>
                         </table>
