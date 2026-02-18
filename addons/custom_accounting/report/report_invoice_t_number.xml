@@ -1,202 +1,251 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Japanese Qualified Invoice Report Template -->
-    <template id="report_invoice_t_number_document">
-        <t t-call="web.external_layout">
-            <t t-set="o" t-value="o.with_context(lang=lang)"/>
-            <t t-set="forced_vat" t-value="o.fiscal_position_id.foreign_vat"/>
+    <!--
+        QIS Invoice Document Template
+        ─────────────────────────────
+        Inherits ALL standard Odoo invoice features (payment QR codes, payment terms,
+        grouped/collapsed lines, discount columns, etc.) via primary="True" inheritance.
+        Adds Japanese Qualified Invoice System (適格請求書) elements via XPath.
+        Only used when company.use_japanese_invoice_system is True.
+    -->
+    <template id="report_invoice_qis_document" inherit_id="account.report_invoice_document" primary="True">
 
-            <div class="page">
-                <!-- Header with T-Number Badge -->
-                <div class="row mb-4">
-                    <div class="col-12 text-end">
-                        <span class="badge bg-info fs-5" t-if="o.is_qualified_invoice">
-                            適格請求書
-                        </span>
-                    </div>
-                </div>
+        <!-- ============================================================ -->
+        <!-- QIS stylesheet — follows Odoo report design tokens           -->
+        <!--   Gray scale: #f8f9fa → #212529                             -->
+        <!--   Borders: #dee2e6 (light), #ced4da (mid), #495057 (dark)   -->
+        <!--   Base font: 13px, line-height 1.3                          -->
+        <!-- ============================================================ -->
+        <xpath expr="//div[hasclass('invoice_main')]" position="before">
+            <style type="text/css">
+                /* Registration number block */
+                .qis-reg {
+                    border-left: 3px solid #495057;
+                    padding: 3px 0 3px 10px;
+                    margin-bottom: 10px;
+                }
+                .qis-reg-label {
+                    font-size: 8px;
+                    color: #6c757d;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    line-height: 1.2;
+                    margin-bottom: 1px;
+                }
+                .qis-reg-value {
+                    font-size: 13px;
+                    font-weight: 600;
+                    font-family: 'Courier New', Courier, monospace;
+                    letter-spacing: 1px;
+                    color: #212529;
+                }
 
-                <!-- Invoice Title -->
-                <h2 class="text-center mb-4">
-                    <span t-if="o.move_type == 'out_invoice'">請求書 (Invoice)</span>
-                    <span t-if="o.move_type == 'out_refund'">クレジットノート (Credit Note)</span>
-                </h2>
+                /* Reduced-rate marker */
+                .qis-mark { color: #495057; }
 
-                <!-- Company and Customer Info -->
-                <div class="row mb-4">
-                    <!-- Customer Info (Left) -->
-                    <div class="col-6">
-                        <strong>御中 (To):</strong>
-                        <address class="mb-0" t-field="o.partner_id"
-                            t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
-                        <div t-if="o.partner_id.vat">
-                            VAT: <span t-field="o.partner_id.vat"/>
-                        </div>
-                        <div t-if="o.recipient_t_number">
-                            T-Number: <span t-field="o.recipient_t_number"/>
-                        </div>
-                    </div>
+                /* Footnote legend */
+                .qis-legend {
+                    font-size: 9px;
+                    color: #6c757d;
+                    padding: 2px 0 6px;
+                    letter-spacing: 0.2px;
+                }
 
-                    <!-- Invoice Info (Right) -->
-                    <div class="col-6 text-end">
-                        <div><strong>請求書番号 (Invoice No.):</strong> <span t-field="o.name"/></div>
-                        <div><strong>発行日 (Date):</strong> <span t-field="o.invoice_date"/></div>
-                        <div t-if="o.invoice_date_due">
-                            <strong>支払期日 (Due Date):</strong> <span t-field="o.invoice_date_due"/>
-                        </div>
-                    </div>
-                </div>
+                /* Tax breakdown table */
+                .qis-breakdown { width: auto !important; margin-bottom: 8px; }
+                .qis-breakdown thead th {
+                    font-size: 8px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.4px;
+                    color: #495057;
+                    font-weight: 600;
+                    border-top: none !important;
+                    border-bottom: 1.5px solid #495057 !important;
+                    padding: 3px 10px;
+                    background: none !important;
+                    white-space: nowrap;
+                }
+                .qis-breakdown .qis-bkdn-title th {
+                    font-size: 10px;
+                    text-transform: none;
+                    letter-spacing: 0;
+                    color: #212529;
+                    border-bottom: none !important;
+                    padding-bottom: 1px;
+                }
+                .qis-breakdown tbody td {
+                    padding: 3px 10px;
+                    font-size: 10px;
+                    border-top: none !important;
+                    border-bottom: 1px solid #e9ecef !important;
+                }
+                .qis-breakdown tbody td:first-child { color: #495057; }
+                .qis-breakdown tbody tr:last-child td {
+                    border-bottom: 1.5px solid #495057 !important;
+                }
 
-                <!-- Issuer Info with T-Number -->
-                <div class="row mb-4 border-top pt-3">
-                    <div class="col-12">
-                        <strong>発行者 (Issuer):</strong>
-                        <div t-field="o.company_id.partner_id"
-                            t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True}'/>
-                        <div t-if="o.issuer_t_number" class="mt-2">
-                            <strong class="text-primary">登録番号 (T-Number): <span t-field="o.issuer_t_number"/></strong>
-                        </div>
-                    </div>
-                </div>
+                /* Compliance footer */
+                .qis-compliance {
+                    border-top: 1px solid #dee2e6;
+                    padding-top: 8px;
+                    margin-top: 12px;
+                    font-size: 8px;
+                    color: #6c757d;
+                    line-height: 1.6;
+                }
+                .qis-compliance p { margin-bottom: 0; }
 
-                <!-- Invoice Lines -->
-                <table class="table table-sm table-bordered">
-                    <thead class="table-light">
-                        <tr>
-                            <th>品目 (Description)</th>
-                            <th class="text-end">数量 (Qty)</th>
-                            <th class="text-end">単価 (Unit Price)</th>
-                            <th class="text-center">税率 (Tax)</th>
-                            <th class="text-end">金額 (Amount)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <t t-foreach="o.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
+                /* Bilingual subtitle text */
+                .qis-sub {
+                    font-size: 0.6em;
+                    color: #6c757d;
+                    font-weight: normal;
+                    margin-left: 2px;
+                }
+            </style>
+        </xpath>
+
+        <!-- ============================================================ -->
+        <!-- 1. Bilingual invoice titles — JP primary, EN secondary       -->
+        <!-- ============================================================ -->
+        <xpath expr="//t[@name='invoice_title']" position="replace">
+            <t name="invoice_title">請求書 <span class="qis-sub">Invoice</span></t>
+        </xpath>
+        <xpath expr="//t[@name='draft_invoice_title']" position="replace">
+            <t name="draft_invoice_title">請求書（下書き） <span class="qis-sub">Draft Invoice</span></t>
+        </xpath>
+        <xpath expr="//t[@name='cancelled_invoice_title']" position="replace">
+            <t name="cancelled_invoice_title">請求書（取消） <span class="qis-sub">Cancelled Invoice</span></t>
+        </xpath>
+        <xpath expr="//t[@name='credit_note_title']" position="replace">
+            <t name="credit_note_title">クレジットノート <span class="qis-sub">Credit Note</span></t>
+        </xpath>
+        <xpath expr="//t[@name='draft_credit_note_title']" position="replace">
+            <t name="draft_credit_note_title">クレジットノート（下書き） <span class="qis-sub">Draft Credit Note</span></t>
+        </xpath>
+        <xpath expr="//t[@name='cancelled_credit_note_title']" position="replace">
+            <t name="cancelled_credit_note_title">クレジットノート（取消） <span class="qis-sub">Cancelled Credit Note</span></t>
+        </xpath>
+
+        <!-- Proforma titles -->
+        <xpath expr="//t[@name='proforma_invoice_title']" position="replace">
+            <t name="proforma_invoice_title">見積請求書 <span class="qis-sub">Proforma Invoice</span></t>
+        </xpath>
+        <xpath expr="//t[@name='draft_proforma_invoice_title']" position="replace">
+            <t name="draft_proforma_invoice_title">見積請求書（下書き） <span class="qis-sub">Draft Proforma</span></t>
+        </xpath>
+        <xpath expr="//t[@name='cancelled_proforma_invoice_title']" position="replace">
+            <t name="cancelled_proforma_invoice_title">見積請求書（取消） <span class="qis-sub">Cancelled Proforma</span></t>
+        </xpath>
+        <xpath expr="//t[@name='proforma_credit_note_title']" position="replace">
+            <t name="proforma_credit_note_title">クレジットノート <span class="qis-sub">Proforma Credit Note</span></t>
+        </xpath>
+        <xpath expr="//t[@name='draft_proforma_credit_note_title']" position="replace">
+            <t name="draft_proforma_credit_note_title">クレジットノート（下書き） <span class="qis-sub">Draft Proforma Credit Note</span></t>
+        </xpath>
+        <xpath expr="//t[@name='cancelled_proforma_credit_note_title']" position="replace">
+            <t name="cancelled_proforma_credit_note_title">クレジットノート（取消） <span class="qis-sub">Cancelled Proforma Credit Note</span></t>
+        </xpath>
+
+        <!-- ============================================================ -->
+        <!-- 2. Issuer registration number — left-accent block            -->
+        <!-- ============================================================ -->
+        <xpath expr="//div[@id='informations']" position="before">
+            <div t-if="o.issuer_t_number" class="qis-reg">
+                <div class="qis-reg-label">登録番号 / Registration No.</div>
+                <div class="qis-reg-value"><span t-field="o.issuer_t_number"/></div>
+            </div>
+        </xpath>
+
+        <!-- ============================================================ -->
+        <!-- 3. ※ reduced-rate marker — subtle inline indicator           -->
+        <!-- ============================================================ -->
+        <xpath expr="//td[@name='account_invoice_line_name']/span[@t-field='line.name']" position="after">
+            <span t-if="line.is_reduced_tax_rate" class="qis-mark"> ※</span>
+        </xpath>
+
+        <!-- ============================================================ -->
+        <!-- 4. Reduced-rate legend — footnote before totals              -->
+        <!-- ============================================================ -->
+        <xpath expr="//div[hasclass('overflow-hidden')]" position="before">
+            <div t-if="o.tax_base_reduced" class="qis-legend">
+                ※ 軽減税率対象品目 / Items subject to reduced tax rate
+            </div>
+        </xpath>
+
+        <!-- ============================================================ -->
+        <!-- 5. QIS tax breakdown — right-aligned, after totals           -->
+        <!-- ============================================================ -->
+        <xpath expr="//div[@id='payment_term']" position="before">
+            <div t-if="o.is_qualified_invoice and (o.tax_base_standard or o.tax_base_reduced)"
+                 class="clearfix avoid-page-break-inside mb-2">
+                <div class="float-end">
+                    <table class="qis-breakdown table table-sm table-borderless">
+                        <thead>
+                            <tr class="qis-bkdn-title">
+                                <th colspan="3">税額内訳 / Tax Breakdown</th>
+                            </tr>
                             <tr>
-                                <td>
-                                    <span t-field="line.name"/>
-                                    <span t-if="line.is_reduced_tax_rate" class="badge bg-success ms-1">軽減</span>
-                                </td>
-                                <td class="text-end">
-                                    <span t-field="line.quantity"/>
-                                    <span t-field="line.product_uom_id"/>
-                                </td>
-                                <td class="text-end">
-                                    <span t-field="line.price_unit"/>
-                                </td>
-                                <td class="text-center">
-                                    <t t-foreach="line.tax_ids" t-as="tax">
-                                        <span t-esc="'%s%%' % int(tax.amount)"/>
-                                    </t>
-                                </td>
-                                <td class="text-end">
-                                    <span t-field="line.price_subtotal"/>
-                                </td>
+                                <th>税率 / Rate</th>
+                                <th class="text-end">税抜金額 / Base</th>
+                                <th class="text-end">消費税額 / Tax</th>
                             </tr>
-                        </t>
-                    </tbody>
-                </table>
-
-                <!-- Tax Breakdown Section (Required for Qualified Invoice) -->
-                <div class="row mt-4" t-if="o.is_qualified_invoice">
-                    <div class="col-6">
-                        <table class="table table-sm table-bordered">
-                            <thead class="table-secondary">
-                                <tr>
-                                    <th colspan="3" class="text-center">税額内訳 (Tax Breakdown)</th>
-                                </tr>
-                                <tr>
-                                    <th>税率</th>
-                                    <th class="text-end">税抜金額</th>
-                                    <th class="text-end">消費税額</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr t-if="o.tax_base_reduced">
-                                    <td>8% (軽減税率)</td>
-                                    <td class="text-end" t-field="o.tax_base_reduced"/>
-                                    <td class="text-end" t-field="o.tax_amount_reduced"/>
-                                </tr>
-                                <tr t-if="o.tax_base_standard">
-                                    <td>10% (標準税率)</td>
-                                    <td class="text-end" t-field="o.tax_base_standard"/>
-                                    <td class="text-end" t-field="o.tax_amount_standard"/>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Totals -->
-                    <div class="col-6">
-                        <table class="table table-sm">
-                            <tr>
-                                <td><strong>小計 (Subtotal):</strong></td>
-                                <td class="text-end" t-field="o.amount_untaxed"/>
+                        </thead>
+                        <tbody>
+                            <tr t-if="o.tax_base_standard">
+                                <td>10%　標準税率</td>
+                                <td class="text-end" t-field="o.tax_base_standard"/>
+                                <td class="text-end" t-field="o.tax_amount_standard"/>
                             </tr>
-                            <tr>
-                                <td><strong>消費税 (Tax):</strong></td>
-                                <td class="text-end" t-field="o.amount_tax"/>
+                            <tr t-if="o.tax_base_reduced">
+                                <td>8%　軽減税率 ※</td>
+                                <td class="text-end" t-field="o.tax_base_reduced"/>
+                                <td class="text-end" t-field="o.tax_amount_reduced"/>
                             </tr>
-                            <tr class="border-top">
-                                <td><strong class="fs-5">合計 (Total):</strong></td>
-                                <td class="text-end fs-5" t-field="o.amount_total"/>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Regular totals if not qualified invoice -->
-                <div class="row mt-4" t-if="not o.is_qualified_invoice">
-                    <div class="col-6 offset-6">
-                        <table class="table table-sm">
-                            <tr>
-                                <td><strong>Subtotal:</strong></td>
-                                <td class="text-end" t-field="o.amount_untaxed"/>
-                            </tr>
-                            <tr t-foreach="o.amount_by_group" t-as="amount_by_group">
-                                <td><span t-esc="amount_by_group[0]"/></td>
-                                <td class="text-end">
-                                    <span t-esc="amount_by_group[1]"/>
-                                </td>
-                            </tr>
-                            <tr class="border-top">
-                                <td><strong class="fs-5">Total:</strong></td>
-                                <td class="text-end fs-5" t-field="o.amount_total"/>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Payment Terms / Notes -->
-                <div class="row mt-4" t-if="o.narration">
-                    <div class="col-12">
-                        <strong>備考 (Notes):</strong>
-                        <p t-field="o.narration"/>
-                    </div>
-                </div>
-
-                <!-- Footer Note for Qualified Invoice -->
-                <div class="row mt-4" t-if="o.is_qualified_invoice">
-                    <div class="col-12 text-muted small">
-                        <p>※ この請求書は、消費税法に基づく適格請求書（インボイス）です。</p>
-                        <p>This invoice is a Qualified Invoice under the Japanese Consumption Tax Act.</p>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </t>
+        </xpath>
+
+        <!-- ============================================================ -->
+        <!-- 6. QIS compliance notice — subtle footer                     -->
+        <!-- ============================================================ -->
+        <xpath expr="//div[@id='payment_term']" position="inside">
+            <div t-if="o.is_qualified_invoice" class="qis-compliance">
+                <p>※ この請求書は、消費税法に基づく適格請求書（インボイス）です。</p>
+                <p>This is a Qualified Invoice under the Japanese Consumption Tax Act.</p>
+            </div>
+        </xpath>
+
     </template>
 
-    <!-- Report Action -->
+    <!-- ================================================================ -->
+    <!-- Extend standard report_invoice to dispatch to QIS template       -->
+    <!-- ================================================================ -->
+    <template id="report_invoice_qis" inherit_id="account.report_invoice">
+        <xpath expr="//t[@t-call='account.report_invoice_document']" position="after">
+            <t t-if="o._get_name_invoice_report() == 'custom_accounting.report_invoice_qis_document'"
+               t-call="custom_accounting.report_invoice_qis_document"
+               t-lang="lang"/>
+        </xpath>
+    </template>
+
+    <!-- ================================================================ -->
+    <!-- Wrapper for explicit "Print Qualified Invoice" button            -->
+    <!-- ================================================================ -->
     <template id="report_invoice_t_number">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
                 <t t-set="lang" t-value="o.partner_id.lang"/>
-                <t t-call="custom_accounting.report_invoice_t_number_document"/>
+                <t t-call="custom_accounting.report_invoice_qis_document" t-lang="lang"/>
             </t>
         </t>
     </template>
 
-    <!-- Report Definition -->
+    <!-- ================================================================ -->
+    <!-- Report action for explicit "Print Qualified Invoice" button      -->
+    <!-- ================================================================ -->
     <record id="action_report_invoice_t_number" model="ir.actions.report">
         <field name="name">Qualified Invoice (適格請求書)</field>
         <field name="model">account.move</field>

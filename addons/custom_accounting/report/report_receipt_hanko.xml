@@ -41,7 +41,7 @@
                         <div class="border border-2 border-dark p-4 text-center">
                             <p class="mb-2">金額 (Amount)</p>
                             <h1 class="display-4 mb-0">
-                                ¥<span t-field="o.amount_total" t-options='{"widget": "monetary", "display_currency": False}'/>-
+                                <span t-field="o.amount_total" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>-
                             </h1>
                         </div>
                     </div>

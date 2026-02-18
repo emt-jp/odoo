@@ -92,7 +92,7 @@ class AccountFinancialReport(models.Model):
             ('account_id', 'in', self.account_ids.ids),
             ('date', '>=', date_from),
             ('date', '<=', date_to),
-            ('company_ids', 'in', [company_id]),
+            ('company_id', '=', company_id),
             ('parent_state', '=', 'posted'),
         ]
 
@@ -124,7 +124,7 @@ class AccountFinancialReport(models.Model):
             ('account_id', 'in', accounts.ids),
             ('date', '>=', date_from),
             ('date', '<=', date_to),
-            ('company_ids', 'in', [company_id]),
+            ('company_id', '=', company_id),
             ('parent_state', '=', 'posted'),
         ]
 

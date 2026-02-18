@@ -69,15 +69,31 @@ class ResCompanyTNumber(models.Model):
         """Validate T-Number format: T + 13 digits"""
         t_number_pattern = re.compile(r'^T\d{13}$')
         for company in self:
-            if company.t_number:
-                cleaned_number = company.t_number.replace(' ', '').replace('-', '').upper()
-                if not t_number_pattern.match(cleaned_number):
-                    raise ValidationError(_(
-                        'Invalid T-Number format. '
-                        'The T-Number must be in format: T + 13 digits (e.g., T1234567890123)'
-                    ))
-                if company.t_number != cleaned_number:
-                    company.t_number = cleaned_number
+            if company.t_number and not t_number_pattern.match(company.t_number):
+                raise ValidationError(_(
+                    'Invalid T-Number format. '
+                    'The T-Number must be in format: T + 13 digits (e.g., T1234567890123)'
+                ))
+
+    def write(self, vals):
+        """Clean T-Number formatting before save"""
+        if 't_number' in vals and vals['t_number']:
+            cleaned = vals['t_number'].replace(' ', '').replace('-', '').upper()
+            if cleaned and not cleaned.startswith('T') and cleaned.isdigit():
+                cleaned = 'T' + cleaned
+            vals['t_number'] = cleaned
+        return super().write(vals)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Clean T-Number formatting on create"""
+        for vals in vals_list:
+            if vals.get('t_number'):
+                cleaned = vals['t_number'].replace(' ', '').replace('-', '').upper()
+                if cleaned and not cleaned.startswith('T') and cleaned.isdigit():
+                    cleaned = 'T' + cleaned
+                vals['t_number'] = cleaned
+        return super().create(vals_list)
 
     @api.onchange('t_number')
     def _onchange_t_number(self):

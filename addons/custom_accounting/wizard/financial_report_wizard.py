@@ -238,13 +238,10 @@ class FinancialReportWizard(models.TransientModel):
         """Generate HTML preview"""
         if self.report_type == 'profit_loss':
             data = self._get_profit_loss_data()
-            template = 'custom_accounting.report_profit_loss'
         elif self.report_type == 'balance_sheet':
             data = self._get_balance_sheet_data()
-            template = 'custom_accounting.report_balance_sheet'
         elif self.report_type == 'trial_balance':
             data = self._get_trial_balance_data()
-            template = 'custom_accounting.report_trial_balance'
         else:
             raise UserError(_('Report type not yet implemented'))
 

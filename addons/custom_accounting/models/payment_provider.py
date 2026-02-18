@@ -202,17 +202,6 @@ class PaymentTransaction(models.Model):
         if invoice.payment_state == 'paid':
             return  # Already paid
 
-        # Find or create a payment method
-        payment_method = self.env['account.payment.method'].search([
-            ('code', '=', 'manual'),
-            ('payment_type', '=', 'inbound'),
-        ], limit=1)
-
-        if not payment_method:
-            payment_method = self.env['account.payment.method'].search([
-                ('payment_type', '=', 'inbound'),
-            ], limit=1)
-
         # Find a bank journal
         journal = self.env['account.journal'].search([
             ('type', '=', 'bank'),
@@ -229,6 +218,12 @@ class PaymentTransaction(models.Model):
             _logger.warning('No bank/cash journal found for payment reconciliation')
             return
 
+        # Find payment method line on the journal (Odoo 17+ uses payment_method_line_id)
+        payment_method_line = journal.inbound_payment_method_line_ids[:1]
+        if not payment_method_line:
+            _logger.warning('No inbound payment method line found on journal %s', journal.name)
+            return
+
         # Create payment
         payment_vals = {
             'payment_type': 'inbound',
@@ -237,7 +232,7 @@ class PaymentTransaction(models.Model):
             'amount': self.amount,
             'currency_id': self.currency_id.id,
             'journal_id': journal.id,
-            'payment_method_id': payment_method.id if payment_method else False,
+            'payment_method_line_id': payment_method_line.id,
             'ref': f'{self.provider.upper()} - {self.provider_reference}',
         }
 
@@ -255,10 +250,10 @@ class PaymentTransaction(models.Model):
 
             if invoice_line and payment_line:
                 (invoice_line + payment_line).reconcile()
-                _logger.info(f'Payment {payment.name} reconciled with invoice {invoice.name}')
+                _logger.info('Payment %s reconciled with invoice %s', payment.name, invoice.name)
 
         except Exception as e:
-            _logger.error(f'Failed to create/reconcile payment: {e}')
+            _logger.error('Failed to create/reconcile payment: %s', e)
 
 
 class AccountMovePayment(models.Model):

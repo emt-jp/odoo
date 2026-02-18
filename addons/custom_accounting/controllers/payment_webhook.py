@@ -40,10 +40,10 @@ class PaymentWebhookController(http.Controller):
                 payload, sig_header, company.stripe_webhook_secret
             )
         except ValueError as e:
-            _logger.error(f'Invalid Stripe payload: {e}')
+            _logger.error('Invalid Stripe payload: %s', e)
             return {'status': 'error', 'message': 'Invalid payload'}
         except stripe.error.SignatureVerificationError as e:
-            _logger.error(f'Invalid Stripe signature: {e}')
+            _logger.error('Invalid Stripe signature: %s', e)
             return {'status': 'error', 'message': 'Invalid signature'}
 
         # Handle the event
@@ -52,7 +52,7 @@ class PaymentWebhookController(http.Controller):
             self._handle_stripe_success(session)
         elif event['type'] == 'payment_intent.succeeded':
             payment_intent = event['data']['object']
-            _logger.info(f'Stripe PaymentIntent succeeded: {payment_intent["id"]}')
+            _logger.info('Stripe PaymentIntent succeeded: %s', payment_intent.get('id'))
         elif event['type'] == 'payment_intent.payment_failed':
             payment_intent = event['data']['object']
             self._handle_stripe_failure(payment_intent)
@@ -74,14 +74,14 @@ class PaymentWebhookController(http.Controller):
         ], limit=1)
 
         if transaction:
-            _logger.info(f'Processing Stripe payment for transaction {transaction.name}')
+            _logger.info('Processing Stripe payment for transaction %s', transaction.name)
             transaction._process_payment_success(webhook_data=session)
         else:
-            _logger.warning(f'Transaction {transaction_id} not found')
+            _logger.warning('Transaction %s not found', transaction_id)
 
     def _handle_stripe_failure(self, payment_intent):
         """Handle failed Stripe payment"""
-        _logger.warning(f'Stripe payment failed: {payment_intent.get("id")}')
+        _logger.warning('Stripe payment failed: %s', payment_intent.get('id'))
 
     @http.route('/payment/success', type='http', auth='public', website=True)
     def payment_success(self, transaction_id=None, **kwargs):
@@ -120,7 +120,7 @@ class PaymentWebhookController(http.Controller):
         notification_type = data.get('notification_type')
         merchant_payment_id = data.get('merchant_payment_id')
 
-        _logger.info(f'PayPay webhook received: {notification_type} for {merchant_payment_id}')
+        _logger.info('PayPay webhook received: %s for %s', notification_type, merchant_payment_id)
 
         if notification_type == 'transaction.completed':
             self._handle_paypay_success(data)
@@ -139,10 +139,10 @@ class PaymentWebhookController(http.Controller):
         ], limit=1)
 
         if transaction:
-            _logger.info(f'Processing PayPay payment for transaction {transaction.name}')
+            _logger.info('Processing PayPay payment for transaction %s', transaction.name)
             transaction._process_payment_success(webhook_data=data)
         else:
-            _logger.warning(f'PayPay transaction {merchant_payment_id} not found')
+            _logger.warning('PayPay transaction %s not found', merchant_payment_id)
 
     def _handle_paypay_failure(self, data):
         """Handle failed PayPay payment"""
@@ -181,7 +181,7 @@ class PaymentWebhookController(http.Controller):
         event_type = data.get('event_type')
         payment_id = data.get('payment_id')
 
-        _logger.info(f'AirPay webhook received: {event_type} for {payment_id}')
+        _logger.info('AirPay webhook received: %s for %s', event_type, payment_id)
 
         if event_type == 'payment.completed':
             self._handle_airpay_success(data)
@@ -200,10 +200,10 @@ class PaymentWebhookController(http.Controller):
         ], limit=1)
 
         if transaction:
-            _logger.info(f'Processing AirPay payment for transaction {transaction.name}')
+            _logger.info('Processing AirPay payment for transaction %s', transaction.name)
             transaction._process_payment_success(webhook_data=data)
         else:
-            _logger.warning(f'AirPay transaction {payment_ref} not found')
+            _logger.warning('AirPay transaction %s not found', payment_ref)
 
     def _handle_airpay_failure(self, data):
         """Handle failed AirPay payment"""

@@ -42,10 +42,7 @@
         <field name="binding_view_types">form</field>
         <field name="state">code</field>
         <field name="code">
-if record.is_qualified_invoice:
-    action = record.action_print_qualified_invoice()
-else:
-    raise UserError('This invoice is not a Qualified Invoice.')
+action = record.action_print_qualified_invoice()
         </field>
     </record>
 </odoo>

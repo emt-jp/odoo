@@ -130,6 +130,12 @@ class AccountMoveTNumber(models.Model):
 
         return summary
 
+    def _get_name_invoice_report(self):
+        self.ensure_one()
+        if self.company_id.use_japanese_invoice_system:
+            return 'custom_accounting.report_invoice_qis_document'
+        return super()._get_name_invoice_report()
+
     def action_print_qualified_invoice(self):
         """Print Japanese Qualified Invoice format"""
         self.ensure_one()

@@ -110,7 +110,9 @@ class AccountBudgetLine(models.Model):
             ]
 
             if line.analytic_account_id:
-                domain.append(('analytic_distribution', 'ilike', str(line.analytic_account_id.id)))
+                # analytic_distribution is a JSON dict with analytic account IDs as keys
+                # Use a pattern that matches the exact key (quoted ID followed by colon)
+                domain.append(('analytic_distribution', 'ilike', '"%s"' % line.analytic_account_id.id))
 
             move_lines = self.env['account.move.line'].search(domain)
             line.actual_amount = sum(move_lines.mapped('balance'))

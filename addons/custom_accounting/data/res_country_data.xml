@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Set Japan's VAT label for invoice display -->
+        <record id="base.jp" model="res.country">
+            <field name="vat_label">登録番号 / Registration No.</field>
+        </record>
+    </data>
+</odoo>

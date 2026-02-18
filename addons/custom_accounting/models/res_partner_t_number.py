@@ -31,17 +31,31 @@ class ResPartnerTNumber(models.Model):
         """Validate T-Number format: T + 13 digits"""
         t_number_pattern = re.compile(r'^T\d{13}$')
         for partner in self:
-            if partner.t_number:
-                # Remove any spaces or dashes
-                cleaned_number = partner.t_number.replace(' ', '').replace('-', '').upper()
-                if not t_number_pattern.match(cleaned_number):
-                    raise ValidationError(_(
-                        'Invalid T-Number format. '
-                        'The T-Number must be in format: T + 13 digits (e.g., T1234567890123)'
-                    ))
-                # Update with cleaned format
-                if partner.t_number != cleaned_number:
-                    partner.t_number = cleaned_number
+            if partner.t_number and not t_number_pattern.match(partner.t_number):
+                raise ValidationError(_(
+                    'Invalid T-Number format. '
+                    'The T-Number must be in format: T + 13 digits (e.g., T1234567890123)'
+                ))
+
+    def write(self, vals):
+        """Clean T-Number formatting before save"""
+        if 't_number' in vals and vals['t_number']:
+            cleaned = vals['t_number'].replace(' ', '').replace('-', '').upper()
+            if cleaned and not cleaned.startswith('T') and cleaned.isdigit():
+                cleaned = 'T' + cleaned
+            vals['t_number'] = cleaned
+        return super().write(vals)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Clean T-Number formatting on create"""
+        for vals in vals_list:
+            if vals.get('t_number'):
+                cleaned = vals['t_number'].replace(' ', '').replace('-', '').upper()
+                if cleaned and not cleaned.startswith('T') and cleaned.isdigit():
+                    cleaned = 'T' + cleaned
+                vals['t_number'] = cleaned
+        return super().create(vals_list)
 
     @api.onchange('t_number')
     def _onchange_t_number(self):

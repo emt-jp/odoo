@@ -42,6 +42,7 @@ Online Payment Integration:
     'depends': [
         'account',
         'account_payment',
+        'l10n_jp',
         'mail',
         'web',
         'website',
@@ -49,6 +50,7 @@ Online Payment Integration:
     'data': [
         'security/ir.model.access.csv',
         'security/account_security.xml',
+        'data/res_country_data.xml',
         'wizard/financial_report_wizard_views.xml',
         'views/account_dashboard_views.xml',
         'views/budget_views.xml',

@@ -237,7 +237,7 @@
 
     <t t-if="object.payment_link_stripe">
         <p>
-            <a href="${object.payment_link_stripe}" style="display: inline-block; padding: 10px 20px; background-color: #635bff; color: white; text-decoration: none; border-radius: 5px;">
+            <a t-att-href="object.payment_link_stripe" style="display: inline-block; padding: 10px 20px; background-color: #635bff; color: white; text-decoration: none; border-radius: 5px;">
                 Pay with Card (Stripe)
             </a>
         </p>
@@ -245,7 +245,7 @@
 
     <t t-if="object.payment_link_paypay">
         <p>
-            <a href="${object.payment_link_paypay}" style="display: inline-block; padding: 10px 20px; background-color: #ff0033; color: white; text-decoration: none; border-radius: 5px;">
+            <a t-att-href="object.payment_link_paypay" style="display: inline-block; padding: 10px 20px; background-color: #ff0033; color: white; text-decoration: none; border-radius: 5px;">
                 Pay with PayPay
             </a>
         </p>
