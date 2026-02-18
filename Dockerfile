@@ -38,6 +38,7 @@ RUN apt-get update \
         libxrender1 \
         xfonts-75dpi \
         xfonts-base \
+        fonts-noto-cjk \
     && rm -rf /var/lib/apt/lists/*
 
 # Install wkhtmltopdf
