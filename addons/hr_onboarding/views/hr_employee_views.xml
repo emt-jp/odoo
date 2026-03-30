@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_employee_view_form_inherit_onboarding" model="ir.ui.view">
+        <field name="name">hr.employee.form.inherit.onboarding</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="%(hr_onboarding_action)d"
+                    type="action"
+                    class="oe_stat_button"
+                    icon="fa-tasks"
+                    context="{'default_employee_id': active_id, 'search_default_employee_id': active_id}">
+                    <field name="onboarding_state" widget="statusbar_field" invisible="1"/>
+                    <span>Onboarding</span>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

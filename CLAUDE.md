@@ -1,155 +1,102 @@
-# CLAUDE.md - Odoo ERP Migration Project
+# CLAUDE.md - Odoo ERP (GCP Production)
 
-Custom Odoo 17 ERP migration from Contabo VPS to Google Cloud Platform.
+Odoo 17 ERP running on Google Cloud Platform.
 
 ## Project Overview
 
 | Aspect | Details |
 |--------|---------|
-| Source | Contabo VPS (cvps - 46.250.252.111) |
-| Target | Google Cloud Platform (Cloud Run + Cloud SQL) |
+| GCP Project | `odoo-erp-prod` |
+| Region | `asia-northeast1` (Tokyo) |
 | Odoo Version | 17.0 |
-| Status | Running in production on Contabo |
+| GitHub Repo | `emt-jp/odoo` |
+| Status | Production on GCP |
 
-## Current Infrastructure (Contabo VPS)
-
-**Server:** cvps (46.250.252.111)
-**Path:** `/home/as/ws/odoo`
+## Infrastructure (GCP)
 
 ```
-Docker Compose Services:
-├── odoo         # Odoo 17 application (port 8069, 8072)
-├── psql         # PostgreSQL 15
-├── redis        # Redis 7 (caching)
-└── mailhog      # Email testing (port 1025, 8025)
+Google Cloud Platform (odoo-erp-prod / asia-northeast1)
+├── Cloud Run (Odoo application)
+│   └── Custom Docker image from Artifact Registry
+├── Cloud SQL (PostgreSQL 15, db-custom-2-4096)
+│   └── Instance: odoo-db (private IP, VPC peered)
+├── Cloud Storage (GCS)
+│   └── Bucket: odoo-erp-prod-odoo-filestore (versioned)
+├── VPC
+│   ├── Network: odoo-vpc (10.0.0.0/24)
+│   └── Serverless VPC Connector: odoo-vpc-connector (10.8.0.0/28)
+├── Secret Manager
+│   ├── odoo-admin-password
+│   └── odoo-db-password
+├── Artifact Registry
+│   └── asia-northeast1-docker.pkg.dev/odoo-erp-prod/odoo
+└── Workload Identity Federation
+    └── GitHub Actions (emt-jp/odoo) → github-actions-sa
 ```
 
-**Size:**
-- Database: 154 MB
-- Addons: 1.1 GB (612+ modules)
-- Filestore: 244 MB
+## Database Credentials
+
+```
+Host: Cloud SQL private IP (via VPC connector)
+Instance: odoo-db
+Database: odoo
+User: odoo
+Password: (stored in Secret Manager: odoo-db-password)
+```
 
 ## Custom Addons
 
-Key custom modules in `/home/as/ws/odoo/addons`:
+Key custom modules in `addons/`:
 - `advanced_analytics` - Business analytics
 - `advanced_crm` - CRM enhancements
 - `advanced_inventory` - Inventory management
 - `advanced_reports` - Custom reporting
 
-## SSH Access
+## CI/CD
 
-```bash
-ssh cvps                           # Connect as root
-cd /home/as/ws/odoo               # Odoo directory
-docker compose ps                  # Check container status
-docker compose logs -f odoo        # View Odoo logs
-```
-
-## Database Credentials (Production)
-
-```
-Host: psql (Docker service)
-Port: 5432
-Database: odoo
-User: odoo
-Password: uGajfshoU4YSvpRWoF9uNBtGdDBNI
-```
-
-## Target Architecture (GCP)
-
-```
-Google Cloud Platform
-├── Cloud Run (Odoo application)
-│   └── Custom Odoo Docker image
-├── Cloud SQL (PostgreSQL 15)
-│   └── Migrated database (154 MB)
-├── Cloud Storage (GCS)
-│   └── Filestore attachments (244 MB)
-├── Cloud CDN (optional)
-│   └── Static assets
-├── Cloud Load Balancer
-│   └── HTTPS termination
-├── VPC Connector
-│   └── Cloud SQL private connection
-└── Secret Manager
-    └── DB password, admin password
-```
-
-## Migration Tasks
-
-### Phase 1: Code Management
-- [x] Create local project structure
-- [ ] Set up GitHub repository
-- [ ] Push Contabo code to GitHub
-- [ ] Configure CI/CD with Cloud Build
-
-### Phase 2: GCP Infrastructure
-- [ ] Apply Terraform for Cloud SQL, VPC, GCS
-- [ ] Create secrets in Secret Manager
-- [ ] Configure VPC connector for Cloud Run
-
-### Phase 3: Database Migration
-- [ ] Export database from Contabo (`pg_dump`)
-- [ ] Upload to GCS
-- [ ] Import to Cloud SQL (`pg_restore`)
-- [ ] Verify data integrity
-
-### Phase 4: Filestore Migration
-- [ ] Export filestore from Contabo
-- [ ] Upload to GCS bucket
-- [ ] Update `ir.attachment` records for GCS
-
-### Phase 5: Application Deployment
-- [ ] Build Docker image from Contabo code
-- [ ] Push to Artifact Registry
-- [ ] Deploy to Cloud Run
-- [ ] Configure Cloud SQL connection
-
-### Phase 6: DNS & Cutover
-- [ ] Configure Load Balancer
-- [ ] Set up managed SSL certificate
-- [ ] Update DNS (Cloudflare)
-- [ ] Test and verify
-- [ ] Decommission Contabo
+Deployments via GitHub Actions with Workload Identity Federation (no service account keys):
+- **Repo**: `emt-jp/odoo`
+- **WIF Pool**: `github-pool` → `github-provider`
+- **Service Account**: `github-actions-sa` (Cloud Run admin, Artifact Registry writer)
 
 ## Commands
 
-### On Contabo (cvps)
-```bash
-# Check Odoo status
-ssh cvps "docker compose -f /home/as/ws/odoo/docker-compose.yml ps"
-
-# View logs
-ssh cvps "docker compose -f /home/as/ws/odoo/docker-compose.yml logs -f odoo"
-
-# Backup database
-ssh cvps "docker exec odoo-psql-1 pg_dump -U odoo -d odoo -Fc > /tmp/odoo_backup.dump"
-
-# Backup filestore
-ssh cvps "tar -czf /tmp/odoo_filestore.tar.gz -C /home/as/ws/odoo/var ."
-```
-
 ### Local Development
 ```bash
-cd /Users/pk/Documents/ws/odoo
+cd /Users/pk/ws/odoo
 docker-compose up -d
 open http://localhost:8069
 ```
 
-### GCP Deployment
+### GCP Operations
 ```bash
 # Apply infrastructure
 cd terraform && terraform apply
 
-# Build and deploy
-gcloud builds submit --config=cloudbuild.yaml
+# Build and deploy via GitHub Actions
+git push origin main
+
+# Check Cloud Run status
+gcloud run services describe odoo --region=asia-northeast1 --project=odoo-erp-prod
+
+# View logs
+gcloud run services logs read odoo --region=asia-northeast1 --project=odoo-erp-prod
+
+# Connect to Cloud SQL (via proxy)
+cloud-sql-proxy odoo-erp-prod:asia-northeast1:odoo-db
+```
+
+### Terraform
+```bash
+cd terraform
+terraform plan
+terraform apply
 ```
 
 ## Notes
 
-- Odoo requires persistent database connections - Cloud Run min-instances=1
+- Cloud Run min-instances=1 (Odoo needs persistent DB connections)
 - Workers set to 4 in production config
-- Email currently via Mailhog (need to configure SMTP for production)
-- Proxy mode disabled - enable for Cloud Run behind load balancer
-- Current domain: needs verification from Cloudflare setup
+- Cloud SQL backups daily at 03:00, deletion protection enabled
+- Filestore bucket has versioning (keeps 3 versions)
+- VPC peering for private Cloud SQL access (no public IP)

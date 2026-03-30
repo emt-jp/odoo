@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="document_type_passport" model="hr.document.type">
+            <field name="name">Passport</field>
+            <field name="sequence">1</field>
+            <field name="has_expiry">True</field>
+            <field name="expiry_warning_days">90</field>
+            <field name="required_for_onboarding">True</field>
+        </record>
+        <record id="document_type_visa" model="hr.document.type">
+            <field name="name">Visa / Work Permit</field>
+            <field name="sequence">2</field>
+            <field name="has_expiry">True</field>
+            <field name="expiry_warning_days">60</field>
+            <field name="required_for_onboarding">True</field>
+        </record>
+        <record id="document_type_national_id" model="hr.document.type">
+            <field name="name">National ID</field>
+            <field name="sequence">3</field>
+            <field name="has_expiry">True</field>
+            <field name="expiry_warning_days">60</field>
+            <field name="required_for_onboarding">True</field>
+        </record>
+        <record id="document_type_driving_license" model="hr.document.type">
+            <field name="name">Driving License</field>
+            <field name="sequence">4</field>
+            <field name="has_expiry">True</field>
+            <field name="expiry_warning_days">30</field>
+        </record>
+        <record id="document_type_employment_contract" model="hr.document.type">
+            <field name="name">Employment Contract</field>
+            <field name="sequence">5</field>
+            <field name="has_expiry">True</field>
+            <field name="expiry_warning_days">30</field>
+            <field name="required_for_onboarding">True</field>
+        </record>
+        <record id="document_type_degree" model="hr.document.type">
+            <field name="name">Degree / Diploma</field>
+            <field name="sequence">6</field>
+            <field name="has_expiry">False</field>
+        </record>
+        <record id="document_type_certification" model="hr.document.type">
+            <field name="name">Professional Certification</field>
+            <field name="sequence">7</field>
+            <field name="has_expiry">True</field>
+            <field name="expiry_warning_days">30</field>
+        </record>
+        <record id="document_type_medical" model="hr.document.type">
+            <field name="name">Medical Certificate</field>
+            <field name="sequence">8</field>
+            <field name="has_expiry">True</field>
+            <field name="expiry_warning_days">30</field>
+        </record>
+        <record id="document_type_bank_details" model="hr.document.type">
+            <field name="name">Bank Account Details</field>
+            <field name="sequence">9</field>
+            <field name="has_expiry">False</field>
+            <field name="required_for_onboarding">True</field>
+        </record>
+        <record id="document_type_tax" model="hr.document.type">
+            <field name="name">Tax Document</field>
+            <field name="sequence">10</field>
+            <field name="has_expiry">False</field>
+        </record>
+        <record id="document_type_background_check" model="hr.document.type">
+            <field name="name">Background Check</field>
+            <field name="sequence">11</field>
+            <field name="has_expiry">True</field>
+            <field name="expiry_warning_days">30</field>
+        </record>
+        <record id="document_type_photo" model="hr.document.type">
+            <field name="name">Photograph</field>
+            <field name="sequence">12</field>
+            <field name="has_expiry">False</field>
+        </record>
+        <record id="document_type_nda" model="hr.document.type">
+            <field name="name">NDA / Confidentiality Agreement</field>
+            <field name="sequence">13</field>
+            <field name="has_expiry">False</field>
+            <field name="required_for_onboarding">True</field>
+        </record>
+        <record id="document_type_other" model="hr.document.type">
+            <field name="name">Other</field>
+            <field name="sequence">99</field>
+            <field name="has_expiry">False</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_employee_view_form_inherit_probation" model="ir.ui.view">
+        <field name="name">hr.employee.form.inherit.probation</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Probation" name="probation">
+                    <group>
+                        <group>
+                            <field name="probation_state" widget="badge"
+                                decoration-info="probation_state == 'in_probation'"
+                                decoration-warning="probation_state in ('review_pending', 'extended')"
+                                decoration-success="probation_state == 'confirmed'"
+                                decoration-danger="probation_state == 'terminated'"
+                            />
+                            <field name="probation_duration_months"/>
+                        </group>
+                        <group>
+                            <field name="probation_start_date"/>
+                            <field name="probation_end_date"/>
+                        </group>
+                    </group>
+                    <separator string="Reviews"/>
+                    <field name="probation_review_ids">
+                        <list>
+                            <field name="review_date"/>
+                            <field name="reviewer_id"/>
+                            <field name="performance_rating"/>
+                            <field name="state" widget="badge"
+                                decoration-success="state == 'confirmed'"
+                                decoration-warning="state == 'extended'"
+                                decoration-danger="state == 'terminated'"
+                            />
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

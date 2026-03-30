@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_hr_probation"
+        name="Probation Reviews"
+        parent="hr.menu_hr_root"
+        action="hr_probation_review_action"
+        sequence="20"/>
+</odoo>

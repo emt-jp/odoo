@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_hr_documents_root"
+        name="Documents"
+        parent="hr.menu_hr_root"
+        sequence="25"/>
+
+    <menuitem id="menu_hr_employee_documents"
+        name="All Documents"
+        parent="menu_hr_documents_root"
+        action="hr_employee_document_action"
+        sequence="10"/>
+
+    <menuitem id="menu_hr_documents_expiring"
+        name="Expiring Documents"
+        parent="menu_hr_documents_root"
+        action="hr_employee_document_action_expiring"
+        sequence="20"/>
+
+    <menuitem id="menu_hr_document_types"
+        name="Document Types"
+        parent="menu_hr_documents_root"
+        action="hr_document_type_action"
+        groups="hr.group_hr_manager"
+        sequence="30"/>
+</odoo>

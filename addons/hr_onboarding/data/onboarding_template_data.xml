@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="onboarding_template_default" model="hr.onboarding.template">
+            <field name="name">Standard Employee Onboarding</field>
+            <field name="sequence">1</field>
+            <field name="note">Default onboarding checklist for all new employees</field>
+        </record>
+
+        <!-- Day 0 tasks -->
+        <record id="onboarding_task_email" model="hr.onboarding.template.task">
+            <field name="name">Create company email account</field>
+            <field name="template_id" ref="onboarding_template_default"/>
+            <field name="sequence">1</field>
+            <field name="category">it</field>
+            <field name="days_after_start">0</field>
+            <field name="description">Create email account and send credentials to employee</field>
+        </record>
+
+        <record id="onboarding_task_laptop" model="hr.onboarding.template.task">
+            <field name="name">Setup laptop / workstation</field>
+            <field name="template_id" ref="onboarding_template_default"/>
+            <field name="sequence">2</field>
+            <field name="category">it</field>
+            <field name="days_after_start">0</field>
+            <field name="description">Prepare hardware, install required software, configure VPN access</field>
+        </record>
+
+        <record id="onboarding_task_access_cards" model="hr.onboarding.template.task">
+            <field name="name">Issue access card / keys</field>
+            <field name="template_id" ref="onboarding_template_default"/>
+            <field name="sequence">3</field>
+            <field name="category">hr</field>
+            <field name="days_after_start">0</field>
+        </record>
+
+        <record id="onboarding_task_collect_documents" model="hr.onboarding.template.task">
+            <field name="name">Collect employee documents</field>
+            <field name="template_id" ref="onboarding_template_default"/>
+            <field name="sequence">4</field>
+            <field name="category">hr</field>
+            <field name="days_after_start">1</field>
+            <field name="description">Passport, ID, bank details, tax documents, emergency contacts</field>
+        </record>
+
+        <record id="onboarding_task_sign_contract" model="hr.onboarding.template.task">
+            <field name="name">Sign employment contract</field>
+            <field name="template_id" ref="onboarding_template_default"/>
+            <field name="sequence">5</field>
+            <field name="category">hr</field>
+            <field name="days_after_start">1</field>
+        </record>
+
+        <record id="onboarding_task_sign_nda" model="hr.onboarding.template.task">
+            <field name="name">Sign NDA / confidentiality agreement</field>
+            <field name="template_id" ref="onboarding_template_default"/>
+            <field name="sequence">6</field>
+            <field name="category">hr</field>
+            <field name="days_after_start">1</field>
+        </record>
+
+        <record id="onboarding_task_bank_setup" model="hr.onboarding.template.task">
+            <field name="name">Setup payroll / bank details</field>
+            <field name="template_id" ref="onboarding_template_default"/>
+            <field name="sequence">7</field>
+            <field name="category">finance</field>
+            <field name="days_after_start">3</field>
+        </record>
+
+        <record id="onboarding_task_orientation" model="hr.onboarding.template.task">
+            <field name="name">Company orientation / tour</field>
+            <field name="template_id" ref="onboarding_template_default"/>
+            <field name="sequence">8</field>
+            <field name="category">hr</field>
+            <field name="days_after_start">1</field>
+            <field name="description">Office tour, introduction to team members, company policies</field>
+        </record>
+
+        <record id="onboarding_task_safety" model="hr.onboarding.template.task">
+            <field name="name">Health &amp; safety briefing</field>
+            <field name="template_id" ref="onboarding_template_default"/>
+            <field name="sequence">9</field>
+            <field name="category">training</field>
+            <field name="days_after_start">3</field>
+        </record>
+
+        <record id="onboarding_task_systems_training" model="hr.onboarding.template.task">
+            <field name="name">Systems / tools training</field>
+            <field name="template_id" ref="onboarding_template_default"/>
+            <field name="sequence">10</field>
+            <field name="category">training</field>
+            <field name="days_after_start">5</field>
+            <field name="description">Internal systems, communication tools, project management</field>
+        </record>
+
+        <record id="onboarding_task_probation_meeting" model="hr.onboarding.template.task">
+            <field name="name">Schedule probation review meeting</field>
+            <field name="template_id" ref="onboarding_template_default"/>
+            <field name="sequence">11</field>
+            <field name="category">hr</field>
+            <field name="days_after_start">7</field>
+            <field name="description">Set calendar reminder for probation period end review</field>
+        </record>
+    </data>
+</odoo>

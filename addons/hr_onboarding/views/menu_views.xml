@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_hr_onboarding_root"
+        name="Onboarding"
+        parent="hr.menu_hr_root"
+        sequence="15"/>
+
+    <menuitem id="menu_hr_onboarding"
+        name="All Onboardings"
+        parent="menu_hr_onboarding_root"
+        action="hr_onboarding_action"
+        sequence="10"/>
+
+    <menuitem id="menu_hr_onboarding_templates"
+        name="Templates"
+        parent="menu_hr_onboarding_root"
+        action="hr_onboarding_template_action"
+        groups="hr.group_hr_manager"
+        sequence="20"/>
+</odoo>

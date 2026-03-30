@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_probation_review_view_form" model="ir.ui.view">
+        <field name="name">hr.probation.review.form</field>
+        <field name="model">hr.probation.review</field>
+        <field name="arch" type="xml">
+            <form string="Probation Review">
+                <header>
+                    <button name="action_confirm" type="object" string="Confirm (Pass)"
+                        class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_extend" type="object" string="Extend Probation"
+                        class="btn-warning" invisible="state != 'draft'"/>
+                    <button name="action_terminate" type="object" string="Terminate"
+                        class="btn-danger" invisible="state != 'draft'"
+                        confirm="Are you sure you want to terminate this employee's probation?"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="reviewer_id"/>
+                            <field name="review_date"/>
+                            <field name="probation_end_date"/>
+                        </group>
+                        <group>
+                            <field name="performance_rating" widget="priority"/>
+                            <field name="extension_months" invisible="state != 'draft'"/>
+                            <field name="new_end_date" invisible="state != 'extended'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Assessment">
+                            <group>
+                                <field name="strengths" placeholder="Key strengths observed during probation..."/>
+                                <field name="areas_for_improvement" placeholder="Areas that need improvement..."/>
+                                <field name="notes" placeholder="Additional review notes..."/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="hr_probation_review_view_list" model="ir.ui.view">
+        <field name="name">hr.probation.review.list</field>
+        <field name="model">hr.probation.review</field>
+        <field name="arch" type="xml">
+            <list string="Probation Reviews"
+                decoration-success="state == 'confirmed'"
+                decoration-warning="state == 'extended'"
+                decoration-danger="state == 'terminated'">
+                <field name="employee_id"/>
+                <field name="reviewer_id"/>
+                <field name="review_date"/>
+                <field name="probation_end_date"/>
+                <field name="performance_rating" widget="priority"/>
+                <field name="state" widget="badge"
+                    decoration-info="state == 'draft'"
+                    decoration-success="state == 'confirmed'"
+                    decoration-warning="state == 'extended'"
+                    decoration-danger="state == 'terminated'"
+                />
+            </list>
+        </field>
+    </record>
+
+    <record id="hr_probation_review_view_search" model="ir.ui.view">
+        <field name="name">hr.probation.review.search</field>
+        <field name="model">hr.probation.review</field>
+        <field name="arch" type="xml">
+            <search string="Search Reviews">
+                <field name="employee_id"/>
+                <field name="reviewer_id"/>
+                <filter name="draft" string="Pending" domain="[('state', '=', 'draft')]"/>
+                <filter name="confirmed" string="Confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <filter name="extended" string="Extended" domain="[('state', '=', 'extended')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="hr_probation_review_action" model="ir.actions.act_window">
+        <field name="name">Probation Reviews</field>
+        <field name="res_model">hr.probation.review</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

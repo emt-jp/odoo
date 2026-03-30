@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_employee_view_form_inherit_documents" model="ir.ui.view">
+        <field name="name">hr.employee.form.inherit.documents</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="%(hr_employee_document_action)d"
+                    type="action"
+                    class="oe_stat_button"
+                    icon="fa-file-text-o"
+                    context="{'default_employee_id': active_id, 'search_default_employee_id': active_id}">
+                    <field name="document_count" widget="statinfo" string="Documents"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>
