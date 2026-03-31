@@ -3,168 +3,138 @@
     <template id="report_payslip_template">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
-                <t t-set="company" t-value="o.company_id"/>
-                <t t-set="employee" t-value="o.employee_id"/>
-                <t t-set="contract" t-value="o.contract_id"/>
-                <t t-set="currency" t-value="o.currency_id or company.currency_id"/>
+                <div class="article" style="font-family: 'Helvetica Neue', Arial, sans-serif; color: #333; padding: 20px;">
 
-                <!-- Compute line totals by category -->
-                <t t-set="earning_lines" t-value="o.line_ids.filtered(lambda l: l.category_id.code in ('BASIC', 'EARNING'))"/>
-                <t t-set="deduction_lines" t-value="o.line_ids.filtered(lambda l: l.category_id.code == 'DEDUCTION')"/>
-                <t t-set="net_line" t-value="o.line_ids.filtered(lambda l: l.category_id.code == 'NET')"/>
-                <t t-set="gross_line" t-value="o.line_ids.filtered(lambda l: l.code == 'GROSS')"/>
-
-                <div class="article" style="font-family: 'Helvetica Neue', Arial, sans-serif; color: #333;">
-                    <!-- Header with company info and payslip month -->
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-                        <div>
+                    <!-- Header -->
+                    <div style="display: table; width: 100%; margin-bottom: 20px;">
+                        <div style="display: table-cell; vertical-align: top; width: 60%;">
                             <h2 style="color: #e74c3c; margin: 0 0 5px 0; font-size: 22px;">
-                                <span t-field="company.name"/>
+                                <span t-esc="o.company_id.name"/>
                             </h2>
-                            <div style="font-size: 11px; color: #666; max-width: 400px;">
-                                <t t-if="company.street"><span t-field="company.street"/>, </t>
-                                <t t-if="company.street2"><span t-field="company.street2"/>, </t>
-                                <t t-if="company.city"><span t-field="company.city"/>, </t>
-                                <t t-if="company.state_id"><span t-field="company.state_id.name"/>, </t>
-                                <t t-if="company.zip"><span t-field="company.zip"/></t>
+                            <div style="font-size: 11px; color: #666;">
+                                <t t-if="o.company_id.street"><span t-esc="o.company_id.street"/>, </t>
+                                <t t-if="o.company_id.street2"><span t-esc="o.company_id.street2"/>, </t>
+                                <t t-if="o.company_id.city"><span t-esc="o.company_id.city"/>, </t>
+                                <t t-if="o.company_id.state_id"><span t-esc="o.company_id.state_id.name"/>, </t>
+                                <t t-if="o.company_id.zip"><span t-esc="o.company_id.zip"/></t>
                             </div>
                         </div>
-                        <div style="text-align: right;">
-                            <div style="background: #f8f9fa; border-radius: 8px; padding: 12px 20px;">
+                        <div style="display: table-cell; vertical-align: top; text-align: right;">
+                            <div style="background: #f8f9fa; border-radius: 8px; padding: 12px 20px; display: inline-block;">
                                 <div style="font-size: 16px; font-weight: bold;">
                                     Payslip: <span t-field="o.date_from" t-options='{"widget": "date", "format": "MMMM yyyy"}'/>
                                 </div>
                                 <div style="font-size: 10px; color: #888; margin-top: 4px;">
-                                    Ref: <span t-field="o.number"/>
+                                    Ref: <span t-esc="o.number"/>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Net Pay Summary Bar -->
-                    <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px; padding: 20px 30px; margin-bottom: 25px; display: flex; align-items: center; justify-content: center;">
-                        <div style="text-align: center; flex: 1;">
-                            <div style="font-size: 12px; color: #666; margin-bottom: 4px;">Net Pay</div>
-                            <div style="font-size: 28px; font-weight: bold; color: #2c3e50;">
-                                <t t-if="net_line">
-                                    <span t-esc="'{:,.0f}'.format(net_line[0].total)"/>
-                                </t>
-                            </div>
-                        </div>
-                        <div style="font-size: 24px; color: #999; margin: 0 15px;">=</div>
-                        <div style="text-align: center; flex: 1;">
-                            <div style="font-size: 12px; color: #666; margin-bottom: 4px;">Gross Pay (A)</div>
-                            <div style="font-size: 18px; font-weight: 600; color: #27ae60;">
-                                + <t t-if="gross_line"><span t-esc="'{:,.0f}'.format(gross_line[0].total)"/></t>
-                            </div>
-                        </div>
-                        <div style="font-size: 24px; color: #999; margin: 0 15px;">-</div>
-                        <div style="text-align: center; flex: 1;">
-                            <div style="font-size: 12px; color: #666; margin-bottom: 4px;">Deductions (B)</div>
-                            <div style="font-size: 18px; font-weight: 600; color: #e74c3c;">
-                                - <span t-esc="'{:,.0f}'.format(o.total_deductions)"/>
-                            </div>
-                        </div>
+                    <!-- Net Pay Summary -->
+                    <div style="background: #f8f9fa; border-radius: 10px; padding: 20px; margin-bottom: 25px;">
+                        <table style="width: 100%; text-align: center;">
+                            <tr>
+                                <td style="width: 33%;">
+                                    <div style="font-size: 12px; color: #666;">Net Pay</div>
+                                    <div style="font-size: 26px; font-weight: bold; color: #2c3e50;">
+                                        <t t-foreach="o.line_ids" t-as="nl">
+                                            <t t-if="nl.code == 'NET'">
+                                                &#8377; <span t-esc="'{:,.0f}'.format(nl.total)"/>
+                                            </t>
+                                        </t>
+                                    </div>
+                                </td>
+                                <td style="font-size: 20px; color: #999;">=</td>
+                                <td style="width: 28%;">
+                                    <div style="font-size: 12px; color: #666;">Gross Pay (A)</div>
+                                    <div style="font-size: 17px; font-weight: 600; color: #27ae60;">
+                                        <t t-foreach="o.line_ids" t-as="gl">
+                                            <t t-if="gl.code == 'GROSS'">
+                                                + <span t-esc="'{:,.0f}'.format(gl.total)"/>
+                                            </t>
+                                        </t>
+                                    </div>
+                                </td>
+                                <td style="font-size: 20px; color: #999;">-</td>
+                                <td style="width: 28%;">
+                                    <div style="font-size: 12px; color: #666;">Deductions (B)</div>
+                                    <div style="font-size: 17px; font-weight: 600; color: #e74c3c;">
+                                        - <span t-esc="'{:,.0f}'.format(o.total_deductions)"/>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
                     </div>
 
-                    <!-- Employee Details Row -->
-                    <div style="display: flex; gap: 40px; margin-bottom: 25px; font-size: 12px;">
-                        <div style="flex: 1;">
-                            <table style="width: 100%;">
-                                <tr>
-                                    <td style="color: #888; padding: 3px 0;">Employee Code</td>
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: 600; padding: 0 0 8px 0;"><span t-field="o.number"/></td>
-                                </tr>
-                                <tr>
-                                    <td style="color: #888; padding: 3px 0;">Name</td>
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: 600; padding: 0 0 8px 0;"><span t-field="employee.name"/></td>
-                                </tr>
-                                <tr>
-                                    <td style="color: #888; padding: 3px 0;">Designation</td>
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: 600; padding: 0 0 8px 0;"><span t-field="employee.job_title"/></td>
-                                </tr>
-                                <tr>
-                                    <td style="color: #888; padding: 3px 0;">Department</td>
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: 600; padding: 0 0 8px 0;"><span t-field="employee.department_id"/></td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div style="flex: 1;">
-                            <table style="width: 100%;">
-                                <tr>
-                                    <td style="color: #888; padding: 3px 0;">Date of Birth</td>
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: 600; padding: 0 0 8px 0;"><span t-field="employee.birthday"/></td>
-                                </tr>
-                                <tr>
-                                    <td style="color: #888; padding: 3px 0;">PAN</td>
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: 600; padding: 0 0 8px 0;"><span t-field="employee.identification_id"/></td>
-                                </tr>
-                                <tr>
-                                    <td style="color: #888; padding: 3px 0;">Pay Period</td>
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: 600; padding: 0 0 8px 0;">
-                                        <span t-field="o.date_from"/> to <span t-field="o.date_to"/>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="color: #888; padding: 3px 0;">Tax Regime</td>
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: 600; padding: 0 0 8px 0;">
-                                        <span t-field="contract.tax_regime"/>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
+                    <!-- Employee Details -->
+                    <div style="margin-bottom: 25px;">
+                        <table style="width: 100%; font-size: 12px;">
+                            <tr>
+                                <td style="width: 50%; vertical-align: top; padding-right: 20px;">
+                                    <table style="width: 100%;">
+                                        <tr><td style="color: #888; padding: 2px 0;">Employee Code</td></tr>
+                                        <tr><td style="font-weight: 600; padding: 0 0 6px 0;"><span t-esc="o.number"/></td></tr>
+                                        <tr><td style="color: #888; padding: 2px 0;">Name</td></tr>
+                                        <tr><td style="font-weight: 600; padding: 0 0 6px 0;"><span t-esc="o.employee_id.name"/></td></tr>
+                                        <tr><td style="color: #888; padding: 2px 0;">Designation</td></tr>
+                                        <tr><td style="font-weight: 600; padding: 0 0 6px 0;"><span t-esc="o.employee_id.job_title or '-'"/></td></tr>
+                                        <tr><td style="color: #888; padding: 2px 0;">Department</td></tr>
+                                        <tr><td style="font-weight: 600; padding: 0 0 6px 0;"><span t-esc="o.employee_id.department_id.name or '-'"/></td></tr>
+                                    </table>
+                                </td>
+                                <td style="width: 50%; vertical-align: top;">
+                                    <table style="width: 100%;">
+                                        <tr><td style="color: #888; padding: 2px 0;">Date of Birth</td></tr>
+                                        <tr><td style="font-weight: 600; padding: 0 0 6px 0;"><span t-field="o.employee_id.birthday"/></td></tr>
+                                        <tr><td style="color: #888; padding: 2px 0;">PAN</td></tr>
+                                        <tr><td style="font-weight: 600; padding: 0 0 6px 0;"><span t-esc="o.employee_id.identification_id or '-'"/></td></tr>
+                                        <tr><td style="color: #888; padding: 2px 0;">Pay Period</td></tr>
+                                        <tr><td style="font-weight: 600; padding: 0 0 6px 0;">
+                                            <span t-field="o.date_from"/> to <span t-field="o.date_to"/>
+                                        </td></tr>
+                                        <tr><td style="color: #888; padding: 2px 0;">Tax Regime</td></tr>
+                                        <tr><td style="font-weight: 600; padding: 0 0 6px 0;"><span t-field="o.contract_id.tax_regime"/></td></tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
                     </div>
 
                     <!-- Earnings Section -->
                     <div style="margin-bottom: 25px;">
-                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                            <div style="width: 10px; height: 10px; background: #27ae60; border-radius: 50%; margin-right: 8px;"/>
+                        <div style="margin-bottom: 8px;">
+                            <span style="display: inline-block; width: 10px; height: 10px; background: #27ae60; border-radius: 50; margin-right: 6px; vertical-align: middle;"/>
                             <span style="font-size: 14px; font-weight: 600;">Gross Pay (A)</span>
-                            <span style="font-size: 11px; color: #888; margin-left: 10px;">The total money you earned before the deductions</span>
+                            <span style="font-size: 11px; color: #888; margin-left: 8px;">The total money you earned before the deductions</span>
                         </div>
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
                                 <tr style="background: #f8f9fa;">
-                                    <th style="text-align: left; padding: 10px 15px; font-size: 12px; color: #666; font-weight: 600;">Earnings</th>
-                                    <th style="text-align: right; padding: 10px 15px; font-size: 12px; color: #666; font-weight: 600;">Monthly</th>
-                                    <th style="text-align: right; padding: 10px 15px; font-size: 12px; color: #666; font-weight: 600;">Total Amount</th>
+                                    <th style="text-align: left; padding: 8px 12px; font-size: 12px; color: #666;">Earnings</th>
+                                    <th style="text-align: right; padding: 8px 12px; font-size: 12px; color: #666;">Monthly</th>
+                                    <th style="text-align: right; padding: 8px 12px; font-size: 12px; color: #666;">Total Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="earning_lines.filtered(lambda l: l.code != 'GROSS')" t-as="line">
-                                    <tr style="border-bottom: 1px solid #f0f0f0;">
-                                        <td style="padding: 10px 15px; font-size: 13px;"><span t-field="line.name"/></td>
-                                        <td style="text-align: right; padding: 10px 15px; font-size: 13px;">
-                                            <span t-esc="'{:,.0f}'.format(line.total)"/>
-                                        </td>
-                                        <td style="text-align: right; padding: 10px 15px; font-size: 13px;">
-                                            <span t-esc="'{:,.0f}'.format(line.total)"/>
-                                        </td>
-                                    </tr>
+                                <t t-foreach="o.line_ids" t-as="line">
+                                    <t t-if="line.category_id.code in ('BASIC', 'EARNING') and line.code != 'GROSS'">
+                                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                                            <td style="padding: 8px 12px; font-size: 13px;"><span t-esc="line.name"/></td>
+                                            <td style="text-align: right; padding: 8px 12px; font-size: 13px;"><span t-esc="'{:,.0f}'.format(line.total)"/></td>
+                                            <td style="text-align: right; padding: 8px 12px; font-size: 13px;"><span t-esc="'{:,.0f}'.format(line.total)"/></td>
+                                        </tr>
+                                    </t>
                                 </t>
                             </tbody>
                             <tfoot>
                                 <tr style="background: #f8f9fa; border-top: 2px solid #e0e0e0;">
-                                    <td style="padding: 10px 15px; font-size: 13px; font-weight: 700;">Gross Pay</td>
+                                    <td style="padding: 8px 12px; font-size: 13px; font-weight: 700;">Gross Pay</td>
                                     <td/>
-                                    <td style="text-align: right; padding: 10px 15px; font-size: 13px; font-weight: 700;">
-                                        <t t-if="gross_line"><span t-esc="'{:,.0f}'.format(gross_line[0].total)"/></t>
+                                    <td style="text-align: right; padding: 8px 12px; font-size: 13px; font-weight: 700;">
+                                        <t t-foreach="o.line_ids" t-as="gline">
+                                            <t t-if="gline.code == 'GROSS'"><span t-esc="'{:,.0f}'.format(gline.total)"/></t>
+                                        </t>
                                     </td>
                                 </tr>
                             </tfoot>
@@ -173,37 +143,35 @@
 
                     <!-- Deductions Section -->
                     <div style="margin-bottom: 25px;">
-                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                            <div style="width: 10px; height: 10px; background: #e74c3c; border-radius: 50%; margin-right: 8px;"/>
+                        <div style="margin-bottom: 8px;">
+                            <span style="display: inline-block; width: 10px; height: 10px; background: #e74c3c; border-radius: 50; margin-right: 6px; vertical-align: middle;"/>
                             <span style="font-size: 14px; font-weight: 600;">Deductions (B)</span>
-                            <span style="font-size: 11px; color: #888; margin-left: 10px;">The amount deducted for taxes and other benefits</span>
+                            <span style="font-size: 11px; color: #888; margin-left: 8px;">The amount deducted for taxes and other benefits</span>
                         </div>
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
                                 <tr style="background: #f8f9fa;">
-                                    <th style="text-align: left; padding: 10px 15px; font-size: 12px; color: #666; font-weight: 600;">Deductions</th>
-                                    <th style="text-align: right; padding: 10px 15px; font-size: 12px; color: #666; font-weight: 600;">Monthly</th>
-                                    <th style="text-align: right; padding: 10px 15px; font-size: 12px; color: #666; font-weight: 600;">Total Amount</th>
+                                    <th style="text-align: left; padding: 8px 12px; font-size: 12px; color: #666;">Deductions</th>
+                                    <th style="text-align: right; padding: 8px 12px; font-size: 12px; color: #666;">Monthly</th>
+                                    <th style="text-align: right; padding: 8px 12px; font-size: 12px; color: #666;">Total Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="deduction_lines" t-as="line">
-                                    <tr style="border-bottom: 1px solid #f0f0f0;">
-                                        <td style="padding: 10px 15px; font-size: 13px;"><span t-field="line.name"/></td>
-                                        <td style="text-align: right; padding: 10px 15px; font-size: 13px;">
-                                            <span t-esc="'{:,.0f}'.format(line.total)"/>
-                                        </td>
-                                        <td style="text-align: right; padding: 10px 15px; font-size: 13px;">
-                                            <span t-esc="'{:,.0f}'.format(line.total)"/>
-                                        </td>
-                                    </tr>
+                                <t t-foreach="o.line_ids" t-as="dline">
+                                    <t t-if="dline.category_id.code == 'DEDUCTION'">
+                                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                                            <td style="padding: 8px 12px; font-size: 13px;"><span t-esc="dline.name"/></td>
+                                            <td style="text-align: right; padding: 8px 12px; font-size: 13px;"><span t-esc="'{:,.0f}'.format(dline.total)"/></td>
+                                            <td style="text-align: right; padding: 8px 12px; font-size: 13px;"><span t-esc="'{:,.0f}'.format(dline.total)"/></td>
+                                        </tr>
+                                    </t>
                                 </t>
                             </tbody>
                             <tfoot>
                                 <tr style="background: #f8f9fa; border-top: 2px solid #e0e0e0;">
-                                    <td style="padding: 10px 15px; font-size: 13px; font-weight: 700;">Total Deductions</td>
+                                    <td style="padding: 8px 12px; font-size: 13px; font-weight: 700;">Total Deductions</td>
                                     <td/>
-                                    <td style="text-align: right; padding: 10px 15px; font-size: 13px; font-weight: 700;">
+                                    <td style="text-align: right; padding: 8px 12px; font-size: 13px; font-weight: 700;">
                                         <span t-esc="'{:,.0f}'.format(o.total_deductions)"/>
                                     </td>
                                 </tr>
@@ -211,61 +179,63 @@
                         </table>
                     </div>
 
-                    <!-- Yearly Taxable Income Section -->
+                    <!-- Yearly Taxable Income -->
                     <div style="margin-bottom: 25px;">
-                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                            <div style="width: 10px; height: 10px; background: #3498db; border-radius: 50%; margin-right: 8px;"/>
+                        <div style="margin-bottom: 8px;">
+                            <span style="display: inline-block; width: 10px; height: 10px; background: #3498db; border-radius: 50; margin-right: 6px; vertical-align: middle;"/>
                             <span style="font-size: 14px; font-weight: 600;">Yearly Taxable Income (C)</span>
-                            <span style="font-size: 11px; color: #888; margin-left: 10px;">The money you will earn annually excluding the exemptions you declare</span>
                         </div>
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
                                 <tr style="background: #f8f9fa;">
-                                    <th style="text-align: left; padding: 10px 15px; font-size: 12px; color: #666; font-weight: 600;">Description</th>
-                                    <th style="text-align: right; padding: 10px 15px; font-size: 12px; color: #666; font-weight: 600;">Gross</th>
-                                    <th style="text-align: right; padding: 10px 15px; font-size: 12px; color: #666; font-weight: 600;">Taxable</th>
+                                    <th style="text-align: left; padding: 8px 12px; font-size: 12px; color: #666;">Description</th>
+                                    <th style="text-align: right; padding: 8px 12px; font-size: 12px; color: #666;">Annual</th>
+                                    <th style="text-align: right; padding: 8px 12px; font-size: 12px; color: #666;">Taxable</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="earning_lines.filtered(lambda l: l.code != 'GROSS')" t-as="line">
-                                    <tr style="border-bottom: 1px solid #f0f0f0;">
-                                        <td style="padding: 10px 15px; font-size: 13px;"><span t-field="line.name"/></td>
-                                        <td style="text-align: right; padding: 10px 15px; font-size: 13px;">
-                                            <span t-esc="'{:,.0f}'.format(line.total * 12)"/>
-                                        </td>
-                                        <td style="text-align: right; padding: 10px 15px; font-size: 13px;">
-                                            <span t-esc="'{:,.0f}'.format(line.total * 12)"/>
-                                        </td>
-                                    </tr>
+                                <t t-foreach="o.line_ids" t-as="aline">
+                                    <t t-if="aline.category_id.code in ('BASIC', 'EARNING') and aline.code != 'GROSS'">
+                                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                                            <td style="padding: 8px 12px; font-size: 13px;"><span t-esc="aline.name"/></td>
+                                            <td style="text-align: right; padding: 8px 12px; font-size: 13px;"><span t-esc="'{:,.0f}'.format(aline.total * 12)"/></td>
+                                            <td style="text-align: right; padding: 8px 12px; font-size: 13px;"><span t-esc="'{:,.0f}'.format(aline.total * 12)"/></td>
+                                        </tr>
+                                    </t>
                                 </t>
                             </tbody>
                             <tfoot>
                                 <tr style="background: #f8f9fa; border-top: 2px solid #e0e0e0;">
-                                    <td style="padding: 10px 15px; font-size: 13px; font-weight: 700;">Annual Taxable Salary</td>
+                                    <td style="padding: 8px 12px; font-size: 13px; font-weight: 700;">Annual Taxable Salary</td>
                                     <td/>
-                                    <td style="text-align: right; padding: 10px 15px; font-size: 13px; font-weight: 700;">
-                                        <t t-if="gross_line"><span t-esc="'{:,.0f}'.format(gross_line[0].total * 12)"/></t>
+                                    <td style="text-align: right; padding: 8px 12px; font-size: 13px; font-weight: 700;">
+                                        <t t-foreach="o.line_ids" t-as="gtline">
+                                            <t t-if="gtline.code == 'GROSS'"><span t-esc="'{:,.0f}'.format(gtline.total * 12)"/></t>
+                                        </t>
                                     </td>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
 
-                    <!-- Net Pay Summary -->
-                    <div style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); border-radius: 10px; padding: 20px 30px; color: white; text-align: center;">
-                        <div style="font-size: 12px; opacity: 0.9; margin-bottom: 5px;">Net Pay for <span t-field="o.date_from" t-options='{"widget": "date", "format": "MMMM yyyy"}'/></div>
-                        <div style="font-size: 32px; font-weight: bold;">
-                            &#8377; <t t-if="net_line"><span t-esc="'{:,.0f}'.format(net_line[0].total)"/></t>
+                    <!-- Net Pay Footer -->
+                    <div style="background: #27ae60; border-radius: 10px; padding: 18px; color: white; text-align: center;">
+                        <div style="font-size: 12px; opacity: 0.9;">Net Pay for <span t-field="o.date_from" t-options='{"widget": "date", "format": "MMMM yyyy"}'/></div>
+                        <div style="font-size: 28px; font-weight: bold; margin-top: 4px;">
+                            <t t-foreach="o.line_ids" t-as="nfl">
+                                <t t-if="nfl.code == 'NET'">
+                                    &#8377; <span t-esc="'{:,.0f}'.format(nfl.total)"/>
+                                </t>
+                            </t>
                         </div>
                     </div>
 
                     <!-- Footer -->
-                    <div style="margin-top: 30px; text-align: center; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 15px;">
+                    <div style="margin-top: 25px; text-align: center; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 12px;">
                         This is a computer generated payslip and does not require a signature
                     </div>
                 </div>
 
-                <!-- Page break between payslips -->
                 <t t-if="not o_last">
                     <div style="page-break-after: always;"/>
                 </t>
