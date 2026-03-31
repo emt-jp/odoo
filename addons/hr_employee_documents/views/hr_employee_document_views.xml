@@ -71,7 +71,7 @@
                 <filter name="expired" string="Expired" domain="[('state', '=', 'expired')]"/>
                 <filter name="valid" string="Valid" domain="[('state', '=', 'valid')]"/>
                 <separator/>
-                <group expand="0" string="Group By">
+                <group string="Group By">
                     <filter name="group_employee" string="Employee" context="{'group_by': 'employee_id'}"/>
                     <filter name="group_type" string="Document Type" context="{'group_by': 'document_type_id'}"/>
                     <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
