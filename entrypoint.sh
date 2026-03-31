@@ -36,7 +36,7 @@ limit_time_real = 1200
 data_dir = /var/lib/odoo
 
 ; Session settings
-max_cron_threads = 1
+max_cron_threads = ${MAX_CRON_THREADS:-1}
 
 ; Security
 list_db = True
