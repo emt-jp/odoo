@@ -218,6 +218,183 @@
                         </table>
                     </div>
 
+                    <!-- Net Taxable Income (E) -->
+                    <div style="margin-bottom: 25px;">
+                        <div style="margin-bottom: 8px;">
+                            <span style="display: inline-block; width: 10px; height: 10px; background: #9b59b6; border-radius: 50; margin-right: 6px; vertical-align: middle;"/>
+                            <span style="font-size: 14px; font-weight: 600;">Net Taxable Income (D)</span>
+                            <span style="font-size: 11px; color: #888; margin-left: 8px;">Your taxes are calculated on this Net Taxable Income</span>
+                        </div>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f8f9fa;">
+                                    <th style="text-align: left; padding: 8px 12px; font-size: 12px; color: #666;">Details</th>
+                                    <th style="text-align: right; padding: 8px 12px; font-size: 12px; color: #666;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border-bottom: 1px solid #f0f0f0;">
+                                    <td style="padding: 8px 12px; font-size: 13px;">Annual Taxable Salary (C)</td>
+                                    <td style="text-align: right; padding: 8px 12px; font-size: 13px;">
+                                        <t t-foreach="o.line_ids" t-as="gs1">
+                                            <t t-if="gs1.code == 'GROSS'"><span t-esc="'{:,.0f}'.format(gs1.total * 12)"/></t>
+                                        </t>
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #f0f0f0;">
+                                    <td style="padding: 8px 12px; font-size: 13px;">Standard Deductions (Section 16)</td>
+                                    <td style="text-align: right; padding: 8px 12px; font-size: 13px;">-75,000</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr style="background: #f8f9fa; border-top: 2px solid #e0e0e0;">
+                                    <td style="padding: 8px 12px; font-size: 13px; font-weight: 700;">Net Taxable Income</td>
+                                    <td style="text-align: right; padding: 8px 12px; font-size: 13px; font-weight: 700;">
+                                        <t t-foreach="o.line_ids" t-as="gs2">
+                                            <t t-if="gs2.code == 'GROSS'"><span t-esc="'{:,.0f}'.format(gs2.total * 12 - 75000)"/></t>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Tax Computation -->
+                    <div style="margin-bottom: 25px;">
+                        <div style="margin-bottom: 8px;">
+                            <span style="display: inline-block; width: 10px; height: 10px; background: #e67e22; border-radius: 50; margin-right: 6px; vertical-align: middle;"/>
+                            <span style="font-size: 14px; font-weight: 600;">Tax for FY 2025-26</span>
+                            <span style="font-size: 11px; color: #888; margin-left: 8px;">Tax will be deducted on this Net Taxable Income after all exemptions</span>
+                        </div>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f8f9fa;">
+                                    <th style="text-align: left; padding: 8px 12px; font-size: 12px; color: #666;">Details</th>
+                                    <th style="text-align: right; padding: 8px 12px; font-size: 12px; color: #666;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- New Tax Regime slab calculation for FY 2025-26 -->
+                                <tr style="border-bottom: 1px solid #f0f0f0;">
+                                    <td style="padding: 8px 12px; font-size: 13px;">Tax on Taxable Income</td>
+                                    <td style="text-align: right; padding: 8px 12px; font-size: 13px;">
+                                        <t t-foreach="o.line_ids" t-as="tx1">
+                                            <t t-if="tx1.code == 'TAX'"><span t-esc="'{:,.0f}'.format(tx1.total * 12 / 1.04)"/></t>
+                                        </t>
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #f0f0f0;">
+                                    <td style="padding: 8px 12px; font-size: 13px;">Education Cess (4%)</td>
+                                    <td style="text-align: right; padding: 8px 12px; font-size: 13px;">
+                                        <t t-foreach="o.line_ids" t-as="tx2">
+                                            <t t-if="tx2.code == 'TAX'"><span t-esc="'{:,.0f}'.format(tx2.total * 12 - tx2.total * 12 / 1.04)"/></t>
+                                        </t>
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #f0f0f0;">
+                                    <td style="padding: 8px 12px; font-size: 13px; font-weight: 600;">Net Tax</td>
+                                    <td style="text-align: right; padding: 8px 12px; font-size: 13px; font-weight: 600;">
+                                        <t t-foreach="o.line_ids" t-as="tx3">
+                                            <t t-if="tx3.code == 'TAX'"><span t-esc="'{:,.0f}'.format(tx3.total * 12)"/></t>
+                                        </t>
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #f0f0f0;">
+                                    <td style="padding: 8px 12px; font-size: 13px;">Tax Deducted Till Date (Current Employer)</td>
+                                    <td style="text-align: right; padding: 8px 12px; font-size: 13px;">
+                                        <t t-foreach="o.line_ids" t-as="tx4">
+                                            <t t-if="tx4.code == 'TAX'"><span t-esc="'{:,.0f}'.format(tx4.total)"/></t>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr style="background: #f8f9fa; border-top: 2px solid #e0e0e0;">
+                                    <td style="padding: 8px 12px; font-size: 13px; font-weight: 700;">Tax To Be Deducted This Year</td>
+                                    <td style="text-align: right; padding: 8px 12px; font-size: 13px; font-weight: 700;">
+                                        <t t-foreach="o.line_ids" t-as="tx5">
+                                            <t t-if="tx5.code == 'TAX'"><span t-esc="'{:,.0f}'.format(tx5.total * 12 - tx5.total)"/></t>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Tax for This Month -->
+                    <div style="margin-bottom: 25px;">
+                        <div style="margin-bottom: 8px;">
+                            <span style="display: inline-block; width: 10px; height: 10px; background: #e67e22; border-radius: 50; margin-right: 6px; vertical-align: middle;"/>
+                            <span style="font-size: 14px; font-weight: 600;">Tax for <span t-field="o.date_from" t-options='{"widget": "date", "format": "MMMM yyyy"}'/></span>
+                        </div>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f8f9fa;">
+                                    <th style="text-align: left; padding: 8px 12px; font-size: 12px; color: #666;">Details</th>
+                                    <th style="text-align: right; padding: 8px 12px; font-size: 12px; color: #666;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border-bottom: 1px solid #f0f0f0;">
+                                    <td style="padding: 8px 12px; font-size: 13px;">Tax to be deducted this month</td>
+                                    <td style="text-align: right; padding: 8px 12px; font-size: 13px;">
+                                        <t t-foreach="o.line_ids" t-as="tm1">
+                                            <t t-if="tm1.code == 'TAX'"><span t-esc="'{:,.0f}'.format(tm1.total)"/></t>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr style="background: #f8f9fa; border-top: 2px solid #e0e0e0;">
+                                    <td style="padding: 8px 12px; font-size: 13px; font-weight: 700;">Tax Deducted This Month</td>
+                                    <td style="text-align: right; padding: 8px 12px; font-size: 13px; font-weight: 700;">
+                                        <t t-foreach="o.line_ids" t-as="tm2">
+                                            <t t-if="tm2.code == 'TAX'"><span t-esc="'{:,.0f}'.format(tm2.total)"/></t>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Monthly TDS Projection -->
+                    <div style="margin-bottom: 25px;">
+                        <div style="margin-bottom: 8px;">
+                            <span style="display: inline-block; width: 10px; height: 10px; background: #7f8c8d; border-radius: 50; margin-right: 6px; vertical-align: middle;"/>
+                            <span style="font-size: 14px; font-weight: 600;">Monthly Tax</span>
+                            <span style="font-size: 11px; color: #888; margin-left: 8px;">Projected TDS for rest of the year are marked with *</span>
+                        </div>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                            <tr>
+                                <t t-set="fy_months" t-value="['April', 'May', 'June', 'July', 'August', 'September']"/>
+                                <t t-foreach="fy_months" t-as="m">
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #f0f0f0;">
+                                        <div style="color: #888; font-size: 11px;"><span t-esc="m"/> *</div>
+                                        <div style="font-weight: 600; margin-top: 2px;">
+                                            <t t-foreach="o.line_ids" t-as="mp1">
+                                                <t t-if="mp1.code == 'TAX'"><span t-esc="'{:,.0f}'.format(mp1.total)"/></t>
+                                            </t>
+                                        </div>
+                                    </td>
+                                </t>
+                            </tr>
+                            <tr>
+                                <t t-set="fy_months2" t-value="['October', 'November', 'December', 'January', 'February', 'March']"/>
+                                <t t-foreach="fy_months2" t-as="m2">
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #f0f0f0;">
+                                        <div style="color: #888; font-size: 11px;"><span t-esc="m2"/> *</div>
+                                        <div style="font-weight: 600; margin-top: 2px;">
+                                            <t t-foreach="o.line_ids" t-as="mp2">
+                                                <t t-if="mp2.code == 'TAX'"><span t-esc="'{:,.0f}'.format(mp2.total)"/></t>
+                                            </t>
+                                        </div>
+                                    </td>
+                                </t>
+                            </tr>
+                        </table>
+                        <div style="font-size: 10px; color: #999; margin-top: 6px;">* These may change if there is a change in your income</div>
+                    </div>
+
                     <!-- Net Pay Footer -->
                     <div style="background: #27ae60; border-radius: 10px; padding: 18px; color: white; text-align: center;">
                         <div style="font-size: 12px; opacity: 0.9;">Net Pay for <span t-field="o.date_from" t-options='{"widget": "date", "format": "MMMM yyyy"}'/></div>
