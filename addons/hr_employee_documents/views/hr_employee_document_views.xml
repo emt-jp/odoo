@@ -61,21 +61,14 @@
         <field name="name">hr.employee.document.search</field>
         <field name="model">hr.employee.document</field>
         <field name="arch" type="xml">
-            <search string="Search Documents">
+            <search>
                 <field name="name"/>
                 <field name="employee_id"/>
                 <field name="document_type_id"/>
                 <field name="document_number"/>
-                <separator/>
                 <filter name="expiring" string="Expiring Soon" domain="[('state', '=', 'expiring')]"/>
                 <filter name="expired" string="Expired" domain="[('state', '=', 'expired')]"/>
                 <filter name="valid" string="Valid" domain="[('state', '=', 'valid')]"/>
-                <separator/>
-                <group string="Group By">
-                    <filter name="group_employee" string="Employee" context="{'group_by': 'employee_id'}"/>
-                    <filter name="group_type" string="Document Type" context="{'group_by': 'document_type_id'}"/>
-                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
-                </group>
             </search>
         </field>
     </record>
@@ -85,7 +78,6 @@
         <field name="res_model">hr.employee.document</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="hr_employee_document_view_search"/>
-        <field name="context">{'search_default_group_employee': 1}</field>
     </record>
 
     <record id="hr_employee_document_action_expiring" model="ir.actions.act_window">
