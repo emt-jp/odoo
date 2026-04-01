@@ -87,10 +87,64 @@ class FleetBooking(models.Model):
     # Notes
     internal_notes = fields.Text('Internal Notes')
     customer_notes = fields.Text('Customer Notes')
-    
+
     # Enterprise Features
     is_enterprise = fields.Boolean('Enterprise Feature', default=True)
     requires_license = fields.Boolean('Requires License', default=True)
+
+    # TDC Booking Fields
+    tdc_external_id = fields.Char('TDC External ID', index=True, help='Original MongoDB ObjectID')
+    driver_id = fields.Many2one('res.partner', string='Driver')
+    pickup_location_id = fields.Many2one('rental.location', string='Pickup Location (TDC)')
+    dropoff_location_id = fields.Many2one('rental.location', string='Drop-off Location (TDC)')
+    total_price = fields.Monetary('Total Price', currency_field='currency_id')
+
+    # TDC Booking Status (maps to TDC's 9-status flow)
+    tdc_status = fields.Selection([
+        ('void', 'Void'),
+        ('pending', 'Pending'),
+        ('deposit', 'Deposit'),
+        ('paid', 'Paid'),
+        ('paid_in_full', 'Paid in Full'),
+        ('reserved', 'Reserved'),
+        ('picked_up', 'Picked Up'),
+        ('returned', 'Returned'),
+        ('cancelled', 'Cancelled'),
+    ], string='TDC Status', default='pending')
+
+    # TDC Payment
+    stripe_session_id = fields.Char('Stripe Session ID', index=True)
+    stripe_payment_intent_id = fields.Char('Stripe Payment Intent ID')
+    stripe_customer_id = fields.Char('Stripe Customer ID')
+    paypal_order_id = fields.Char('PayPal Order ID')
+    is_deposit = fields.Boolean('Is Deposit Payment', default=False)
+    is_paid_in_full = fields.Boolean('Is Paid in Full', default=False)
+
+    # TDC Add-ons (booleans — whether customer selected them)
+    has_cancellation = fields.Boolean('Cancellation Protection', default=False)
+    has_amendments = fields.Boolean('Amendments Coverage', default=False)
+    has_theft_protection = fields.Boolean('Theft Protection', default=False)
+    has_collision_damage_waiver = fields.Boolean('Collision Damage Waiver', default=False)
+    has_full_insurance = fields.Boolean('Full Insurance', default=False)
+    has_additional_driver = fields.Boolean('Additional Driver', default=False)
+    has_infant_seat = fields.Boolean('Infant Seat', default=False)
+    has_toddler_seat = fields.Boolean('Toddler Seat', default=False)
+    has_booster_seat = fields.Boolean('Booster Seat', default=False)
+
+    # TDC Checkout/Return
+    pickup_mileage = fields.Integer('Pickup Mileage')
+    return_mileage = fields.Integer('Return Mileage')
+    pickup_fuel_level = fields.Integer('Pickup Fuel Level (%)')
+    return_fuel_level = fields.Integer('Return Fuel Level (%)')
+    actual_pickup_date = fields.Datetime('Actual Pickup Date')
+    actual_return_date = fields.Datetime('Actual Return Date')
+    pickup_notes = fields.Text('Pickup Notes')
+    return_notes = fields.Text('Return Notes')
+    damage_notes = fields.Text('Damage Notes')
+
+    # TDC Promo/Discount
+    promo_code = fields.Char('Promo Code')
+    discount_amount = fields.Monetary('Discount Amount', currency_field='currency_id')
     
     @api.model
     def create(self, vals):
@@ -103,7 +157,14 @@ class FleetBooking(models.Model):
                 v['name'] = f"FBK-{fields.Datetime.now().strftime('%Y%m%d%H%M%S')}"
             # Calculate estimated pricing
             if 'pickup_date' in v and 'return_date' in v:
-                duration = (v['return_date'] - v['pickup_date']).days
+                pickup = v['pickup_date']
+                return_dt = v['return_date']
+                # Handle string dates from JSON-RPC
+                if isinstance(pickup, str):
+                    pickup = fields.Datetime.from_string(pickup)
+                if isinstance(return_dt, str):
+                    return_dt = fields.Datetime.from_string(return_dt)
+                duration = (return_dt - pickup).days
                 if duration > 0 and 'rental_category' in v:
                     avg_rate = self._get_average_daily_rate(v['rental_category'])
                     v['estimated_daily_rate'] = avg_rate
