@@ -94,7 +94,27 @@ class FleetBooking(models.Model):
 
     # Note: TDC-specific booking fields (payment, add-ons, checkout/return)
     # are handled by the api-adapter layer, not stored in Odoo.
-    
+
+    # Affiliate tracking
+    x_affiliate_id = fields.Many2one(
+        'res.partner', string='Affiliate',
+        domain=[('is_affiliate', '=', True)],
+        help='Affiliate who referred this booking',
+    )
+    x_affiliate_code = fields.Char('Affiliate Code', help='Referral code used')
+    x_affiliate_commission_rate = fields.Float('Commission Rate', help='Rate at time of booking')
+    x_affiliate_commission_amount = fields.Monetary(
+        'Commission Amount', currency_field='currency_id',
+        help='Calculated commission for this booking',
+    )
+    x_affiliate_commission_status = fields.Selection([
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('paid', 'Paid'),
+        ('payout_requested', 'Payout Requested'),
+        ('cancelled', 'Cancelled'),
+    ], string='Commission Status', default='pending')
+
     @api.model
     def create(self, vals):
         """Override create to generate booking reference"""
