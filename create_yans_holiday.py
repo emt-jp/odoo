@@ -4,12 +4,13 @@ Create YANS HOLIDAY PTE LTD customer and Balaji Group Japan Visit product in Odo
 """
 import xmlrpc.client
 import ssl
+import os
 
 # Odoo connection
-URL = "https://odoo.emoment.tech"
-DB = "odoo"
-USERNAME = "admin"
-PASSWORD = "admin"
+URL = os.environ.get("ODOO_URL", "https://odoo.emoment.tech")
+DB = os.environ.get("ODOO_DB", "odoo")
+USERNAME = os.environ.get("ODOO_USERNAME", "admin")
+PASSWORD = os.environ["ODOO_PASSWORD"]  # Required, no default for security
 
 def main():
     # Allow self-signed certs if needed

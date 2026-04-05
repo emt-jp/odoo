@@ -4,11 +4,12 @@ Confirm the YANS HOLIDAY invoice and register a 2000 SGD partial payment
 """
 import xmlrpc.client
 import ssl
+import os
 
-URL = "https://odoo.emoment.tech"
-DB = "odoo"
-USERNAME = "admin"
-PASSWORD = "admin"
+URL = os.environ.get("ODOO_URL", "https://odoo.emoment.tech")
+DB = os.environ.get("ODOO_DB", "odoo")
+USERNAME = os.environ.get("ODOO_USERNAME", "admin")
+PASSWORD = os.environ["ODOO_PASSWORD"]  # Required, no default for security
 
 def main():
     ctx = ssl.create_default_context()

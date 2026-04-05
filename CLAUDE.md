@@ -1,6 +1,6 @@
 # CLAUDE.md - Odoo ERP (GCP Production)
 
-Odoo 17 ERP running on Google Cloud Platform.
+Odoo 19 ERP running on Google Cloud Platform.
 
 ## Project Overview
 
@@ -8,7 +8,7 @@ Odoo 17 ERP running on Google Cloud Platform.
 |--------|---------|
 | GCP Project | `odoo-erp-prod` |
 | Region | `asia-northeast1` (Tokyo) |
-| Odoo Version | 17.0 |
+| Odoo Version | 19.0 |
 | GitHub Repo | `emt-jp/odoo` |
 | Status | Production on GCP |
 
