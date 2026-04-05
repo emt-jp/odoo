@@ -40,6 +40,18 @@ class ResPartnerRental(models.Model):
     birthdate = fields.Date('Date of Birth')
     age = fields.Integer('Age', compute='_compute_age')
 
+    # TDC Migration Fields
+    tdc_external_id = fields.Char('TDC External ID', index=True, help='Original MongoDB ObjectID')
+    tdc_user_type = fields.Selection([
+        ('admin', 'Admin'),
+        ('supplier', 'Supplier'),
+        ('client', 'Client'),
+        ('affiliate', 'Affiliate'),
+    ], string='TDC User Type')
+    stripe_customer_id = fields.Char('Stripe Customer ID')
+    avatar_url = fields.Char('Avatar URL', help='CDN URL for user avatar')
+    license_url = fields.Char('License URL', help='CDN URL for driving license image')
+
     @api.depends('birthdate')
     def _compute_age(self):
         today = date.today()

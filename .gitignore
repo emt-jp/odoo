@@ -68,7 +68,12 @@ terraform/.terraform.lock.hcl
 # Backup files
 *.dump
 *.tar.gz
+*.sql
+*.sql.gz
 
 # GCP credentials
 *-credentials.json
 service-account*.json
+
+# Local context directory (never commit)
+.context/

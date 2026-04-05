@@ -70,6 +70,10 @@ class RentalLocation(models.Model):
     company_id = fields.Many2one('res.company', string='Company',
         default=lambda self: self.env.company)
 
+    # TDC Migration Fields
+    tdc_external_id = fields.Char('TDC External ID', index=True, help='Original MongoDB ObjectID')
+    image_url = fields.Char('Image URL', help='CDN URL for location image')
+
     @api.depends()
     def _compute_booking_count(self):
         for location in self:

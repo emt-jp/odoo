@@ -70,6 +70,63 @@ class FleetVehicle(models.Model):
     weekly_rate = fields.Monetary('Weekly Rate', currency_field='currency_id')
     monthly_rate = fields.Monetary('Monthly Rate', currency_field='currency_id')
     # Note: currency_id is inherited from fleet.vehicle with a default, so we don't redefine it
+
+    # TDC Extended Pricing (matching TDC Car model)
+    hourly_rate = fields.Monetary('Hourly Rate', currency_field='currency_id')
+    bi_weekly_rate = fields.Monetary('Bi-Weekly Rate', currency_field='currency_id')
+    weekend_rate = fields.Monetary('Weekend Rate', currency_field='currency_id')
+    discounted_daily_rate = fields.Monetary('Discounted Daily Rate', currency_field='currency_id')
+    discounted_hourly_rate = fields.Monetary('Discounted Hourly Rate', currency_field='currency_id')
+    discounted_weekly_rate = fields.Monetary('Discounted Weekly Rate', currency_field='currency_id')
+    discounted_bi_weekly_rate = fields.Monetary('Discounted Bi-Weekly Rate', currency_field='currency_id')
+    discounted_monthly_rate = fields.Monetary('Discounted Monthly Rate', currency_field='currency_id')
+    is_date_based_price = fields.Boolean('Date-Based Pricing', default=False)
+    deposit = fields.Monetary('Deposit', currency_field='currency_id')
+
+    # TDC Insurance/Protection Pricing (per-day add-on costs)
+    cancellation_fee = fields.Monetary('Cancellation Fee', currency_field='currency_id')
+    amendments_fee = fields.Monetary('Amendments Fee', currency_field='currency_id')
+    theft_protection_fee = fields.Monetary('Theft Protection Fee', currency_field='currency_id')
+    collision_damage_waiver_fee = fields.Monetary('Collision Damage Waiver Fee', currency_field='currency_id')
+    full_insurance_fee = fields.Monetary('Full Insurance Fee', currency_field='currency_id')
+    additional_driver_fee = fields.Monetary('Additional Driver Fee', currency_field='currency_id')
+
+    # TDC Vehicle Details
+    doors = fields.Integer('Number of Doors', default=4)
+    aircon = fields.Boolean('Air Conditioning', default=True)
+    fuel_policy = fields.Selection([
+        ('like_for_like', 'Like for Like'),
+        ('free_tank', 'Free Tank'),
+        ('full_to_full', 'Full to Full'),
+        ('full_to_empty', 'Full to Empty'),
+    ], string='Fuel Policy', default='like_for_like')
+    mileage_limit = fields.Integer('Mileage Limit (km)', help='-1 for unlimited')
+    car_range = fields.Selection([
+        ('mini', 'Mini'),
+        ('midi', 'Midi'),
+        ('maxi', 'Maxi'),
+        ('scooter', 'Scooter'),
+        ('bus', 'Bus'),
+        ('truck', 'Truck'),
+        ('caravan', 'Caravan'),
+    ], string='Car Range')
+    multimedia = fields.Selection([
+        ('android_auto', 'Android Auto'),
+        ('apple_carplay', 'Apple CarPlay'),
+        ('bluetooth', 'Bluetooth'),
+        ('touchscreen', 'Touchscreen'),
+    ], string='Multimedia')
+    minimum_age = fields.Integer('Minimum Age', default=21)
+    co2_rating = fields.Float('CO2 Rating', digits=(10, 2))
+    block_on_pay = fields.Boolean('Block on Payment', default=True)
+    fully_booked = fields.Boolean('Fully Booked', default=False)
+    coming_soon = fields.Boolean('Coming Soon', default=False)
+
+    # TDC CDN Image URL (images stored in GCS, not Odoo filestore)
+    image_url = fields.Char('Image URL', help='CDN URL for car image')
+
+    # TDC External Reference (MongoDB ObjectID for migration)
+    tdc_external_id = fields.Char('TDC External ID', index=True, help='Original MongoDB ObjectID')
     
     # Availability & Status
     availability_status = fields.Selection([
