@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Promo Code Tree View -->
+    <record id="view_tdc_promo_code_list" model="ir.ui.view">
+        <field name="name">tdc.promo.code.list</field>
+        <field name="model">tdc.promo.code</field>
+        <field name="arch" type="xml">
+            <list string="Promo Codes" decoration-muted="not is_active">
+                <field name="code"/>
+                <field name="description"/>
+                <field name="discount_type"/>
+                <field name="discount_value"/>
+                <field name="valid_from"/>
+                <field name="valid_to"/>
+                <field name="usage_limit"/>
+                <field name="used_count"/>
+                <field name="is_active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Promo Code Form View -->
+    <record id="view_tdc_promo_code_form" model="ir.ui.view">
+        <field name="name">tdc.promo.code.form</field>
+        <field name="model">tdc.promo.code</field>
+        <field name="arch" type="xml">
+            <form string="Promo Code">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="code" placeholder="e.g. SUMMER2026"/></h1>
+                    </div>
+                    <group>
+                        <group string="Discount">
+                            <field name="discount_type"/>
+                            <field name="discount_value"/>
+                            <field name="min_booking_amount"/>
+                            <field name="max_discount"/>
+                        </group>
+                        <group string="Validity">
+                            <field name="valid_from"/>
+                            <field name="valid_to"/>
+                            <field name="is_active"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Usage">
+                            <field name="usage_limit"/>
+                            <field name="used_count"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1" placeholder="Internal notes about this promo code..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Promo Code Search View -->
+    <record id="view_tdc_promo_code_search" model="ir.ui.view">
+        <field name="name">tdc.promo.code.search</field>
+        <field name="model">tdc.promo.code</field>
+        <field name="arch" type="xml">
+            <search string="Promo Codes">
+                <field name="code"/>
+                <field name="description"/>
+                <separator/>
+                <filter string="Active" name="active" domain="[('is_active', '=', True)]"/>
+                <filter string="Inactive" name="inactive" domain="[('is_active', '=', False)]"/>
+                <separator/>
+                <filter string="Expired" name="expired" domain="[('valid_to', '&lt;', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter string="Currently Valid" name="currently_valid" domain="[('valid_from', '&lt;=', context_today().strftime('%Y-%m-%d')), ('valid_to', '&gt;=', context_today().strftime('%Y-%m-%d')), ('is_active', '=', True)]"/>
+                <separator/>
+                <filter string="Percentage" name="percentage" domain="[('discount_type', '=', 'percentage')]"/>
+                <filter string="Fixed Amount" name="fixed" domain="[('discount_type', '=', 'fixed')]"/>
+                <group string="Group By">
+                    <filter string="Discount Type" name="group_discount_type" context="{'group_by': 'discount_type'}"/>
+                    <filter string="Active" name="group_active" context="{'group_by': 'is_active'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Promo Code Action -->
+    <record id="action_tdc_promo_code" model="ir.actions.act_window">
+        <field name="name">Promo Codes</field>
+        <field name="res_model">tdc.promo.code</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first promo code!
+            </p>
+            <p>
+                Set up discount codes for customers to use during booking.
+            </p>
+        </field>
+    </record>
+
+    <!-- Promotions Menu -->
+    <menuitem id="menu_car_rental_promotions" name="Promotions" parent="menu_car_rental_root" sequence="30"/>
+    <menuitem id="menu_tdc_promo_codes" name="Promo Codes" parent="menu_car_rental_promotions" action="action_tdc_promo_code" sequence="10"/>
+
+</odoo>
