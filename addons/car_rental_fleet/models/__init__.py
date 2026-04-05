@@ -13,6 +13,8 @@ from . import analytics_reporting
 from . import damage_inspection
 from . import pricing_rules
 from . import notifications
+from . import res_partner
+from . import promo_code
 
 
 

@@ -46,3 +46,5 @@ access_fleet_notification_scheduler,fleet.notification.scheduler,model_fleet_not
 access_fleet_booking_portal,fleet.booking.portal,model_fleet_booking,base.group_portal,1,0,0,0
 access_fleet_rental_portal,fleet.rental.portal,model_fleet_rental,base.group_portal,1,0,0,0
 access_fleet_vehicle_public,fleet.vehicle.public,model_fleet_vehicle,base.group_public,1,0,0,0
+access_tdc_promo_code_admin,tdc.promo.code.admin,model_tdc_promo_code,base.group_system,1,1,1,1
+access_tdc_promo_code_user,tdc.promo.code.user,model_tdc_promo_code,base.group_user,1,0,0,0
