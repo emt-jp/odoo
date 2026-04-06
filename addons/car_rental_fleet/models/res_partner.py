@@ -20,6 +20,10 @@ class ResPartner(models.Model):
         default=False,
         help='Whether this partner is a TDC rental customer',
     )
+    bio = fields.Text(
+        string='Bio',
+        help='Public description of the supplier/company',
+    )
 
     # Affiliate program fields
     is_affiliate = fields.Boolean(
