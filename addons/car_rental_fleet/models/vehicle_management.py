@@ -36,6 +36,7 @@ class FleetVehicle(models.Model):
         ('suv', 'SUV'),
         ('minivan', 'Minivan'),
         ('convertible', 'Convertible'),
+        ('campervan', 'Campervan'),
     ], string='Rental Category')
     
     # Vehicle Specifications
