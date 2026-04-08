@@ -15,6 +15,7 @@ from . import pricing_rules
 from . import notifications
 from . import res_partner
 from . import promo_code
+from . import car_review
 
 
 
