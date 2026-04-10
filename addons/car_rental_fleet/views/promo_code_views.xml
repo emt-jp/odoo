@@ -61,22 +61,15 @@
         <field name="name">tdc.promo.code.search</field>
         <field name="model">tdc.promo.code</field>
         <field name="arch" type="xml">
-            <search string="Promo Codes">
-                <field name="code"/>
-                <field name="description"/>
-                <separator/>
+            <search>
                 <filter string="Active" name="active" domain="[('is_active', '=', True)]"/>
                 <filter string="Inactive" name="inactive" domain="[('is_active', '=', False)]"/>
-                <separator/>
                 <filter string="Expired" name="expired" domain="[('valid_to', '&lt;', context_today().strftime('%Y-%m-%d'))]"/>
                 <filter string="Currently Valid" name="currently_valid" domain="[('valid_from', '&lt;=', context_today().strftime('%Y-%m-%d')), ('valid_to', '&gt;=', context_today().strftime('%Y-%m-%d')), ('is_active', '=', True)]"/>
-                <separator/>
                 <filter string="Percentage" name="percentage" domain="[('discount_type', '=', 'percentage')]"/>
                 <filter string="Fixed Amount" name="fixed" domain="[('discount_type', '=', 'fixed')]"/>
-                <group expand="1">
-                    <filter string="Discount Type" name="group_discount_type" context="{'group_by': 'discount_type'}"/>
-                    <filter string="Active" name="group_active" context="{'group_by': 'is_active'}"/>
-                </group>
+                <filter string="Discount Type" name="group_discount_type" context="{'group_by': 'discount_type'}"/>
+                <filter string="Active" name="group_active" context="{'group_by': 'is_active'}"/>
             </search>
         </field>
     </record>
