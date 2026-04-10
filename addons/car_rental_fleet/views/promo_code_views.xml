@@ -73,7 +73,7 @@
                 <separator/>
                 <filter string="Percentage" name="percentage" domain="[('discount_type', '=', 'percentage')]"/>
                 <filter string="Fixed Amount" name="fixed" domain="[('discount_type', '=', 'fixed')]"/>
-                <group string="Group By">
+                <group expand="1">
                     <filter string="Discount Type" name="group_discount_type" context="{'group_by': 'discount_type'}"/>
                     <filter string="Active" name="group_active" context="{'group_by': 'is_active'}"/>
                 </group>
