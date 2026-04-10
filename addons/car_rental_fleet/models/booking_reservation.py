@@ -62,7 +62,12 @@ class FleetBooking(models.Model):
     state = fields.Selection([
         ('draft', 'Draft'),
         ('confirmed', 'Confirmed'),
+        ('deposit', 'Deposit Paid'),
+        ('paid', 'Paid'),
+        ('paid_in_full', 'Paid in Full'),
         ('assigned', 'Vehicle Assigned'),
+        ('picked_up', 'Picked Up'),
+        ('returned', 'Returned'),
         ('cancelled', 'Cancelled'),
         ('expired', 'Expired'),
     ], string='Status', default='draft')
