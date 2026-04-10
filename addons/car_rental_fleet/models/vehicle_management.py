@@ -44,6 +44,7 @@ class FleetVehicle(models.Model):
         ('gasoline', 'Gasoline'),
         ('diesel', 'Diesel'),
         ('hybrid', 'Hybrid'),
+        ('plug_in_hybrid', 'Plug-in Hybrid'),
         ('electric', 'Electric'),
         ('lpg', 'LPG'),
         ('cng', 'CNG'),
