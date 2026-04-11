@@ -61,6 +61,7 @@
         'views/promo_code_views.xml',
         'views/dashboard_views.xml',
         'views/ota_booking_views.xml',
+        'views/email_processor_views.xml',
         'views/portal_templates.xml',
         'views/website_templates.xml',
     ],

@@ -17,6 +17,7 @@ from . import res_partner
 from . import promo_code
 from . import car_review
 from . import ota_booking
+from . import email_processor
 
 
 
