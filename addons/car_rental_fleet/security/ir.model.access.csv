@@ -52,3 +52,4 @@ access_tdc_car_review_admin,tdc.car.review.admin,model_tdc_car_review,base.group
 access_tdc_car_review_manager,tdc.car.review.manager,model_tdc_car_review,base.group_user,1,1,1,1
 access_tdc_car_review_portal,tdc.car.review.portal,model_tdc_car_review,base.group_portal,1,0,1,0
 access_tdc_car_review_public,tdc.car.review.public,model_tdc_car_review,base.group_public,1,0,0,0
+access_tdc_ota_email,tdc.ota.email,model_tdc_ota_email,base.group_user,1,1,1,1

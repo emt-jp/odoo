@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- OTA Email List View -->
+    <record id="view_tdc_ota_email_list" model="ir.ui.view">
+        <field name="name">tdc.ota.email.list</field>
+        <field name="model">tdc.ota.email</field>
+        <field name="arch" type="xml">
+            <list string="OTA Booking Emails" decoration-success="state == 'booked'" decoration-danger="state == 'error'" decoration-warning="state == 'no_availability'" decoration-muted="state == 'duplicate'">
+                <field name="create_date" string="Received"/>
+                <field name="name" string="OTA Ref"/>
+                <field name="source"/>
+                <field name="customer_name"/>
+                <field name="pickup_date"/>
+                <field name="return_date"/>
+                <field name="vehicle_class"/>
+                <field name="total_price" string="Price (¥)"/>
+                <field name="state" widget="badge"/>
+                <field name="booking_id" string="Booking"/>
+                <field name="assigned_vehicle_id" string="Vehicle"/>
+                <field name="is_cancel" invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- OTA Email Form View -->
+    <record id="view_tdc_ota_email_form" model="ir.ui.view">
+        <field name="name">tdc.ota.email.form</field>
+        <field name="model">tdc.ota.email</field>
+        <field name="arch" type="xml">
+            <form string="OTA Booking Email">
+                <header>
+                    <button name="action_reprocess" type="object" string="Reprocess" class="btn-primary" invisible="state not in ('error', 'no_availability', 'received')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="received,booked"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="OTA Reference"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Booking Info">
+                            <field name="source"/>
+                            <field name="is_cancel"/>
+                            <field name="pickup_date"/>
+                            <field name="return_date"/>
+                            <field name="pickup_location"/>
+                            <field name="return_location"/>
+                            <field name="vehicle_class"/>
+                            <field name="vehicle_class_raw"/>
+                            <field name="total_price"/>
+                            <field name="options"/>
+                            <field name="non_smoking"/>
+                        </group>
+                        <group string="Customer">
+                            <field name="customer_name"/>
+                            <field name="customer_name_kana"/>
+                            <field name="customer_email"/>
+                            <field name="customer_phone"/>
+                            <field name="driver_name"/>
+                            <field name="driver_name_kana"/>
+                        </group>
+                    </group>
+                    <group string="Result">
+                        <group>
+                            <field name="booking_id"/>
+                            <field name="assigned_vehicle_id"/>
+                            <field name="partner_id"/>
+                        </group>
+                        <group>
+                            <field name="error_message" invisible="not error_message"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Raw Email">
+                            <field name="raw_email" widget="text"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- OTA Email Search View -->
+    <record id="view_tdc_ota_email_search" model="ir.ui.view">
+        <field name="name">tdc.ota.email.search</field>
+        <field name="model">tdc.ota.email</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter string="Booked" name="booked" domain="[('state', '=', 'booked')]"/>
+                <filter string="Errors" name="errors" domain="[('state', '=', 'error')]"/>
+                <filter string="No Availability" name="no_avail" domain="[('state', '=', 'no_availability')]"/>
+                <filter string="Duplicates" name="duplicates" domain="[('state', '=', 'duplicate')]"/>
+                <filter string="Cancellations" name="cancellations" domain="[('is_cancel', '=', True)]"/>
+                <filter string="Rakuten" name="rakuten" domain="[('source', '=', 'rakuten')]"/>
+                <filter string="Jalan" name="jalan" domain="[('source', '=', 'jalan')]"/>
+                <filter string="Today" name="today" domain="[('create_date', '>=', (context_today()).strftime('%Y-%m-%d'))]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- OTA Email Action -->
+    <record id="action_tdc_ota_email" model="ir.actions.act_window">
+        <field name="name">OTA Bookings</field>
+        <field name="res_model">tdc.ota.email</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_booked': 0}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No OTA booking emails received yet
+            </p>
+            <p>
+                Configure an incoming mail server for car.care@emoment.jp to
+                automatically receive and process booking emails from Rakuten
+                Travel, Jalan, and other OTAs.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item under Fleet -->
+    <menuitem
+        id="menu_tdc_ota_email"
+        name="OTA Bookings"
+        parent="fleet.fleet_vehicles"
+        action="action_tdc_ota_email"
+        sequence="100"/>
+
+</odoo>
