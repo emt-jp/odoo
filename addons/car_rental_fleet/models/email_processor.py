@@ -129,6 +129,42 @@ class TdcEmailProcessor(models.Model):
         for r in self:
             r.corrected = bool(r.ai_classification) and r.classification != r.ai_classification
 
+    # Fields added in version 2.2 — may not exist in DB during the window
+    # between code deploy and module upgrade. _safe_write strips them.
+    _V22_FIELDS = (
+        'ai_classification', 'matched_rule_id', 'attachment_summary',
+        'message_id', 'email_date',
+    )
+
+    def _v22_columns_in_db(self):
+        """Return the subset of v2.2 fields whose columns actually exist in
+        the DB right now. Cheap (information_schema, ~1ms) and always fresh,
+        so the same worker handles both pre- and post-upgrade transparently.
+        """
+        try:
+            with self.env.cr.savepoint():
+                self.env.cr.execute("""
+                    SELECT column_name FROM information_schema.columns
+                    WHERE table_name = 'tdc_email_processor'
+                      AND column_name = ANY(%s)
+                """, (list(self._V22_FIELDS),))
+                return {row[0] for row in self.env.cr.fetchall()}
+        except Exception:
+            return set()
+
+    def _safe_write(self, vals):
+        """Write that drops v2.2 fields if their columns don't exist yet.
+
+        Used by the email pipeline so the fetchmail cron doesn't crash
+        in the window between deploying new code and upgrading the module.
+        """
+        if not vals:
+            return
+        present = self._v22_columns_in_db()
+        filtered = {k: v for k, v in vals.items() if k in present or k not in self._V22_FIELDS}
+        if filtered:
+            self.write(filtered)
+
     # ─────────────────────────────────────────────
     # Mail gateway: receive email
     # ─────────────────────────────────────────────
@@ -375,24 +411,35 @@ class TdcEmailProcessor(models.Model):
 
         Returns a list of dicts {from, subject, wrong, correct} — used as few-shot
         examples in the Claude prompt so the model learns from past mistakes.
+
+        Defensive: if ai_classification column doesn't exist yet (deployment
+        window before upgrade), returns []. The savepoint stops a missing
+        column from poisoning the outer transaction.
         """
-        corrections = self.env['tdc.email.processor'].search([
-            ('id', '!=', self.id or 0),
-            ('ai_classification', '!=', False),
-            ('classification', '!=', False),
-        ], order='write_date desc', limit=50)
-        examples = []
-        for c in corrections:
-            if c.ai_classification and c.classification and c.ai_classification != c.classification:
-                examples.append({
-                    'from': (c.email_from or '')[:80],
-                    'subject': (c.name or '')[:120],
-                    'wrong': c.ai_classification,
-                    'correct': c.classification,
-                })
-                if len(examples) >= limit:
-                    break
-        return examples
+        if 'ai_classification' not in self._v22_columns_in_db():
+            return []
+        try:
+            with self.env.cr.savepoint():
+                corrections = self.env['tdc.email.processor'].search([
+                    ('id', '!=', self.id or 0),
+                    ('ai_classification', '!=', False),
+                    ('classification', '!=', False),
+                ], order='write_date desc', limit=50)
+                examples = []
+                for c in corrections:
+                    if c.ai_classification and c.classification and c.ai_classification != c.classification:
+                        examples.append({
+                            'from': (c.email_from or '')[:80],
+                            'subject': (c.name or '')[:120],
+                            'wrong': c.ai_classification,
+                            'correct': c.classification,
+                        })
+                        if len(examples) >= limit:
+                            break
+                return examples
+        except Exception as e:
+            _logger.warning("Correction examples query failed: %s", e)
+            return []
 
     def _build_classification_prompt(self, pdf_context='', has_images=False):
         """Build the Claude prompt with context, past corrections, and attachment info."""
@@ -572,18 +619,29 @@ Important rules:
     # ─────────────────────────────────────────────
 
     def _check_rules(self):
-        """Return the first active rule matching this email, or None."""
+        """Return the first active rule matching this email, or None.
+
+        Defensive against the rules table not existing yet — that happens
+        in the window between deploying new code and upgrading the module.
+        We use a savepoint so a missing table doesn't poison the outer
+        transaction (which would otherwise break the whole fetchmail batch).
+        """
         self.ensure_one()
-        rules = self.env['tdc.email.rule'].search([('active', '=', True)])
-        if not rules:
+        try:
+            with self.env.cr.savepoint():
+                rules = self.env['tdc.email.rule'].search([('active', '=', True)])
+                if not rules:
+                    return None
+                email_from = self.email_from or ''
+                subject = self.name or ''
+                body = self.raw_email or ''
+                for rule in rules:
+                    if rule.matches(email_from, subject, body):
+                        return rule
+                return None
+        except Exception as e:
+            _logger.warning("Rule check skipped (table missing or error): %s", e)
             return None
-        email_from = self.email_from or ''
-        subject = self.name or ''
-        body = self.raw_email or ''
-        for rule in rules:
-            if rule.matches(email_from, subject, body):
-                return rule
-        return None
 
     def _classify_and_process(self, attachments=None):
         """Main pipeline: rule check → attachment extraction → Claude → route."""
@@ -598,7 +656,7 @@ Important rules:
         if rule:
             rule.record_hit()
             extracted = {}
-            self.write({
+            self._safe_write({
                 'classification': rule.classification,
                 'ai_classification': rule.classification,
                 'matched_rule_id': rule.id,
@@ -619,7 +677,7 @@ Important rules:
         # ── 2. Extract attachment content for Claude ──
         pdf_context, image_blocks, summary_lines = self._process_attachments(attachments)
         if summary_lines:
-            self.write({'attachment_summary': '\n'.join(summary_lines)})
+            self._safe_write({'attachment_summary': '\n'.join(summary_lines)})
 
         # ── 3. Build prompt and call Claude (multimodal if images present) ──
         prompt = self._build_classification_prompt(
@@ -641,11 +699,16 @@ Important rules:
 
         # If a rule already set classification, only overwrite if they agree —
         # the rule is the authoritative label; Claude is just enriching data.
-        if self.matched_rule_id:
+        # (matched_rule_id may not exist in the DB yet during the upgrade window.)
+        try:
+            had_rule = bool(self.matched_rule_id)
+        except Exception:
+            had_rule = False
+        if had_rule:
             classification = self.classification
             confidence = max(confidence, self.confidence)
 
-        self.write({
+        self._safe_write({
             'classification': classification,
             'ai_classification': classification,
             'confidence': confidence,
@@ -1122,7 +1185,7 @@ Important rules:
         attachments = self._get_attachments_from_record()
         if not attachments:
             # Mark so it isn't re-scanned every run
-            self.write({'attachment_summary': '(no attachments)'})
+            self._safe_write({'attachment_summary': '(no attachments)'})
             return 'no_attachments'
 
         # If this record is already processed and linked to a target,
@@ -1142,7 +1205,7 @@ Important rules:
             # Also record a summary so we skip this record on the next backfill
             _, _, summary_lines = self._process_attachments(attachments)
             header = f"Backfilled: attached {len(attachments)} file(s) to {target_model} #{target_id}"
-            self.write({
+            self._safe_write({
                 'attachment_summary': header + '\n' + '\n'.join(summary_lines),
             })
             _logger.info("Backfill: attached %d file(s) to %s #%s from email %s",
@@ -1352,7 +1415,9 @@ Important rules:
             except Exception:
                 pass
 
-        rec = self.create({
+        # IMAP backfill is only ever invoked manually after a successful module
+        # upgrade — but defensive anyway: drop v2.2 fields if columns missing.
+        create_vals = {
             'name': (subject or '(no subject)')[:200],
             'email_from': email_from[:200],
             'email_to': email_to[:200],
@@ -1361,7 +1426,11 @@ Important rules:
             'raw_email': f"Subject: {subject}\nFrom: {email_from}\nTo: {email_to}\n\n{body_text[:8000]}",
             'unsubscribe_url': unsubscribe_url[:500],
             'state': 'received',
-        })
+        }
+        present = self._v22_columns_in_db()
+        create_vals = {k: v for k, v in create_vals.items()
+                       if k in present or k not in self._V22_FIELDS}
+        rec = self.create(create_vals)
 
         # Attach files to the new processor record so they appear in chatter
         # and future re-processing via _get_attachments_from_record() works.
