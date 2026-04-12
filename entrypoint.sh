@@ -45,5 +45,19 @@ EOF
 echo "Starting Odoo with config:"
 cat /etc/odoo/odoo.conf | grep -v password
 
-# Start Odoo
+# Run module upgrade for car_rental_fleet before serving HTTP. Idempotent —
+# Odoo's -u is a fast no-op when ir_module_module.latest_version already
+# matches the manifest. When the manifest version was bumped (schema change),
+# this is the only place the migration can run safely on Cloud Run, since
+# Cloud Run can't exec into the running container. set -e + --stop-after-init
+# means a failed migration aborts the container, Cloud Run keeps the old
+# revision live, no broken state ever serves traffic.
+UPGRADE_MODULE="${UPGRADE_MODULE:-car_rental_fleet}"
+if [ -n "$UPGRADE_MODULE" ]; then
+    echo "Running module upgrade for: $UPGRADE_MODULE"
+    python3 /opt/odoo/odoo-bin -c /etc/odoo/odoo.conf -u "$UPGRADE_MODULE" --stop-after-init
+    echo "Module upgrade complete."
+fi
+
+# Start Odoo HTTP server
 exec python3 /opt/odoo/odoo-bin -c /etc/odoo/odoo.conf "$@"
