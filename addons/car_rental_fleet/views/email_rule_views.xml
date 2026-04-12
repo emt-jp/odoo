@@ -71,15 +71,10 @@
         <field name="model">tdc.email.rule</field>
         <field name="arch" type="xml">
             <search>
-                <field name="name"/>
-                <field name="sender_pattern"/>
-                <field name="classification"/>
                 <filter string="Active" name="active" domain="[('active','=',True)]"/>
                 <filter string="Archived" name="archived" domain="[('active','=',False)]"/>
-                <group expand="0" string="Group By">
-                    <filter string="Classification" name="by_classification"
-                            context="{'group_by': 'classification'}"/>
-                </group>
+                <filter string="By Classification" name="by_classification"
+                        context="{'group_by': 'classification'}"/>
             </search>
         </field>
     </record>
