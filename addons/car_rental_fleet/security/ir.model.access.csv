@@ -54,3 +54,4 @@ access_tdc_car_review_portal,tdc.car.review.portal,model_tdc_car_review,base.gro
 access_tdc_car_review_public,tdc.car.review.public,model_tdc_car_review,base.group_public,1,0,0,0
 access_tdc_ota_email,tdc.ota.email,model_tdc_ota_email,base.group_user,1,1,1,1
 access_tdc_email_processor,tdc.email.processor,model_tdc_email_processor,base.group_user,1,1,1,1
+access_tdc_email_rule_user,tdc.email.rule.user,model_tdc_email_rule,base.group_user,1,1,1,1
