@@ -52,7 +52,7 @@ cat /etc/odoo/odoo.conf | grep -v password
 # Cloud Run can't exec into the running container. set -e + --stop-after-init
 # means a failed migration aborts the container, Cloud Run keeps the old
 # revision live, no broken state ever serves traffic.
-UPGRADE_MODULE="${UPGRADE_MODULE:-car_rental_fleet}"
+UPGRADE_MODULE="${UPGRADE_MODULE:-car_rental_fleet,advanced_crm}"
 if [ -n "$UPGRADE_MODULE" ]; then
     echo "Running module upgrade for: $UPGRADE_MODULE"
     python3 /opt/odoo/odoo-bin -c /etc/odoo/odoo.conf -u "$UPGRADE_MODULE" --stop-after-init
