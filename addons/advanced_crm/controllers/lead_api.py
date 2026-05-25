@@ -75,10 +75,12 @@ class LeadAPIController(http.Controller):
     @http.route(
         "/api/lead",
         type="http",
-        auth="none",
+        auth="public",
         methods=["POST", "OPTIONS"],
         csrf=False,
         cors=False,
+        sitemap=False,
+        website=False,
     )
     def submit_lead(self, **kwargs):
         origin = request.httprequest.headers.get("Origin", "")
@@ -225,10 +227,12 @@ class LeadAPIController(http.Controller):
     @http.route(
         "/api/lead/email",
         type="http",
-        auth="none",
+        auth="public",
         methods=["POST", "OPTIONS"],
         csrf=False,
         cors=False,
+        sitemap=False,
+        website=False,
     )
     def submit_email(self, **kwargs):
         """Lightweight endpoint for exit-intent popup (email only)."""
