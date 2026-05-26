@@ -3,7 +3,7 @@
 
 {
     'name': 'Advanced CRM',
-    'version': '1.0.0',
+    'version': '1.1.0',
     'category': 'Sales/CRM',
     'summary': 'Advanced CRM features and automation',
     'description': """
