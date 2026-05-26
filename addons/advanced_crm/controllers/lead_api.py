@@ -24,27 +24,8 @@ RATE_LIMIT_MAX = 10
 RATE_LIMIT_WINDOW = 60
 
 
-def _cors_headers(origin):
-    headers = {
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Access-Control-Max-Age": "3600",
-    }
-    if origin in ALLOWED_ORIGINS:
-        headers["Access-Control-Allow-Origin"] = origin
-    return headers
-
-
-def _json_response(data, status=200, origin=""):
-    body = json.dumps(data)
-    headers = _cors_headers(origin)
-    headers["Content-Type"] = "application/json"
-    return Response(body, status=status, headers=headers)
-
-
 def _check_rate_limit(ip):
     now = time.time()
-    # Clean old entries
     cutoff = now - RATE_LIMIT_WINDOW
     _rate_limit[ip] = [t for t in _rate_limit.get(ip, []) if t > cutoff]
     if len(_rate_limit[ip]) >= RATE_LIMIT_MAX:
@@ -73,47 +54,34 @@ INTEREST_MAP = {
 class LeadAPIController(http.Controller):
 
     @http.route(
-        "/api/lead",
-        type="http",
+        "/hellojapan/lead",
+        type="json",
         auth="public",
-        methods=["POST", "OPTIONS"],
+        methods=["POST"],
         csrf=False,
-        cors=False,
-        sitemap=False,
-        website=False,
+        cors="*",
     )
     def submit_lead(self, **kwargs):
-        origin = request.httprequest.headers.get("Origin", "")
-
-        # CORS preflight
-        if request.httprequest.method == "OPTIONS":
-            return Response("", status=204, headers=_cors_headers(origin))
-
         ip = request.httprequest.headers.get(
             "X-Forwarded-For", request.httprequest.remote_addr or ""
         ).split(",")[0].strip()
 
         if not _check_rate_limit(ip):
-            return _json_response({"error": "Too many requests"}, 429, origin)
+            return {"error": "Too many requests"}
 
-        try:
-            data = json.loads(request.httprequest.data or "{}")
-        except (json.JSONDecodeError, TypeError):
-            return _json_response({"error": "Invalid JSON"}, 400, origin)
+        data = kwargs
 
         # Honeypot
         if data.get("website"):
-            return _json_response({"ok": True}, 200, origin)
+            return {"ok": True}
 
         name = (data.get("name") or "").strip()[:200]
         email = (data.get("email") or "").strip()[:200]
 
         if not name or not email:
-            return _json_response(
-                {"error": "Name and email are required"}, 400, origin
-            )
+            return {"error": "Name and email are required"}
         if not _validate_email(email):
-            return _json_response({"error": "Invalid email"}, 400, origin)
+            return {"error": "Invalid email"}
 
         phone = (data.get("phone") or "").strip()[:50] or False
         date_from = (data.get("dateFrom") or "").strip() or False
@@ -123,7 +91,6 @@ class LeadAPIController(http.Controller):
         interest = INTEREST_MAP.get(interest_key, interest_key) or False
         message = (data.get("message") or "").strip()[:2000] or False
         lang = (data.get("lang") or "en").strip()[:5]
-        source_type = (data.get("source") or "contact-form").strip()
 
         # Build description
         lines = []
@@ -151,7 +118,7 @@ class LeadAPIController(http.Controller):
         if utm_lines:
             lines.append(f"\n--- Ad Tracking ---\n" + "\n".join(utm_lines))
 
-        lines.append(f"\nLanguage: {lang} | Source: {source_type}")
+        lines.append(f"\nLanguage: {lang} | Source: contact-form")
 
         description = "\n".join(lines)
 
@@ -163,13 +130,9 @@ class LeadAPIController(http.Controller):
                 "phone": phone,
                 "description": description,
                 "type": "lead",
-                "source_id": False,
-                "medium_id": False,
             }
 
-            # Try to find/create UTM source & medium
-            env = request.env
-            sudo_env = env(su=True)
+            sudo_env = request.env.sudo()
 
             # UTM source
             source_name = utm_source or "hellojapan.jp"
@@ -218,49 +181,38 @@ class LeadAPIController(http.Controller):
                 email,
             )
 
-            return _json_response({"ok": True, "id": lead.id}, 200, origin)
+            return {"ok": True, "id": lead.id}
 
         except Exception:
             _logger.exception("Failed to create lead from HelloJapan.jp")
-            return _json_response({"error": "Internal error"}, 500, origin)
+            return {"error": "Internal error"}
 
     @http.route(
-        "/api/lead/email",
-        type="http",
+        "/hellojapan/lead/email",
+        type="json",
         auth="public",
-        methods=["POST", "OPTIONS"],
+        methods=["POST"],
         csrf=False,
-        cors=False,
-        sitemap=False,
-        website=False,
+        cors="*",
     )
     def submit_email(self, **kwargs):
         """Lightweight endpoint for exit-intent popup (email only)."""
-        origin = request.httprequest.headers.get("Origin", "")
-
-        if request.httprequest.method == "OPTIONS":
-            return Response("", status=204, headers=_cors_headers(origin))
-
         ip = request.httprequest.headers.get(
             "X-Forwarded-For", request.httprequest.remote_addr or ""
         ).split(",")[0].strip()
 
         if not _check_rate_limit(ip):
-            return _json_response({"error": "Too many requests"}, 429, origin)
+            return {"error": "Too many requests"}
 
-        try:
-            data = json.loads(request.httprequest.data or "{}")
-        except (json.JSONDecodeError, TypeError):
-            return _json_response({"error": "Invalid JSON"}, 400, origin)
-
+        data = kwargs
         email = (data.get("email") or "").strip()[:200]
         lang = (data.get("lang") or "en").strip()[:5]
 
         if not _validate_email(email):
-            return _json_response({"error": "Valid email required"}, 400, origin)
+            return {"error": "Valid email required"}
 
         try:
-            sudo_env = request.env(su=True)
+            sudo_env = request.env.sudo()
 
             source = sudo_env["utm.source"].search(
                 [("name", "=", "hellojapan.jp")], limit=1
@@ -269,7 +221,7 @@ class LeadAPIController(http.Controller):
                 source = sudo_env["utm.source"].create({"name": "hellojapan.jp"})
 
             lead = sudo_env["crm.lead"].create({
-                "name": f"HelloJapan.jp — Free itinerary request",
+                "name": "HelloJapan.jp — Free itinerary request",
                 "email_from": email,
                 "description": f"Exit-popup email capture\nLanguage: {lang}",
                 "type": "lead",
@@ -279,8 +231,8 @@ class LeadAPIController(http.Controller):
             _logger.info(
                 "HelloJapan exit-popup lead: id=%s email=%s", lead.id, email
             )
-            return _json_response({"ok": True}, 200, origin)
+            return {"ok": True}
 
         except Exception:
             _logger.exception("Failed to create email lead from HelloJapan.jp")
-            return _json_response({"error": "Internal error"}, 500, origin)
+            return {"error": "Internal error"}
