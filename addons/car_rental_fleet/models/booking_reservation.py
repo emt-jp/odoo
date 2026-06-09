@@ -57,7 +57,21 @@ class FleetBooking(models.Model):
     estimated_daily_rate = fields.Monetary('Estimated Daily Rate', currency_field='currency_id')
     estimated_total_amount = fields.Monetary('Estimated Total Amount', currency_field='currency_id')
     currency_id = fields.Many2one('res.currency', string='Currency', default=lambda self: self.env.company.currency_id)
-    
+
+    # Stripe Payment (set by the api-adapter checkout/confirmation flow)
+    stripe_session_id = fields.Char(
+        'Stripe Session ID', copy=False, index=True,
+        help='Stripe Checkout Session id; used to match this booking when confirming payment.')
+    stripe_payment_intent_id = fields.Char(
+        'Stripe Payment Intent ID', copy=False, index=True,
+        help='Stripe PaymentIntent id for this booking.')
+    is_deposit = fields.Boolean(
+        'Deposit Payment', default=False,
+        help='True when the customer pays a deposit only.')
+    is_paid_in_full = fields.Boolean(
+        'Paid in Full', default=False,
+        help='True when the customer pays the rental plus deposit up front.')
+
     # Booking Status
     state = fields.Selection([
         ('draft', 'Draft'),
