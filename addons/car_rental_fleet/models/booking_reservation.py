@@ -111,8 +111,10 @@ class FleetBooking(models.Model):
     is_enterprise = fields.Boolean('Enterprise Feature', default=True)
     requires_license = fields.Boolean('Requires License', default=True)
 
-    # Note: TDC-specific booking fields (payment, add-ons, checkout/return)
-    # are handled by the api-adapter layer, not stored in Odoo.
+    # Note: most TDC-specific booking fields (add-ons, checkout/return) are
+    # handled by the api-adapter layer, not stored in Odoo — except the Stripe
+    # payment-link fields above (stripe_session_id, etc.), which Odoo must hold
+    # so the api-adapter can match a booking when confirming payment.
 
     # Affiliate tracking
     x_affiliate_id = fields.Many2one(
