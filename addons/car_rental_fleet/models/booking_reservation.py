@@ -72,6 +72,20 @@ class FleetBooking(models.Model):
         'Paid in Full', default=False,
         help='True when the customer pays the rental plus deposit up front.')
 
+    # Booking channel — which direct site / OTA this booking came in through.
+    # One shared fleet, many channels: availability is single-source (this model)
+    # but each booking is attributable to its origin. Set by the api-adapter
+    # create-booking flow (channel param) or the OTA importer.
+    source = fields.Selection([
+        ('tokyodrivingclub', 'tokyodrivingclub.com'),
+        ('88roads', '88roads.com'),
+        ('tabi-rv', 'tabi-rv.com'),
+        ('prince', 'prince-campervan.com'),
+        ('ota', 'OTA / Rakuten'),
+        ('direct', 'Direct / Walk-in'),
+    ], string='Booking Channel', default='direct', index=True,
+        help='Which direct channel this booking originated from. The fleet is shared across all channels.')
+
     # Booking Status
     state = fields.Selection([
         ('draft', 'Draft'),
