@@ -3,6 +3,7 @@
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
+import json
 import logging
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -149,6 +150,35 @@ class FleetVehicle(models.Model):
         help='JSON array of uploaded onboarding documents: '
              '[{"type": "registration|insurance|photo", "name": "...", "url": "https://cdn..."}]')
     vendor_rejection_reason = fields.Char('Rejection Reason')
+
+    # Convertible configurations (emt-jp/tdc#36) — a single physical vehicle can
+    # be rented as several categories (e.g. minivan -> campervan with a bed set,
+    # or 7-seater -> 5-seater compact with the 3rd row folded). The base config
+    # is rental_category/seating_capacity; alternates live here as JSON.
+    convertible_configs = fields.Text(
+        'Convertible Configurations (JSON)',
+        help='JSON array of alternate rental configurations for this physical '
+             'vehicle. Pricing = base daily_rate + this config\'s conversion_fee. '
+             'Each entry: {"category": "campervan", "seats": 2, "has_bed": true, '
+             '"included_extras": ["BEDDING_SET"], "conversion_fee": 3000, '
+             '"label": "Campervan (2 berth)"}. The base rental_category is always '
+             'bookable and does not need an entry here.')
+    is_convertible = fields.Boolean(
+        'Is Convertible', compute='_compute_is_convertible', store=True,
+        help='True when this vehicle has one or more alternate configurations.')
+
+    @api.depends('convertible_configs')
+    def _compute_is_convertible(self):
+        for vehicle in self:
+            raw = (vehicle.convertible_configs or '').strip()
+            has_configs = False
+            if raw:
+                try:
+                    parsed = json.loads(raw)
+                    has_configs = isinstance(parsed, list) and len(parsed) > 0
+                except (ValueError, TypeError):
+                    has_configs = False
+            vehicle.is_convertible = has_configs
 
     # Availability & Status
     availability_status = fields.Selection([
