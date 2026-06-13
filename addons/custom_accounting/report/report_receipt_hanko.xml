@@ -105,6 +105,18 @@
                     </div>
                 </div>
 
+                <!-- Remarks / 備考 (renders the invoice's notes, e.g. rental driver verification) -->
+                <div class="row mb-4" t-if="o.narration">
+                    <div class="col-12">
+                        <table class="table table-borderless mb-0">
+                            <tr>
+                                <td width="30%"><strong>備考 (Remarks):</strong></td>
+                                <td><span t-field="o.narration"/></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- Note -->
                 <div class="row mb-5">
                     <div class="col-12">
