@@ -131,7 +131,25 @@ class FleetVehicle(models.Model):
 
     # TDC External Reference (MongoDB ObjectID for migration)
     tdc_external_id = fields.Char('TDC External ID', index=True, help='Original MongoDB ObjectID')
-    
+
+    # Vendor onboarding (vendors submit rental cars for admin approval)
+    vendor_approval_state = fields.Selection([
+        ('approved', 'Approved'),
+        ('pending', 'Pending Review'),
+        ('rejected', 'Rejected'),
+    ], string='Vendor Approval', default='approved',
+        help='Vendor-submitted vehicles start as "pending" and only enter the '
+             'rentable fleet once an admin approves them. Admin-created vehicles '
+             'default to "approved".')
+    submitted_by_vendor_id = fields.Many2one(
+        'res.partner', string='Submitted By Vendor', index=True,
+        help='The vendor (supplier) who submitted this vehicle for onboarding.')
+    vendor_documents = fields.Text(
+        'Vendor Documents (JSON)',
+        help='JSON array of uploaded onboarding documents: '
+             '[{"type": "registration|insurance|photo", "name": "...", "url": "https://cdn..."}]')
+    vendor_rejection_reason = fields.Char('Rejection Reason')
+
     # Availability & Status
     availability_status = fields.Selection([
         ('available', 'Available'),
