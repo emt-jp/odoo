@@ -6,12 +6,12 @@
         so it overlays the totals/signature area without shifting page flow.
     -->
     <template id="report_invoice_document_hanko" inherit_id="account.report_invoice_document">
-        <xpath expr="//div[@id='total']" position="before">
+        <xpath expr="//div[@id='total']" position="after">
             <div t-if="o.company_id.invoice_hanko and o.company_id.invoice_hanko_show"
                  style="position: relative; height: 0; overflow: visible; z-index: 5;">
                 <img t-att-src="image_data_uri(o.company_id.invoice_hanko)"
                      alt="Company Seal"
-                     t-attf-style="position: absolute; right: -10px; top: 30px;
+                     t-attf-style="position: absolute; right: 10px; top: -50px;
                                    width: #{o.company_id.invoice_hanko_width or 80}px;
                                    opacity: #{(o.company_id.invoice_hanko_opacity or 85) / 100.0};
                                    pointer-events: none;"/>
