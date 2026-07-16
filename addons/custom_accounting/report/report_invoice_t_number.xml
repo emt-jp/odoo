@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!--
-        QIS Invoice Document Template
-        ─────────────────────────────
-        Inherits ALL standard Odoo invoice features (payment QR codes, payment terms,
-        grouped/collapsed lines, discount columns, etc.) via primary="True" inheritance.
-        Adds Japanese Qualified Invoice System (適格請求書) elements via XPath.
-        Only used when company.use_japanese_invoice_system is True.
-    -->
     <template id="report_invoice_qis_document" inherit_id="account.report_invoice_document" primary="True">
+
 
         <!-- ============================================================ -->
         <!-- QIS stylesheet — follows Odoo report design tokens           -->
@@ -215,8 +208,7 @@
         <!-- 5. QIS tax breakdown — right-aligned, after totals           -->
         <!-- ============================================================ -->
         <xpath expr="//div[@id='payment_term']" position="before">
-            <div t-if="o.is_qualified_invoice and (o.tax_base_standard or o.tax_base_reduced)"
-                 class="clearfix avoid-page-break-inside mb-2">
+            <div t-if="o.is_qualified_invoice and (o.tax_base_standard or o.tax_base_reduced)" class="clearfix avoid-page-break-inside mb-2">
                 <div class="float-end">
                     <table class="qis-breakdown table table-sm table-borderless">
                         <thead>
@@ -255,8 +247,7 @@
         <!-- 7. Bank transfer details + QIS compliance — single block     -->
         <!-- ============================================================ -->
         <xpath expr="//div[@id='total']" position="after">
-            <div t-if="o.partner_bank_id and o.move_type in ('out_invoice', 'out_refund')"
-                 class="qis-bank avoid-page-break-inside">
+            <div t-if="o.partner_bank_id and o.move_type in ('out_invoice', 'out_refund')" class="qis-bank avoid-page-break-inside">
                 <div class="qis-bank-title">お振込先 / Bank Transfer Details</div>
                 <table>
                     <tr>
@@ -279,6 +270,10 @@
                         <td class="qis-bank-label">口座名義 / Holder</td>
                         <td class="qis-bank-value"><span t-field="o.partner_bank_id.acc_holder_name"/></td>
                     </tr>
+                    <tr t-if="o.stripe_payment_link_url">
+                        <td class="qis-bank-label" style="padding-top:3px; border-top:1px solid #dee2e6 !important;">💳 Pay Online</td>
+                        <td class="qis-bank-value" style="padding-top:3px; border-top:1px solid #dee2e6 !important;"><a t-att-href="o.stripe_payment_link_url" style="color:#0d6efd; word-break:break-all;" t-esc="o.stripe_payment_link_url"/></td>
+                    </tr>
                 </table>
             </div>
             <div t-if="o.is_qualified_invoice" class="qis-compliance">
@@ -287,11 +282,9 @@
             </div>
         </xpath>
 
+    
     </template>
 
-    <!-- ================================================================ -->
-    <!-- Extend standard report_invoice to dispatch to QIS template       -->
-    <!-- ================================================================ -->
     <template id="report_invoice_qis" inherit_id="account.report_invoice">
         <xpath expr="//t[@t-call='account.report_invoice_document']" position="after">
             <t t-if="o._get_name_invoice_report() == 'custom_accounting.report_invoice_qis_document'"
@@ -300,9 +293,6 @@
         </xpath>
     </template>
 
-    <!-- ================================================================ -->
-    <!-- Wrapper for explicit "Print Qualified Invoice" button            -->
-    <!-- ================================================================ -->
     <template id="report_invoice_t_number">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
@@ -312,9 +302,6 @@
         </t>
     </template>
 
-    <!-- ================================================================ -->
-    <!-- Report action for explicit "Print Qualified Invoice" button      -->
-    <!-- ================================================================ -->
     <record id="action_report_invoice_t_number" model="ir.actions.report">
         <field name="name">Qualified Invoice (適格請求書)</field>
         <field name="model">account.move</field>
