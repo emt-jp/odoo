@@ -11,8 +11,8 @@
                  style="position: relative; height: 0; overflow: visible; z-index: 5;">
                 <img t-att-src="image_data_uri(o.company_id.invoice_hanko)"
                      alt="Company Seal"
-                     t-attf-style="position: absolute; right: 0px; top: 10px;
-                                   width: #{o.company_id.invoice_hanko_width or 95}px;
+                     t-attf-style="position: absolute; right: -10px; top: 30px;
+                                   width: #{o.company_id.invoice_hanko_width or 80}px;
                                    opacity: #{(o.company_id.invoice_hanko_opacity or 85) / 100.0};
                                    pointer-events: none;"/>
             </div>

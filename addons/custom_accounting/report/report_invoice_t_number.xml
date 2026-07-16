@@ -259,7 +259,7 @@
         <!-- ============================================================ -->
         <!-- 7. Bank transfer details — structured JP bank info           -->
         <!-- ============================================================ -->
-        <xpath expr="//div[@id='payment_term']" position="after">
+        <xpath expr="//div[@id='payment_term']" position="before">
             <div t-if="o.partner_bank_id and o.move_type in ('out_invoice', 'out_refund')"
                  class="qis-bank avoid-page-break-inside">
                 <div class="qis-bank-title">お振込先 / Bank Transfer Details</div>
@@ -287,6 +287,11 @@
                 </table>
             </div>
         </xpath>
+
+        <!-- ============================================================ -->
+        <!-- 8. Hide redundant payment communication (bank already shown) -->
+        <!-- ============================================================ -->
+        <xpath expr="//p[@name='payment_communication']" position="replace"/>
 
     </template>
 
