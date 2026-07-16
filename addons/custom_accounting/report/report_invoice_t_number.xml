@@ -266,23 +266,23 @@
                 <table>
                     <tr>
                         <td class="qis-bank-label">金融機関名 / Bank</td>
-                        <td class="qis-bank-value" t-field="o.partner_bank_id.bank_id.name"/>
+                        <td class="qis-bank-value"><span t-field="o.partner_bank_id.bank_id.name"/></td>
                     </tr>
                     <tr>
                         <td class="qis-bank-label">支店名 / Branch</td>
-                        <td class="qis-bank-value" t-field="o.partner_bank_id.bank_id.street"/>
+                        <td class="qis-bank-value"><span t-field="o.partner_bank_id.bank_id.street"/></td>
                     </tr>
                     <tr>
                         <td class="qis-bank-label">預金種類 / Type</td>
-                        <td class="qis-bank-value" t-field="o.partner_bank_id.bank_id.street2"/>
+                        <td class="qis-bank-value"><span t-field="o.partner_bank_id.bank_id.street2"/></td>
                     </tr>
                     <tr>
                         <td class="qis-bank-label">口座番号 / Acct No.</td>
-                        <td class="qis-bank-value" t-field="o.partner_bank_id.acc_number"/>
+                        <td class="qis-bank-value"><span t-field="o.partner_bank_id.acc_number"/></td>
                     </tr>
                     <tr>
                         <td class="qis-bank-label">口座名義 / Holder</td>
-                        <td class="qis-bank-value" t-field="o.partner_bank_id.acc_holder_name"/>
+                        <td class="qis-bank-value"><span t-field="o.partner_bank_id.acc_holder_name"/></td>
                     </tr>
                 </table>
             </div>
