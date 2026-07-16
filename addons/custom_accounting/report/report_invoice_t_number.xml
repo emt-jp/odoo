@@ -247,19 +247,14 @@
         </xpath>
 
         <!-- ============================================================ -->
-        <!-- 6. QIS compliance notice — subtle footer                     -->
+        <!-- 6. Hide payment_term div (bank details + compliance below)   -->
         <!-- ============================================================ -->
-        <xpath expr="//div[@id='payment_term']" position="inside">
-            <div t-if="o.is_qualified_invoice" class="qis-compliance">
-                <p>※ この請求書は、消費税法に基づく適格請求書（インボイス）です。</p>
-                <p>This is a Qualified Invoice under the Japanese Consumption Tax Act.</p>
-            </div>
-        </xpath>
+        <xpath expr="//div[@id='payment_term']" position="replace"/>
 
         <!-- ============================================================ -->
-        <!-- 7. Bank transfer details — structured JP bank info           -->
+        <!-- 7. Bank transfer details + QIS compliance — single block     -->
         <!-- ============================================================ -->
-        <xpath expr="//div[@id='payment_term']" position="before">
+        <xpath expr="//div[@id='total']" position="after">
             <div t-if="o.partner_bank_id and o.move_type in ('out_invoice', 'out_refund')"
                  class="qis-bank avoid-page-break-inside">
                 <div class="qis-bank-title">お振込先 / Bank Transfer Details</div>
@@ -286,12 +281,11 @@
                     </tr>
                 </table>
             </div>
+            <div t-if="o.is_qualified_invoice" class="qis-compliance">
+                <p>※ この請求書は、消費税法に基づく適格請求書（インボイス）です。</p>
+                <p>This is a Qualified Invoice under the Japanese Consumption Tax Act.</p>
+            </div>
         </xpath>
-
-        <!-- ============================================================ -->
-        <!-- 8. Hide redundant payment communication (bank already shown) -->
-        <!-- ============================================================ -->
-        <xpath expr="//p[@name='payment_communication']" position="replace"/>
 
     </template>
 
