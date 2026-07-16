@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_jobhunt_application_kanban" model="ir.ui.view">
+        <field name="name">jobhunt.application.kanban</field>
+        <field name="model">jobhunt.application</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage_id" class="o_kanban_small_column">
+                <field name="stage_id"/>
+                <field name="classification"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="o_kanban_record_title">
+                                <strong><field name="name"/></strong>
+                            </div>
+                            <div class="o_kanban_record_subtitle">
+                                <field name="company_id"/>
+                            </div>
+                            <div>
+                                <field name="classification"/>
+                                <span class="float-end">
+                                    <field name="score_total" widget="float"/>
+                                </span>
+                            </div>
+                            <div>
+                                <field name="activity_ids" widget="kanban_activity"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_jobhunt_application_list" model="ir.ui.view">
+        <field name="name">jobhunt.application.list</field>
+        <field name="model">jobhunt.application</field>
+        <field name="arch" type="xml">
+            <list string="Applications">
+                <field name="name"/>
+                <field name="company_id"/>
+                <field name="stage_id"/>
+                <field name="applied_at"/>
+                <field name="followup_at"/>
+                <field name="classification" optional="show"/>
+                <field name="outcome" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_jobhunt_application_form" model="ir.ui.view">
+        <field name="name">jobhunt.application.form</field>
+        <field name="model">jobhunt.application</field>
+        <field name="arch" type="xml">
+            <form string="Application">
+                <header>
+                    <button name="action_generate_resume" type="object"
+                            string="Generate Resume" class="btn-primary"/>
+                    <button name="action_generate_cover_letter" type="object"
+                            string="Generate Cover Letter"/>
+                    <field name="stage_id" widget="statusbar"
+                           options="{'clickable': '1'}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="posting_id"/>
+                            <field name="company_id" readonly="1"/>
+                            <field name="contact_id"/>
+                            <field name="applied_at"/>
+                            <field name="followup_at"/>
+                        </group>
+                        <group>
+                            <field name="resume_archetype"/>
+                            <field name="resume_attachment_id"/>
+                            <field name="cover_attachment_id"/>
+                            <field name="score_total" readonly="1"/>
+                            <field name="classification" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Resume timeline">
+                        <field name="lead_client_window"
+                               placeholder="One client per window — lead client per overlap (advised at generation time)"/>
+                    </group>
+                    <notebook>
+                        <page string="Notes">
+                            <field name="notes"/>
+                        </page>
+                        <page string="Interviews">
+                            <field name="interview_ids">
+                                <list editable="bottom">
+                                    <field name="round_no"/>
+                                    <field name="interview_type"/>
+                                    <field name="scheduled_at"/>
+                                    <field name="interviewer"/>
+                                    <field name="result"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Outcome">
+                            <field name="interview_feedback"/>
+                            <field name="outcome"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_jobhunt_application" model="ir.actions.act_window">
+        <field name="name">Applications</field>
+        <field name="res_model">jobhunt.application</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+
+</odoo>

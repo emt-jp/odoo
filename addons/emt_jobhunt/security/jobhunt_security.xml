@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Dedicated module category + security group. Only members of this group
+         can see any jobhunt.* data or menu. Keeps personal/PII data isolated
+         from all other company ERP users.
+         NOTE: the Odoo superuser/admin always bypasses access rules — the
+         isolation guarantee is against NON-admin company users. Test by logging
+         in as a normal company user (see emt-tech security checklist). -->
+
+    <record id="module_category_jobhunt" model="ir.module.category">
+        <field name="name">Job Hunt</field>
+        <field name="description">Personal job-hunting platform</field>
+        <field name="sequence">90</field>
+    </record>
+
+    <record id="group_jobhunt_user" model="res.groups">
+        <field name="name">Job Hunt User</field>
+        <field name="category_id" ref="module_category_jobhunt"/>
+        <field name="comment">Full access to personal job-hunt data. Assign ONLY to Prasanta + the jobhunt-bot API user.</field>
+    </record>
+
+    <!-- Record rules: belt-and-suspenders on top of ir.model.access.
+         Global rule (applies to all groups) hides every record from anyone NOT
+         in the jobhunt group; the group itself sees everything. -->
+    <data>
+        <record id="rule_jobhunt_posting" model="ir.rule">
+            <field name="name">Job Hunt: postings visible to jobhunt users only</field>
+            <field name="model_id" ref="model_jobhunt_posting"/>
+            <field name="groups" eval="[(4, ref('group_jobhunt_user'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_jobhunt_application" model="ir.rule">
+            <field name="name">Job Hunt: applications visible to jobhunt users only</field>
+            <field name="model_id" ref="model_jobhunt_application"/>
+            <field name="groups" eval="[(4, ref('group_jobhunt_user'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_jobhunt_company" model="ir.rule">
+            <field name="name">Job Hunt: companies visible to jobhunt users only</field>
+            <field name="model_id" ref="model_jobhunt_company"/>
+            <field name="groups" eval="[(4, ref('group_jobhunt_user'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_jobhunt_contact" model="ir.rule">
+            <field name="name">Job Hunt: contacts visible to jobhunt users only</field>
+            <field name="model_id" ref="model_jobhunt_contact"/>
+            <field name="groups" eval="[(4, ref('group_jobhunt_user'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+        <record id="rule_jobhunt_interview" model="ir.rule">
+            <field name="name">Job Hunt: interviews visible to jobhunt users only</field>
+            <field name="model_id" ref="model_jobhunt_interview"/>
+            <field name="groups" eval="[(4, ref('group_jobhunt_user'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+    </data>
+
+</odoo>

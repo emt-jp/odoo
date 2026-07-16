@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Source -->
+    <record id="view_jobhunt_source_list" model="ir.ui.view">
+        <field name="name">jobhunt.source.list</field>
+        <field name="model">jobhunt.source</field>
+        <field name="arch" type="xml">
+            <list string="Sources">
+                <field name="adapter_id"/>
+                <field name="scrape_method"/>
+                <field name="source_url"/>
+                <field name="confidence"/>
+                <field name="scraped_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_jobhunt_source_form" model="ir.ui.view">
+        <field name="name">jobhunt.source.form</field>
+        <field name="model">jobhunt.source</field>
+        <field name="arch" type="xml">
+            <form string="Source">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="adapter_id"/>
+                            <field name="scrape_method"/>
+                            <field name="confidence"/>
+                        </group>
+                        <group>
+                            <field name="source_url" widget="url"/>
+                            <field name="scraped_at"/>
+                        </group>
+                    </group>
+                    <field name="raw_payload"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_jobhunt_source" model="ir.actions.act_window">
+        <field name="name">Sources</field>
+        <field name="res_model">jobhunt.source</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Score -->
+    <record id="view_jobhunt_score_list" model="ir.ui.view">
+        <field name="name">jobhunt.score.list</field>
+        <field name="model">jobhunt.score</field>
+        <field name="arch" type="xml">
+            <list string="Scores">
+                <field name="posting_id"/>
+                <field name="total"/>
+                <field name="classification"/>
+                <field name="is_stretch"/>
+                <field name="scored_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_jobhunt_score_form" model="ir.ui.view">
+        <field name="name">jobhunt.score.form</field>
+        <field name="model">jobhunt.score</field>
+        <field name="arch" type="xml">
+            <form string="Score">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="posting_id"/>
+                            <field name="total"/>
+                            <field name="classification"/>
+                            <field name="is_stretch"/>
+                            <field name="profile_version"/>
+                            <field name="scored_at"/>
+                        </group>
+                        <group string="Dimensions">
+                            <field name="dim_cpp"/>
+                            <field name="dim_fintech"/>
+                            <field name="dim_blockchain"/>
+                            <field name="dim_rust"/>
+                            <field name="dim_remote"/>
+                            <field name="dim_salary"/>
+                            <field name="dim_experience"/>
+                            <field name="dim_location"/>
+                            <field name="dim_company"/>
+                            <field name="dim_freelance"/>
+                            <field name="dim_difficulty"/>
+                            <field name="dim_urgency"/>
+                        </group>
+                    </group>
+                    <field name="rationale"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_jobhunt_score" model="ir.actions.act_window">
+        <field name="name">Scores</field>
+        <field name="res_model">jobhunt.score</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Stage (config) -->
+    <record id="view_jobhunt_stage_list" model="ir.ui.view">
+        <field name="name">jobhunt.stage.list</field>
+        <field name="model">jobhunt.stage</field>
+        <field name="arch" type="xml">
+            <list string="Stages" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="fold"/>
+                <field name="is_won"/>
+                <field name="is_lost"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_jobhunt_stage" model="ir.actions.act_window">
+        <field name="name">Stages</field>
+        <field name="res_model">jobhunt.stage</field>
+        <field name="view_mode">list</field>
+    </record>
+
+</odoo>

@@ -102,6 +102,39 @@
                     font-weight: normal;
                     margin-left: 2px;
                 }
+
+                /* Bank transfer details block */
+                .qis-bank {
+                    border: 1px solid #dee2e6;
+                    border-radius: 4px;
+                    padding: 10px 14px;
+                    margin-top: 12px;
+                    margin-bottom: 8px;
+                    background: #f8f9fa;
+                }
+                .qis-bank-title {
+                    font-size: 10px;
+                    font-weight: 600;
+                    color: #212529;
+                    margin-bottom: 6px;
+                    border-bottom: 1px solid #dee2e6;
+                    padding-bottom: 4px;
+                }
+                .qis-bank-grid {
+                    display: grid;
+                    grid-template-columns: 110px 1fr;
+                    row-gap: 3px;
+                    font-size: 10px;
+                    line-height: 1.5;
+                }
+                .qis-bank-label {
+                    color: #6c757d;
+                    font-size: 9px;
+                }
+                .qis-bank-value {
+                    color: #212529;
+                    font-weight: 500;
+                }
             </style>
         </xpath>
 
@@ -215,6 +248,28 @@
             <div t-if="o.is_qualified_invoice" class="qis-compliance">
                 <p>※ この請求書は、消費税法に基づく適格請求書（インボイス）です。</p>
                 <p>This is a Qualified Invoice under the Japanese Consumption Tax Act.</p>
+            </div>
+        </xpath>
+
+        <!-- ============================================================ -->
+        <!-- 7. Bank transfer details — structured JP bank info           -->
+        <!-- ============================================================ -->
+        <xpath expr="//div[@id='payment_term']" position="after">
+            <div t-if="o.partner_bank_id and o.move_type in ('out_invoice', 'out_refund')"
+                 class="qis-bank avoid-page-break-inside">
+                <div class="qis-bank-title">お振込先 / Bank Transfer Details</div>
+                <div class="qis-bank-grid">
+                    <span class="qis-bank-label">金融機関名 / Bank</span>
+                    <span class="qis-bank-value" t-field="o.partner_bank_id.bank_id.name"/>
+                    <span class="qis-bank-label">支店名 / Branch</span>
+                    <span class="qis-bank-value" t-field="o.partner_bank_id.bank_id.street"/>
+                    <span class="qis-bank-label">預金種類 / Type</span>
+                    <span class="qis-bank-value" t-field="o.partner_bank_id.bank_id.street2"/>
+                    <span class="qis-bank-label">口座番号 / Acct No.</span>
+                    <span class="qis-bank-value" t-field="o.partner_bank_id.acc_number"/>
+                    <span class="qis-bank-label">口座名義 / Holder</span>
+                    <span class="qis-bank-value" t-field="o.partner_bank_id.acc_holder_name"/>
+                </div>
             </div>
         </xpath>
 

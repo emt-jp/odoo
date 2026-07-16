@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_jobhunt_posting_list" model="ir.ui.view">
+        <field name="name">jobhunt.posting.list</field>
+        <field name="model">jobhunt.posting</field>
+        <field name="arch" type="xml">
+            <list string="Postings" decoration-success="classification=='must_apply'"
+                  decoration-info="classification=='good_match'"
+                  decoration-muted="state=='archived'">
+                <field name="name"/>
+                <field name="company_id"/>
+                <field name="location"/>
+                <field name="work_mode"/>
+                <field name="employment_type"/>
+                <field name="score_total" widget="float" optional="show"/>
+                <field name="classification" optional="show"/>
+                <field name="state"/>
+                <field name="posted_at" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_jobhunt_posting_form" model="ir.ui.view">
+        <field name="name">jobhunt.posting.form</field>
+        <field name="model">jobhunt.posting</field>
+        <field name="arch" type="xml">
+            <form string="Posting">
+                <header>
+                    <button name="action_score" type="object" string="Score"
+                            class="btn-primary"/>
+                    <button name="action_archive_posting" type="object"
+                            string="Archive"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="new,scored,archived"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Job title"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id"/>
+                            <field name="location"/>
+                            <field name="work_mode"/>
+                            <field name="employment_type"/>
+                            <field name="experience_level"/>
+                            <field name="visa_restriction"/>
+                        </group>
+                        <group>
+                            <field name="salary_min"/>
+                            <field name="salary_max"/>
+                            <field name="salary_currency"/>
+                            <field name="rate_period"/>
+                            <field name="posted_at"/>
+                            <field name="deadline"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="skills"/>
+                        <field name="tech_stack"/>
+                        <field name="application_url" widget="url"/>
+                        <field name="recruiter_id"/>
+                    </group>
+                    <group string="Scoring">
+                        <field name="score_total"/>
+                        <field name="classification"/>
+                        <field name="score_id"/>
+                        <field name="suggested_projects" readonly="1"/>
+                    </group>
+                    <group string="Provenance">
+                        <field name="source_id"/>
+                        <field name="dedup_key" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Description">
+                            <field name="description"/>
+                        </page>
+                        <page string="Applications">
+                            <field name="application_ids">
+                                <list>
+                                    <field name="stage_id"/>
+                                    <field name="applied_at"/>
+                                    <field name="outcome"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_jobhunt_posting_search" model="ir.ui.view">
+        <field name="name">jobhunt.posting.search</field>
+        <field name="model">jobhunt.posting</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="company_id"/>
+                <field name="skills"/>
+                <filter name="must_apply" string="Must Apply"
+                        domain="[('classification','=','must_apply')]"/>
+                <filter name="good_match" string="Good Match"
+                        domain="[('classification','=','good_match')]"/>
+                <filter name="remote" string="Remote"
+                        domain="[('work_mode','=','remote')]"/>
+                <separator/>
+                <filter name="active_postings" string="Not Archived"
+                        domain="[('state','!=','archived')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_classification" string="Classification"
+                            context="{'group_by':'classification'}"/>
+                    <filter name="group_company" string="Company"
+                            context="{'group_by':'company_id'}"/>
+                    <filter name="group_work_mode" string="Work Mode"
+                            context="{'group_by':'work_mode'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_jobhunt_posting" model="ir.actions.act_window">
+        <field name="name">Postings</field>
+        <field name="res_model">jobhunt.posting</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active_postings': 1}</field>
+    </record>
+
+</odoo>

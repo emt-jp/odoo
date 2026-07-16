@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_jobhunt_profile_form" model="ir.ui.view">
+        <field name="name">jobhunt.profile.form</field>
+        <field name="model">jobhunt.profile</field>
+        <field name="arch" type="xml">
+            <form string="Master Profile">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="full_name"/>
+                            <field name="headline"/>
+                        </group>
+                        <group>
+                            <field name="version"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Skills (JSON)">
+                            <field name="skills_json"/>
+                        </page>
+                        <page string="Role Archetypes (JSON)">
+                            <field name="role_archetypes_json"/>
+                        </page>
+                        <page string="GitHub Projects (JSON)">
+                            <field name="github_json"/>
+                        </page>
+                        <page string="Resume Rules (JSON)">
+                            <field name="resume_rules_json"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_jobhunt_profile_list" model="ir.ui.view">
+        <field name="name">jobhunt.profile.list</field>
+        <field name="model">jobhunt.profile</field>
+        <field name="arch" type="xml">
+            <list string="Profiles">
+                <field name="name"/>
+                <field name="full_name"/>
+                <field name="version"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_jobhunt_profile" model="ir.actions.act_window">
+        <field name="name">Master Profile</field>
+        <field name="res_model">jobhunt.profile</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

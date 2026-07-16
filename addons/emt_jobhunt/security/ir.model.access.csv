@@ -1,0 +1,10 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+access_jobhunt_source,jobhunt.source,model_jobhunt_source,group_jobhunt_user,1,1,1,1
+access_jobhunt_company,jobhunt.company,model_jobhunt_company,group_jobhunt_user,1,1,1,1
+access_jobhunt_contact,jobhunt.contact,model_jobhunt_contact,group_jobhunt_user,1,1,1,1
+access_jobhunt_stage,jobhunt.stage,model_jobhunt_stage,group_jobhunt_user,1,1,1,1
+access_jobhunt_score,jobhunt.score,model_jobhunt_score,group_jobhunt_user,1,1,1,1
+access_jobhunt_posting,jobhunt.posting,model_jobhunt_posting,group_jobhunt_user,1,1,1,1
+access_jobhunt_application,jobhunt.application,model_jobhunt_application,group_jobhunt_user,1,1,1,1
+access_jobhunt_interview,jobhunt.interview,model_jobhunt_interview,group_jobhunt_user,1,1,1,1
+access_jobhunt_profile,jobhunt.profile,model_jobhunt_profile,group_jobhunt_user,1,1,1,1

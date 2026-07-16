@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Seed pipeline stages (kanban columns). See emt-tech/docs/APPLICATION_TRACKER.md -->
+    <record id="stage_new" model="jobhunt.stage">
+        <field name="name">New</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="stage_reviewed" model="jobhunt.stage">
+        <field name="name">Reviewed</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="stage_resume_generated" model="jobhunt.stage">
+        <field name="name">Resume Generated</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="stage_applied" model="jobhunt.stage">
+        <field name="name">Applied</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="stage_followup" model="jobhunt.stage">
+        <field name="name">Follow-up Needed</field>
+        <field name="sequence">50</field>
+    </record>
+    <record id="stage_recruiter_replied" model="jobhunt.stage">
+        <field name="name">Recruiter Replied</field>
+        <field name="sequence">60</field>
+    </record>
+    <record id="stage_interview" model="jobhunt.stage">
+        <field name="name">Interview Scheduled</field>
+        <field name="sequence">70</field>
+    </record>
+    <record id="stage_technical_test" model="jobhunt.stage">
+        <field name="name">Technical Test</field>
+        <field name="sequence">80</field>
+    </record>
+    <record id="stage_offer" model="jobhunt.stage">
+        <field name="name">Offer</field>
+        <field name="sequence">90</field>
+        <field name="is_won">True</field>
+    </record>
+    <record id="stage_rejected" model="jobhunt.stage">
+        <field name="name">Rejected</field>
+        <field name="sequence">100</field>
+        <field name="fold">True</field>
+        <field name="is_lost">True</field>
+    </record>
+    <record id="stage_closed" model="jobhunt.stage">
+        <field name="name">Closed</field>
+        <field name="sequence">110</field>
+        <field name="fold">True</field>
+        <field name="is_lost">True</field>
+    </record>
+
+</odoo>

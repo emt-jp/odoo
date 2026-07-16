@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Root menu — restricted to the Job Hunt User group so it is invisible to
+         all other company users. -->
+    <menuitem id="menu_jobhunt_root"
+              name="Job Hunt"
+              sequence="90"
+              groups="emt_jobhunt.group_jobhunt_user"/>
+
+    <menuitem id="menu_jobhunt_applications"
+              name="Applications"
+              parent="menu_jobhunt_root"
+              action="action_jobhunt_application"
+              sequence="10"/>
+
+    <menuitem id="menu_jobhunt_postings"
+              name="Postings"
+              parent="menu_jobhunt_root"
+              action="action_jobhunt_posting"
+              sequence="20"/>
+
+    <menuitem id="menu_jobhunt_interviews"
+              name="Interviews"
+              parent="menu_jobhunt_root"
+              action="action_jobhunt_interview"
+              sequence="25"/>
+
+    <menuitem id="menu_jobhunt_crm"
+              name="CRM"
+              parent="menu_jobhunt_root"
+              sequence="30"/>
+    <menuitem id="menu_jobhunt_companies"
+              name="Companies"
+              parent="menu_jobhunt_crm"
+              action="action_jobhunt_company"
+              sequence="10"/>
+    <menuitem id="menu_jobhunt_contacts"
+              name="Contacts"
+              parent="menu_jobhunt_crm"
+              action="action_jobhunt_contact"
+              sequence="20"/>
+
+    <menuitem id="menu_jobhunt_scores"
+              name="Scores"
+              parent="menu_jobhunt_root"
+              action="action_jobhunt_score"
+              sequence="40"/>
+
+    <menuitem id="menu_jobhunt_config"
+              name="Configuration"
+              parent="menu_jobhunt_root"
+              sequence="90"/>
+    <menuitem id="menu_jobhunt_profile"
+              name="Master Profile"
+              parent="menu_jobhunt_config"
+              action="action_jobhunt_profile"
+              sequence="10"/>
+    <menuitem id="menu_jobhunt_stages"
+              name="Stages"
+              parent="menu_jobhunt_config"
+              action="action_jobhunt_stage"
+              sequence="20"/>
+    <menuitem id="menu_jobhunt_sources"
+              name="Sources"
+              parent="menu_jobhunt_config"
+              action="action_jobhunt_source"
+              sequence="30"/>
+
+</odoo>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Company -->
+    <record id="view_jobhunt_company_list" model="ir.ui.view">
+        <field name="name">jobhunt.company.list</field>
+        <field name="model">jobhunt.company</field>
+        <field name="arch" type="xml">
+            <list string="Companies">
+                <field name="name"/>
+                <field name="sector"/>
+                <field name="size"/>
+                <field name="quality_score"/>
+                <field name="posting_count"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_jobhunt_company_form" model="ir.ui.view">
+        <field name="name">jobhunt.company.form</field>
+        <field name="model">jobhunt.company</field>
+        <field name="arch" type="xml">
+            <form string="Company">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="website" widget="url"/>
+                            <field name="domain"/>
+                            <field name="sector"/>
+                        </group>
+                        <group>
+                            <field name="size"/>
+                            <field name="quality_score"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Contacts">
+                            <field name="contact_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="role"/>
+                                    <field name="email"/>
+                                    <field name="linkedin"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_jobhunt_company" model="ir.actions.act_window">
+        <field name="name">Companies</field>
+        <field name="res_model">jobhunt.company</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Contact -->
+    <record id="view_jobhunt_contact_list" model="ir.ui.view">
+        <field name="name">jobhunt.contact.list</field>
+        <field name="model">jobhunt.contact</field>
+        <field name="arch" type="xml">
+            <list string="Contacts">
+                <field name="name"/>
+                <field name="company_id"/>
+                <field name="role"/>
+                <field name="email"/>
+                <field name="linkedin"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_jobhunt_contact_form" model="ir.ui.view">
+        <field name="name">jobhunt.contact.form</field>
+        <field name="model">jobhunt.contact</field>
+        <field name="arch" type="xml">
+            <form string="Contact">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id"/>
+                            <field name="role"/>
+                            <field name="source"/>
+                        </group>
+                        <group>
+                            <field name="email" widget="email"/>
+                            <field name="phone"/>
+                            <field name="linkedin" widget="url"/>
+                        </group>
+                    </group>
+                    <field name="notes"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_jobhunt_contact" model="ir.actions.act_window">
+        <field name="name">Contacts</field>
+        <field name="res_model">jobhunt.contact</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

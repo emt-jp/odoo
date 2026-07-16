@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Daily follow-up sweep: schedule reminder activities for due applications
+         and move them to 'Follow-up Needed'. Drafts reminders only — never sends. -->
+    <record id="cron_jobhunt_followups" model="ir.cron">
+        <field name="name">Job Hunt: follow-up reminders</field>
+        <field name="model_id" ref="model_jobhunt_application"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_followups()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+
+</odoo>

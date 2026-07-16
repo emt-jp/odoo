@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Generator webhook base URL. Default targets the docker-compose service;
+         override in Settings → Technical → System Parameters for prod (the
+         deployed generator Cloud Run service URL). -->
+    <record id="param_generator_url" model="ir.config_parameter">
+        <field name="key">emt_jobhunt.generator_url</field>
+        <field name="value">http://generator:5001</field>
+    </record>
+
+</odoo>
