@@ -107,31 +107,36 @@
                 .qis-bank {
                     border: 1px solid #dee2e6;
                     border-radius: 4px;
-                    padding: 10px 14px;
-                    margin-top: 12px;
-                    margin-bottom: 8px;
+                    padding: 8px 12px;
+                    margin-top: 10px;
+                    margin-bottom: 6px;
                     background: #f8f9fa;
                 }
                 .qis-bank-title {
                     font-size: 10px;
                     font-weight: 600;
                     color: #212529;
-                    margin-bottom: 6px;
+                    margin-bottom: 4px;
                     border-bottom: 1px solid #dee2e6;
-                    padding-bottom: 4px;
+                    padding-bottom: 3px;
                 }
-                .qis-bank-grid {
-                    display: grid;
-                    grid-template-columns: 110px 1fr;
-                    row-gap: 3px;
-                    font-size: 10px;
-                    line-height: 1.5;
+                .qis-bank table {
+                    width: auto;
+                    border-collapse: collapse;
                 }
-                .qis-bank-label {
-                    color: #6c757d;
+                .qis-bank table td {
+                    padding: 1px 8px 1px 0;
                     font-size: 9px;
+                    line-height: 1.4;
+                    border: none !important;
+                    vertical-align: top;
                 }
-                .qis-bank-value {
+                .qis-bank table td.qis-bank-label {
+                    color: #6c757d;
+                    white-space: nowrap;
+                    padding-right: 12px;
+                }
+                .qis-bank table td.qis-bank-value {
                     color: #212529;
                     font-weight: 500;
                 }
@@ -258,18 +263,28 @@
             <div t-if="o.partner_bank_id and o.move_type in ('out_invoice', 'out_refund')"
                  class="qis-bank avoid-page-break-inside">
                 <div class="qis-bank-title">お振込先 / Bank Transfer Details</div>
-                <div class="qis-bank-grid">
-                    <span class="qis-bank-label">金融機関名 / Bank</span>
-                    <span class="qis-bank-value" t-field="o.partner_bank_id.bank_id.name"/>
-                    <span class="qis-bank-label">支店名 / Branch</span>
-                    <span class="qis-bank-value" t-field="o.partner_bank_id.bank_id.street"/>
-                    <span class="qis-bank-label">預金種類 / Type</span>
-                    <span class="qis-bank-value" t-field="o.partner_bank_id.bank_id.street2"/>
-                    <span class="qis-bank-label">口座番号 / Acct No.</span>
-                    <span class="qis-bank-value" t-field="o.partner_bank_id.acc_number"/>
-                    <span class="qis-bank-label">口座名義 / Holder</span>
-                    <span class="qis-bank-value" t-field="o.partner_bank_id.acc_holder_name"/>
-                </div>
+                <table>
+                    <tr>
+                        <td class="qis-bank-label">金融機関名 / Bank</td>
+                        <td class="qis-bank-value" t-field="o.partner_bank_id.bank_id.name"/>
+                    </tr>
+                    <tr>
+                        <td class="qis-bank-label">支店名 / Branch</td>
+                        <td class="qis-bank-value" t-field="o.partner_bank_id.bank_id.street"/>
+                    </tr>
+                    <tr>
+                        <td class="qis-bank-label">預金種類 / Type</td>
+                        <td class="qis-bank-value" t-field="o.partner_bank_id.bank_id.street2"/>
+                    </tr>
+                    <tr>
+                        <td class="qis-bank-label">口座番号 / Acct No.</td>
+                        <td class="qis-bank-value" t-field="o.partner_bank_id.acc_number"/>
+                    </tr>
+                    <tr>
+                        <td class="qis-bank-label">口座名義 / Holder</td>
+                        <td class="qis-bank-value" t-field="o.partner_bank_id.acc_holder_name"/>
+                    </tr>
+                </table>
             </div>
         </xpath>
 
