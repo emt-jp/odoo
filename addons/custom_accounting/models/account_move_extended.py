@@ -1,10 +1,20 @@
 # -*- coding: utf-8 -*-
+import logging
+
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+from odoo.tools import is_html_empty
+
+_logger = logging.getLogger(__name__)
 
 
 class AccountMoveExtended(models.Model):
     _inherit = 'account.move'
+
+    stripe_payment_link_url = fields.Char(
+        'Stripe Payment Link', copy=False, readonly=True,
+        help='Permanent Stripe Payment Link URL for this invoice',
+    )
 
     # Additional tracking fields
     approval_state = fields.Selection([
@@ -38,6 +48,99 @@ class AccountMoveExtended(models.Model):
     # Payment tracking
     payment_reminder_sent = fields.Boolean('Payment Reminder Sent', default=False)
     payment_reminder_date = fields.Date('Last Reminder Date')
+
+    def action_post(self):
+        """Override to auto-generate Stripe Payment Link on invoice post."""
+        res = super().action_post()
+        for move in self:
+            if (move.move_type == 'out_invoice'
+                    and move.company_id.stripe_enabled
+                    and move.company_id.stripe_secret_key
+                    and not move.stripe_payment_link_url):
+                try:
+                    move._create_stripe_payment_link()
+                except Exception as e:
+                    _logger.warning(
+                        'Failed to create Stripe Payment Link for %s: %s',
+                        move.name, e,
+                    )
+        return res
+
+    def _create_stripe_payment_link(self):
+        """Create a permanent Stripe Payment Link and embed it in narration."""
+        self.ensure_one()
+        try:
+            import stripe
+        except ImportError:
+            _logger.warning('stripe library not installed, skipping payment link')
+            return
+
+        stripe.api_key = self.company_id.stripe_secret_key
+        currency = self.currency_id.name.lower()
+
+        # JPY has no decimal places; most others use cents
+        zero_decimal = currency in (
+            'jpy', 'krw', 'vnd', 'bif', 'clp', 'djf', 'gnf', 'kmf',
+            'mga', 'pyg', 'rwf', 'ugx', 'xaf', 'xof', 'xpf',
+        )
+        amount = int(self.amount_total) if zero_decimal else int(self.amount_total * 100)
+
+        # Create a one-off Stripe Product + Price + Payment Link
+        product = stripe.Product.create(
+            name=f'Invoice {self.name}',
+            metadata={
+                'odoo_invoice_id': str(self.id),
+                'odoo_invoice_name': self.name,
+            },
+        )
+
+        price = stripe.Price.create(
+            product=product.id,
+            unit_amount=amount,
+            currency=currency,
+        )
+
+        payment_link = stripe.PaymentLink.create(
+            line_items=[{'price': price.id, 'quantity': 1}],
+            metadata={
+                'odoo_invoice_id': str(self.id),
+                'odoo_invoice_name': self.name,
+                'odoo_partner_id': str(self.partner_id.id),
+            },
+        )
+
+        url = payment_link.url
+        self.stripe_payment_link_url = url
+
+        # Embed in narration (HTML)
+        link_html = (
+            '<div style="margin-top:10px; padding:8px 12px; '
+            'border:1px solid #dee2e6; border-radius:4px; background:#f8f9fa; '
+            'font-size:11px;">'
+            '<strong>💳 Pay Online / オンライン決済</strong><br/>'
+            f'<a href="{url}" target="_blank" '
+            'style="color:#0d6efd; word-break:break-all;">'
+            f'{url}</a></div>'
+        )
+        existing = self.narration or ''
+        if is_html_empty(existing):
+            self.narration = link_html
+        else:
+            self.narration = existing + link_html
+
+        # Also record as payment.transaction.custom
+        self.env['payment.transaction.custom'].create({
+            'invoice_id': self.id,
+            'amount': self.amount_total,
+            'provider': 'stripe',
+            'provider_reference': payment_link.id,
+            'payment_url': url,
+            'state': 'pending',
+        })
+
+        _logger.info(
+            'Stripe Payment Link created for %s: %s', self.name, url,
+        )
 
     def action_approve(self):
         """Approve the journal entry"""
