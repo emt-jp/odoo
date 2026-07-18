@@ -3,142 +3,127 @@
     <template id="report_invoice_qis_document" inherit_id="account.report_invoice_document" primary="True">
 
 
-        <!-- ============================================================ -->
-        <!-- QIS stylesheet — follows Odoo report design tokens           -->
-        <!--   Gray scale: #f8f9fa → #212529                             -->
-        <!--   Borders: #dee2e6 (light), #ced4da (mid), #495057 (dark)   -->
-        <!--   Base font: 13px, line-height 1.3                          -->
-        <!-- ============================================================ -->
         <xpath expr="//div[hasclass('invoice_main')]" position="before">
             <style type="text/css">
-                /* Registration number block */
-                .qis-reg {
-                    border-left: 3px solid #495057;
-                    padding: 3px 0 3px 10px;
-                    margin-bottom: 10px;
+                /* ── Ultra-compact layout — maximize product rows ── */
+                .page { font-size: 10px; line-height: 1.25; }
+
+                /* Company header — smaller */
+                .company_address { font-size: 9px !important; line-height: 1.3 !important; }
+                .company_address img { max-height: 40px !important; }
+
+                /* Customer address — top right, compact */
+                .address.row { margin-bottom: 0 !important; }
+                .address .col-6, .address .offset-col-6 {
+                    font-size: 9px !important; line-height: 1.25 !important;
                 }
-                .qis-reg-label {
-                    font-size: 8px;
-                    color: #6c757d;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                    line-height: 1.2;
-                    margin-bottom: 1px;
-                }
-                .qis-reg-value {
-                    font-size: 13px;
-                    font-weight: 600;
-                    font-family: 'Courier New', Courier, monospace;
-                    letter-spacing: 1px;
-                    color: #212529;
+                address { margin-bottom: 0 !important; font-size: 9px !important; }
+                .oe_structure { display: none; }
+
+                /* Title bar — compact */
+                h2 {
+                    font-size: 15px !important; margin: 2px 0 !important;
+                    padding: 4px 8px !important; background: #f5f5f5 !important;
+                    border-left: 3px solid #495057 !important;
                 }
 
-                /* Reduced-rate marker */
-                .qis-mark { color: #495057; }
+                /* Registration number */
+                .qis-reg { display: inline-block; border-left: 2px solid #495057;
+                    padding: 1px 0 1px 6px; margin: 2px 0 1px; }
+                .qis-reg-label { font-size: 6px; color: #6c757d; text-transform: uppercase;
+                    letter-spacing: 0.3px; line-height: 1; margin-bottom: 0; }
+                .qis-reg-value { font-size: 9px; font-weight: 600;
+                    font-family: "Courier New", monospace; letter-spacing: 0.6px; }
 
-                /* Footnote legend */
-                .qis-legend {
-                    font-size: 9px;
-                    color: #6c757d;
-                    padding: 2px 0 6px;
-                    letter-spacing: 0.2px;
-                }
+                /* Informations row — single line */
+                #informations { margin-bottom: 2px !important; padding: 1px 0 !important; font-size: 9px; }
+                #informations .col { padding-bottom: 0 !important; }
+                #informations strong { font-size: 7px; color: #6c757d; text-transform: uppercase; }
 
-                /* Tax breakdown table */
-                .qis-breakdown { width: auto !important; margin-bottom: 8px; }
-                .qis-breakdown thead th {
-                    font-size: 8px;
-                    text-transform: uppercase;
-                    letter-spacing: 0.4px;
-                    color: #495057;
-                    font-weight: 600;
-                    border-top: none !important;
+                /* ── Line items — maximum space ── */
+                table.o_main_table { margin-bottom: 0 !important; }
+                table.o_main_table thead th {
+                    padding: 2px 4px !important; font-size: 7.5px !important;
+                    text-transform: uppercase; letter-spacing: 0.2px; color: #495057;
                     border-bottom: 1.5px solid #495057 !important;
-                    padding: 3px 10px;
-                    background: none !important;
-                    white-space: nowrap;
+                }
+                table.o_main_table tbody td {
+                    padding: 2px 4px !important; font-size: 9px !important;
+                    line-height: 1.2 !important; vertical-align: top;
+                }
+
+                /* Totals — compact */
+                #total { margin-top: 0 !important; }
+                #total table td, #total table th {
+                    padding: 1px 4px !important; font-size: 9px !important;
+                }
+
+                /* Tax breakdown */
+                .qis-breakdown { width: auto !important; margin-bottom: 0; }
+                .qis-breakdown thead th {
+                    font-size: 6px; text-transform: uppercase; color: #495057; font-weight: 600;
+                    border-top: none !important; border-bottom: 1px solid #495057 !important;
+                    padding: 1px 4px; background: none !important; white-space: nowrap;
                 }
                 .qis-breakdown .qis-bkdn-title th {
-                    font-size: 10px;
-                    text-transform: none;
-                    letter-spacing: 0;
-                    color: #212529;
-                    border-bottom: none !important;
-                    padding-bottom: 1px;
+                    font-size: 7px; text-transform: none; color: #212529;
+                    border-bottom: none !important; padding-bottom: 0;
                 }
                 .qis-breakdown tbody td {
-                    padding: 3px 10px;
-                    font-size: 10px;
-                    border-top: none !important;
-                    border-bottom: 1px solid #e9ecef !important;
+                    padding: 1px 4px; font-size: 8px;
+                    border-top: none !important; border-bottom: 1px solid #e9ecef !important;
                 }
                 .qis-breakdown tbody td:first-child { color: #495057; }
-                .qis-breakdown tbody tr:last-child td {
-                    border-bottom: 1.5px solid #495057 !important;
-                }
+                .qis-breakdown tbody tr:last-child td { border-bottom: 1px solid #495057 !important; }
 
-                /* Compliance footer */
+                .qis-mark { color: #495057; }
+                .qis-legend { font-size: 7px; color: #6c757d; padding: 0; }
+
+                /* ── Bank details — single row ── */
+                .qis-bank-row {
+                    margin-top: 4px; padding: 3px 6px; background: #f8f9fa;
+                    border: 1px solid #dee2e6; border-radius: 2px;
+                    font-size: 7.5px; line-height: 1.4; color: #212529;
+                }
+                .qis-bank-row strong { font-weight: 600; }
+                .qis-bank-row .sep { color: #ccc; margin: 0 3px; }
+
+                /* Compliance */
                 .qis-compliance {
-                    border-top: 1px solid #dee2e6;
-                    padding-top: 8px;
-                    margin-top: 12px;
-                    font-size: 8px;
-                    color: #6c757d;
-                    line-height: 1.6;
+                    padding-top: 2px; margin-top: 2px;
+                    font-size: 6px; color: #6c757d; line-height: 1.3;
                 }
                 .qis-compliance p { margin-bottom: 0; }
 
-                /* Bilingual subtitle text */
-                .qis-sub {
-                    font-size: 0.6em;
-                    color: #6c757d;
-                    font-weight: normal;
-                    margin-left: 2px;
-                }
+                .qis-sub { font-size: 0.55em; color: #6c757d; font-weight: normal; margin-left: 2px; }
 
-                /* Bank transfer details block */
-                .qis-bank {
-                    border: 1px solid #dee2e6;
-                    border-radius: 4px;
-                    padding: 8px 12px;
-                    margin-top: 10px;
-                    margin-bottom: 6px;
-                    background: #f8f9fa;
+                /* ── Header: logo beside company, customer top-right ── */
+                header { padding-bottom: 0 !important; margin-bottom: 0 !important; }
+                header .d-flex.justify-content-between {
+                    position: absolute; left: 0; top: 0; z-index: 2;
                 }
-                .qis-bank-title {
-                    font-size: 10px;
-                    font-weight: 600;
-                    color: #212529;
-                    margin-bottom: 4px;
-                    border-bottom: 1px solid #dee2e6;
-                    padding-bottom: 3px;
+                .o_company_logo_small {
+                    max-height: 32px !important; margin-bottom: 0 !important;
                 }
-                .qis-bank table {
-                    width: auto;
-                    border-collapse: collapse;
+                header .o_company_tagline { display: none !important; }
+                header &gt; .row { margin-top: 0 !important; }
+                header div[name="company_address"] {
+                    padding-left: 48px !important;
+                    font-size: 8px !important; line-height: 1.2 !important;
                 }
-                .qis-bank table td {
-                    padding: 1px 8px 1px 0;
-                    font-size: 9px;
-                    line-height: 1.4;
-                    border: none !important;
-                    vertical-align: top;
-                }
-                .qis-bank table td.qis-bank-label {
-                    color: #6c757d;
-                    white-space: nowrap;
-                    padding-right: 12px;
-                }
-                .qis-bank table td.qis-bank-value {
-                    color: #212529;
-                    font-weight: 500;
+                header div[name="company_address"] ul { margin-bottom: 0 !important; }
+                /* Customer address — top right */
+                .address.row { margin-top: -4px !important; margin-bottom: 2px !important; }
+                .address .ms-auto, .address .offset-col-6,
+                .address div[name="no_shipping"],
+                .address div[name="address_same_as_shipping"],
+                .address div[name="address_not_same_as_shipping"] {
+                    text-align: right !important; font-size: 9px !important;
                 }
             </style>
         </xpath>
 
-        <!-- ============================================================ -->
-        <!-- 1. Bilingual invoice titles — JP primary, EN secondary       -->
-        <!-- ============================================================ -->
+        <!-- Bilingual titles -->
         <xpath expr="//t[@name='invoice_title']" position="replace">
             <t name="invoice_title">請求書 <span class="qis-sub">Invoice</span></t>
         </xpath>
@@ -157,8 +142,6 @@
         <xpath expr="//t[@name='cancelled_credit_note_title']" position="replace">
             <t name="cancelled_credit_note_title">クレジットノート（取消） <span class="qis-sub">Cancelled Credit Note</span></t>
         </xpath>
-
-        <!-- Proforma titles -->
         <xpath expr="//t[@name='proforma_invoice_title']" position="replace">
             <t name="proforma_invoice_title">見積請求書 <span class="qis-sub">Proforma Invoice</span></t>
         </xpath>
@@ -178,57 +161,43 @@
             <t name="cancelled_proforma_credit_note_title">クレジットノート（取消） <span class="qis-sub">Cancelled Proforma Credit Note</span></t>
         </xpath>
 
-        <!-- ============================================================ -->
-        <!-- 2. Issuer registration number — left-accent block            -->
-        <!-- ============================================================ -->
+        <!-- Registration number -->
         <xpath expr="//div[@id='informations']" position="before">
             <div t-if="o.issuer_t_number" class="qis-reg">
-                <div class="qis-reg-label">登録番号 / Registration No.</div>
+                <div class="qis-reg-label">登録番号 Registration No.</div>
                 <div class="qis-reg-value"><span t-field="o.issuer_t_number"/></div>
             </div>
         </xpath>
 
-        <!-- ============================================================ -->
-        <!-- 3. ※ reduced-rate marker — subtle inline indicator           -->
-        <!-- ============================================================ -->
+        <!-- Reduced-rate marker -->
         <xpath expr="//td[@name='account_invoice_line_name']/span[@t-field='line.name']" position="after">
             <span t-if="line.is_reduced_tax_rate" class="qis-mark"> ※</span>
         </xpath>
 
-        <!-- ============================================================ -->
-        <!-- 4. Reduced-rate legend — footnote before totals              -->
-        <!-- ============================================================ -->
+        <!-- Reduced-rate legend -->
         <xpath expr="//div[hasclass('overflow-hidden')]" position="before">
             <div t-if="o.tax_base_reduced" class="qis-legend">
                 ※ 軽減税率対象品目 / Items subject to reduced tax rate
             </div>
         </xpath>
 
-        <!-- ============================================================ -->
-        <!-- 5. QIS tax breakdown — right-aligned, after totals           -->
-        <!-- ============================================================ -->
+        <!-- Tax breakdown -->
         <xpath expr="//div[@id='payment_term']" position="before">
-            <div t-if="o.is_qualified_invoice and (o.tax_base_standard or o.tax_base_reduced)" class="clearfix avoid-page-break-inside mb-2">
+            <div t-if="o.is_qualified_invoice and (o.tax_base_standard or o.tax_base_reduced)" class="clearfix avoid-page-break-inside mb-0">
                 <div class="float-end">
                     <table class="qis-breakdown table table-sm table-borderless">
                         <thead>
-                            <tr class="qis-bkdn-title">
-                                <th colspan="3">税額内訳 / Tax Breakdown</th>
-                            </tr>
-                            <tr>
-                                <th>税率 / Rate</th>
-                                <th class="text-end">税抜金額 / Base</th>
-                                <th class="text-end">消費税額 / Tax</th>
-                            </tr>
+                            <tr class="qis-bkdn-title"><th colspan="3">税額内訳 Tax Breakdown</th></tr>
+                            <tr><th>税率</th><th class="text-end">税抜金額</th><th class="text-end">消費税額</th></tr>
                         </thead>
                         <tbody>
                             <tr t-if="o.tax_base_standard">
-                                <td>10%　標準税率</td>
+                                <td>10% 標準</td>
                                 <td class="text-end"><span t-field="o.tax_base_standard"/></td>
                                 <td class="text-end"><span t-field="o.tax_amount_standard"/></td>
                             </tr>
                             <tr t-if="o.tax_base_reduced">
-                                <td>8%　軽減税率 ※</td>
+                                <td>8% 軽減 ※</td>
                                 <td class="text-end"><span t-field="o.tax_base_reduced"/></td>
                                 <td class="text-end"><span t-field="o.tax_amount_reduced"/></td>
                             </tr>
@@ -238,47 +207,29 @@
             </div>
         </xpath>
 
-        <!-- ============================================================ -->
-        <!-- 6. Hide payment_term div (bank details + compliance below)   -->
-        <!-- ============================================================ -->
+        <!-- Remove payment_term -->
         <xpath expr="//div[@id='payment_term']" position="replace"/>
 
-        <!-- ============================================================ -->
-        <!-- 7. Bank transfer details + QIS compliance — single block     -->
-        <!-- ============================================================ -->
+        <!-- Bank details (single row) + Stripe + Compliance — after totals -->
         <xpath expr="//div[@id='total']" position="after">
-            <div t-if="o.partner_bank_id and o.move_type in ('out_invoice', 'out_refund')" class="qis-bank avoid-page-break-inside">
-                <div class="qis-bank-title">お振込先 / Bank Transfer Details</div>
-                <table>
-                    <tr>
-                        <td class="qis-bank-label">金融機関名 / Bank</td>
-                        <td class="qis-bank-value"><span t-field="o.partner_bank_id.bank_id.name"/></td>
-                    </tr>
-                    <tr>
-                        <td class="qis-bank-label">支店名 / Branch</td>
-                        <td class="qis-bank-value"><span t-field="o.partner_bank_id.bank_id.street"/></td>
-                    </tr>
-                    <tr>
-                        <td class="qis-bank-label">預金種類 / Type</td>
-                        <td class="qis-bank-value"><span t-field="o.partner_bank_id.bank_id.street2"/></td>
-                    </tr>
-                    <tr>
-                        <td class="qis-bank-label">口座番号 / Acct No.</td>
-                        <td class="qis-bank-value"><span t-field="o.partner_bank_id.acc_number"/></td>
-                    </tr>
-                    <tr>
-                        <td class="qis-bank-label">口座名義 / Holder</td>
-                        <td class="qis-bank-value"><span t-field="o.partner_bank_id.acc_holder_name"/></td>
-                    </tr>
-                    <tr t-if="o.stripe_payment_link_url">
-                        <td class="qis-bank-label" style="padding-top:3px; border-top:1px solid #dee2e6 !important;">💳 Pay Online</td>
-                        <td class="qis-bank-value" style="padding-top:3px; border-top:1px solid #dee2e6 !important;"><a t-att-href="o.stripe_payment_link_url" style="color:#0d6efd; word-break:break-all;" t-esc="o.stripe_payment_link_url"/></td>
-                    </tr>
-                </table>
+            <div t-if="o.partner_bank_id and o.move_type in ('out_invoice', 'out_refund')" class="qis-bank-row avoid-page-break-inside">
+                <strong>お振込先:</strong>
+                <span t-field="o.partner_bank_id.bank_id.name"/>
+                <span class="sep">|</span>
+                <span t-field="o.partner_bank_id.bank_id.street"/>
+                <span class="sep">|</span>
+                <span t-field="o.partner_bank_id.bank_id.street2"/>
+                <span class="sep">|</span>
+                口座 <span t-field="o.partner_bank_id.acc_number"/>
+                <span class="sep">|</span>
+                <span t-field="o.partner_bank_id.acc_holder_name"/>
+                <t t-if="o.stripe_payment_link_url">
+                    <span class="sep">|</span>
+                    💳 <a t-att-href="o.stripe_payment_link_url" style="color:#0d6efd; font-size:7px;" t-esc="o.stripe_payment_link_url"/>
+                </t>
             </div>
             <div t-if="o.is_qualified_invoice" class="qis-compliance">
-                <p>※ この請求書は、消費税法に基づく適格請求書（インボイス）です。</p>
-                <p>This is a Qualified Invoice under the Japanese Consumption Tax Act.</p>
+                <p>※ 適格請求書（インボイス）消費税法準拠 / Qualified Invoice per JP Consumption Tax Act</p>
             </div>
         </xpath>
 
@@ -288,8 +239,7 @@
     <template id="report_invoice_qis" inherit_id="account.report_invoice">
         <xpath expr="//t[@t-call='account.report_invoice_document']" position="after">
             <t t-if="o._get_name_invoice_report() == 'custom_accounting.report_invoice_qis_document'"
-               t-call="custom_accounting.report_invoice_qis_document"
-               t-lang="lang"/>
+               t-call="custom_accounting.report_invoice_qis_document" t-lang="lang"/>
         </xpath>
     </template>
 

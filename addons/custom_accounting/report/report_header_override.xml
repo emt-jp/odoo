@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="header_override" inherit_id="web.external_layout_standard">
+
+    <xpath expr="//div[hasclass('d-flex','justify-content-between')]" position="replace">
+        <div style="display:none; height:0;"/>
+    </xpath>
+
+    <xpath expr="//div[@name='company_address']" position="replace">
+        <div name="company_address" class="col-12" style="padding:0;">
+            <table style="border:none; border-collapse:collapse; width:100%;">
+                <tr>
+                    <td t-if="company.logo" style="vertical-align:top; padding-right:6px; border:none; width:30px;">
+                        <img t-att-src="image_data_uri(company.logo)" alt="Logo" style="max-height:28px;"/>
+                    </td>
+                    <td style="vertical-align:top; border:none; font-size:8px; line-height:1.2;">
+                        <ul class="list-unstyled" style="margin:0;">
+                            <li t-if="company.is_company_details_empty">
+                                <span t-field="company.partner_id" t-options="{&quot;widget&quot;: &quot;contact&quot;, &quot;fields&quot;: [&quot;address&quot;, &quot;name&quot;], &quot;no_marker&quot;: true}"/>
+                            </li>
+                            <li t-else=""><span t-field="company.company_details"/></li>
+                        </ul>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </xpath>
+
+    </template>
+</odoo>

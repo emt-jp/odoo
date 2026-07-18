@@ -61,6 +61,7 @@ Online Payment Integration:
         'views/account_move_t_number_views.xml',
         'views/payment_views.xml',
         'report/report_invoice_t_number.xml',
+        'report/report_header_override.xml',
         'report/report_receipt_hanko.xml',
     ],
     'external_dependencies': {
