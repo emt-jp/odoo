@@ -3,27 +3,21 @@
     <template id="report_invoice_qis_document" inherit_id="account.report_invoice_document" primary="True">
 
 
+
         <xpath expr="//div[hasclass('invoice_main')]" position="before">
             <style type="text/css">
-                /* ── Ultra-compact layout — maximize product rows ── */
-                .page { font-size: 10px; line-height: 1.25; }
+                /* ── Unified 8px body, 9px header/footer ── */
+                .page { font-size: 8px; line-height: 1.3; }
 
-                /* Company header — smaller */
+                /* Header */
                 .company_address { font-size: 9px !important; line-height: 1.3 !important; }
                 .company_address img { max-height: 40px !important; }
-
-                /* Customer address — top right, compact */
-                .address.row { margin-bottom: 0 !important; }
-                .address .col-6, .address .offset-col-6 {
-                    font-size: 9px !important; line-height: 1.25 !important;
-                }
-                address { margin-bottom: 0 !important; font-size: 9px !important; }
                 .oe_structure { display: none; }
 
-                /* Title bar — compact */
+                /* Title bar */
                 h2 {
-                    font-size: 15px !important; margin: 2px 0 !important;
-                    padding: 4px 8px !important; background: #f5f5f5 !important;
+                    font-size: 14px !important; margin: 2px 0 !important;
+                    padding: 3px 8px !important; background: #f5f5f5 !important;
                     border-left: 3px solid #495057 !important;
                 }
 
@@ -32,36 +26,36 @@
                     padding: 1px 0 1px 6px; margin: 2px 0 1px; }
                 .qis-reg-label { font-size: 6px; color: #6c757d; text-transform: uppercase;
                     letter-spacing: 0.3px; line-height: 1; margin-bottom: 0; }
-                .qis-reg-value { font-size: 9px; font-weight: 600;
+                .qis-reg-value { font-size: 8px; font-weight: 600;
                     font-family: "Courier New", monospace; letter-spacing: 0.6px; }
 
-                /* Informations row — single line */
-                #informations { margin-bottom: 2px !important; padding: 1px 0 !important; font-size: 9px; }
+                /* Informations row */
+                #informations { margin-bottom: 2px !important; padding: 1px 0 !important; font-size: 8px; }
                 #informations .col { padding-bottom: 0 !important; }
                 #informations strong { font-size: 7px; color: #6c757d; text-transform: uppercase; }
 
-                /* ── Line items — maximum space ── */
+                /* Line items */
                 table.o_main_table { margin-bottom: 0 !important; }
                 table.o_main_table thead th {
-                    padding: 2px 4px !important; font-size: 7.5px !important;
+                    padding: 2px 4px !important; font-size: 7px !important;
                     text-transform: uppercase; letter-spacing: 0.2px; color: #495057;
                     border-bottom: 1.5px solid #495057 !important;
                 }
                 table.o_main_table tbody td {
-                    padding: 2px 4px !important; font-size: 9px !important;
-                    line-height: 1.2 !important; vertical-align: top;
+                    padding: 3px 4px !important; font-size: 8px !important;
+                    line-height: 1.3 !important; vertical-align: top;
                 }
 
-                /* Totals — compact */
+                /* Totals */
                 #total { margin-top: 0 !important; }
                 #total table td, #total table th {
-                    padding: 1px 4px !important; font-size: 9px !important;
+                    padding: 2px 4px !important; font-size: 8px !important;
                 }
 
                 /* Tax breakdown */
                 .qis-breakdown { width: auto !important; margin-bottom: 0; }
                 .qis-breakdown thead th {
-                    font-size: 6px; text-transform: uppercase; color: #495057; font-weight: 600;
+                    font-size: 7px; text-transform: uppercase; color: #495057; font-weight: 600;
                     border-top: none !important; border-bottom: 1px solid #495057 !important;
                     padding: 1px 4px; background: none !important; white-space: nowrap;
                 }
@@ -79,11 +73,11 @@
                 .qis-mark { color: #495057; }
                 .qis-legend { font-size: 7px; color: #6c757d; padding: 0; }
 
-                /* ── Bank details — single row ── */
+                /* Bank details — single row */
                 .qis-bank-row {
                     margin-top: 4px; padding: 3px 6px; background: #f8f9fa;
                     border: 1px solid #dee2e6; border-radius: 2px;
-                    font-size: 7.5px; line-height: 1.4; color: #212529;
+                    font-size: 8px; line-height: 1.4; color: #212529;
                 }
                 .qis-bank-row strong { font-weight: 600; }
                 .qis-bank-row .sep { color: #ccc; margin: 0 3px; }
@@ -91,7 +85,7 @@
                 /* Compliance */
                 .qis-compliance {
                     padding-top: 2px; margin-top: 2px;
-                    font-size: 6px; color: #6c757d; line-height: 1.3;
+                    font-size: 7px; color: #6c757d; line-height: 1.3;
                 }
                 .qis-compliance p { margin-bottom: 0; }
 
@@ -233,6 +227,7 @@
             </div>
         </xpath>
 
+    
     
     </template>
 

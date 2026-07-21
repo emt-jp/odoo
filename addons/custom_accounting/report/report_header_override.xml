@@ -7,11 +7,11 @@
     </xpath>
 
     <xpath expr="//div[@name='company_address']" position="replace">
-        <div name="company_address" class="col-12" style="padding:0;">
+        <div name="company_address" class="col-12" style="padding:0; border-bottom: 1.5px solid #dee2e6; padding-bottom: 4px; margin-bottom: 4px;">
             <table style="border:none; border-collapse:collapse; width:100%;">
                 <tr>
-                    <td t-if="company.logo" style="vertical-align:top; padding-right:6px; border:none; width:30px;">
-                        <img t-att-src="image_data_uri(company.logo)" alt="Logo" style="max-height:28px;"/>
+                    <td t-if="company.logo" style="vertical-align:top; padding-right:10px; border:none; width:55px;">
+                        <img t-att-src="image_data_uri(company.logo)" alt="Logo" style="max-height:50px;"/>
                     </td>
                     <td style="vertical-align:top; border:none; font-size:8px; line-height:1.2;">
                         <ul class="list-unstyled" style="margin:0;">

@@ -4,7 +4,7 @@
 
         <xpath expr="//div[@id='total']" position="after">
             <div t-if="o.company_id.invoice_hanko and o.company_id.invoice_hanko_show" style="position: relative; height: 0; overflow: visible; z-index: 5;">
-                <img t-att-src="image_data_uri(o.company_id.invoice_hanko)" alt="Company Seal" t-attf-style="position: absolute; right: 0px; top: -80px;                                    width: #{o.company_id.invoice_hanko_width or 85}px;                                    opacity: 1;                                    pointer-events: none;"/>
+                <img t-att-src="image_data_uri(o.company_id.invoice_hanko)" alt="Company Seal" t-attf-style="position: absolute; right: -15px; top: 5px;                                    width: #{o.company_id.invoice_hanko_width or 80}px;                                    opacity: 1;                                    pointer-events: none;"/>
             </div>
         </xpath>
     
