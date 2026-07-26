@@ -44,7 +44,10 @@ class FleetAnalytics(models.Model):
         ('luxury', 'Luxury'),
         ('suv', 'SUV'),
         ('minivan', 'Minivan'),
+        ('van', 'Van'),
+        ('wagon', 'Wagon'),
         ('convertible', 'Convertible'),
+        ('campervan', 'Campervan'),
     ], string='Rental Category')
     
     # Report Data

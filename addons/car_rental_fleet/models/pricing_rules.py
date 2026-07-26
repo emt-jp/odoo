@@ -49,7 +49,10 @@ class FleetPricingRule(models.Model):
         ('luxury', 'Luxury'),
         ('suv', 'SUV'),
         ('minivan', 'Minivan'),
+        ('van', 'Van'),
+        ('wagon', 'Wagon'),
         ('convertible', 'Convertible'),
+        ('campervan', 'Campervan'),
     ], string='Rental Category')
 
     # Date Range (for seasonal/holiday rates)
