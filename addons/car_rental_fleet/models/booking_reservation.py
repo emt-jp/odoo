@@ -153,6 +153,36 @@ class FleetBooking(models.Model):
         ('cancelled', 'Cancelled'),
     ], string='Commission Status', default='pending')
 
+    # Marketplace payout fields (Stripe Connect) — emt-jp/tdc Phase 1.
+    # Denormalized vendor + the split snapshot taken at checkout. When the
+    # booked vehicle belongs to a third-party vendor with a Connect account,
+    # the charge is a destination charge: platform keeps platform_fee_amount and
+    # transfers vendor_payout_amount to the vendor. House-fleet bookings leave
+    # vendor_id empty and the platform keeps 100% (no transfer).
+    vendor_id = fields.Many2one(
+        'res.partner', string='Vendor', index=True,
+        help='The vendor who owns the booked vehicle (denormalized from '
+             'fleet.vehicle.submitted_by_vendor_id at creation). Empty = house fleet.')
+    commission_rate_applied = fields.Float(
+        'Commission Rate Applied',
+        help='Platform commission rate snapshotted at checkout.')
+    platform_fee_amount = fields.Monetary(
+        'Platform Fee', currency_field='currency_id',
+        help='Platform take for this booking (Stripe application_fee_amount).')
+    vendor_payout_amount = fields.Monetary(
+        'Vendor Payout', currency_field='currency_id',
+        help='Amount transferred to the vendor (total minus platform fee).')
+    stripe_transfer_id = fields.Char(
+        'Stripe Transfer', copy=False,
+        help='Stripe transfer/charge id evidencing the vendor payout.')
+    payout_status = fields.Selection([
+        ('none', 'None (house fleet)'),
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+        ('reversed', 'Reversed'),
+    ], string='Payout Status', default='none',
+        help='Lifecycle of the vendor payout; reversed when the charge is refunded.')
+
     @api.model
     def create(self, vals):
         """Override create to generate booking reference"""

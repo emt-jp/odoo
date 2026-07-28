@@ -138,10 +138,12 @@ class FleetVehicle(models.Model):
         ('approved', 'Approved'),
         ('pending', 'Pending Review'),
         ('rejected', 'Rejected'),
+        ('archived', 'Archived'),
     ], string='Vendor Approval', default='approved',
         help='Vendor-submitted vehicles start as "pending" and only enter the '
              'rentable fleet once an admin approves them. Admin-created vehicles '
-             'default to "approved".')
+             'default to "approved". "archived" removes a listing from search '
+             'without deleting its history.')
     submitted_by_vendor_id = fields.Many2one(
         'res.partner', string='Submitted By Vendor', index=True,
         help='The vendor (supplier) who submitted this vehicle for onboarding.')
@@ -150,6 +152,12 @@ class FleetVehicle(models.Model):
         help='JSON array of uploaded onboarding documents: '
              '[{"type": "registration|insurance|photo", "name": "...", "url": "https://cdn..."}]')
     vendor_rejection_reason = fields.Char('Rejection Reason')
+    # Optional per-vehicle override of the vendor's platform_commission_rate
+    # (emt-jp/tdc Phase 1). 0 / unset = use the vendor default.
+    commission_rate = fields.Float(
+        string='Commission Rate Override',
+        help='Per-vehicle platform commission override (0 = use the vendor '
+             'default from res.partner.platform_commission_rate).')
 
     # Convertible configurations (emt-jp/tdc#36) — a single physical vehicle can
     # be rented as several categories (e.g. minivan -> campervan with a bed set,
