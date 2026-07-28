@@ -37,6 +37,16 @@ class TdcCarReview(models.Model):
         ondelete='set null',
         help='Booking that this review is based on, used to verify ownership',
     )
+    # Marketplace fields (emt-jp/tdc Phase 1): attribute the review to the
+    # vendor so per-vendor ratings can be aggregated, and let the vendor reply.
+    vendor_id = fields.Many2one(
+        'res.partner', string='Vendor', index=True,
+        help='The vendor who owns the reviewed vehicle (for per-vendor rating).',
+    )
+    vendor_reply = fields.Text(
+        string='Vendor Reply',
+        help='Optional public response from the vendor to this review.',
+    )
     rating = fields.Integer(
         string='Rating',
         required=True,

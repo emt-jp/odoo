@@ -56,3 +56,33 @@ class ResPartner(models.Model):
         string='Affiliate Payment Details',
         help='Payment details for affiliate payouts',
     )
+
+    # Marketplace vendor fields (Stripe Connect payouts) — emt-jp/tdc Phase 1.
+    # A vendor is a supplier partner who lists vehicles (see submitted_by_vendor_id
+    # on fleet.vehicle). These fields let the platform take a commission and pay
+    # the vendor their share via a Stripe Connect (Express) account.
+    stripe_connect_account_id = fields.Char(
+        string='Stripe Connect Account',
+        help='The vendor\'s Stripe Connect (Express) account id (acct_...), '
+             'used as the destination for split payouts.',
+        copy=False,
+        groups='base.group_system',
+    )
+    connect_charges_enabled = fields.Boolean(
+        string='Connect Charges Enabled',
+        default=False,
+        help='Synced from Stripe account.updated — the vendor can receive '
+             'destination charges. Gate a vendor\'s listings until this is true.',
+    )
+    connect_payouts_enabled = fields.Boolean(
+        string='Connect Payouts Enabled',
+        default=False,
+        help='Synced from Stripe account.updated — Stripe can pay out to the '
+             'vendor\'s bank.',
+    )
+    platform_commission_rate = fields.Float(
+        string='Platform Commission Rate',
+        default=0.15,
+        help='Platform take on this vendor\'s bookings (0.15 = 15%). '
+             'Overridable per vehicle via commission_rate.',
+    )
