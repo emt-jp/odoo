@@ -164,9 +164,11 @@ class RentalBookingWizard(models.TransientModel):
         if self.pickup_date >= self.return_date:
             raise UserError(_("Pickup date must be before return date."))
         
-        if self.pickup_date < fields.Datetime.now():
+        # Date-part compare (both values are UTC): a pickup earlier today is
+        # still valid; only an earlier calendar day is a real past-date error.
+        if self.pickup_date.date() < fields.Datetime.now().date():
             raise UserError(_("Pickup date cannot be in the past."))
-        
+
         # Create booking
         booking_data = {
             'customer_id': self.customer_id.id,
@@ -208,9 +210,11 @@ class RentalBookingWizard(models.TransientModel):
         if self.pickup_date >= self.return_date:
             raise UserError(_("Pickup date must be before return date."))
         
-        if self.pickup_date < fields.Datetime.now():
+        # Date-part compare (both values are UTC): a pickup earlier today is
+        # still valid; only an earlier calendar day is a real past-date error.
+        if self.pickup_date.date() < fields.Datetime.now().date():
             raise UserError(_("Pickup date cannot be in the past."))
-        
+
         # Create rental
         rental_data = {
             'vehicle_id': self.selected_vehicle_id.id,
