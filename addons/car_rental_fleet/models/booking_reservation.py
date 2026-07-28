@@ -219,11 +219,20 @@ class FleetBooking(models.Model):
     
     @api.constrains('booking_date', 'pickup_date')
     def _check_booking_pickup_date(self):
-        """Validate that pickup date is not before booking date"""
+        """A pickup may be same-day as the booking; only a genuinely earlier
+        calendar day is invalid.
+
+        Both fields are stored in UTC. Comparing the full datetimes rejected
+        same-day and near-term reservations: with a 1-hour minimum lead time a
+        customer in JST (UTC+9) can legitimately book a pickup whose UTC instant
+        is a few hours before ``booking_date`` (now), which is not a real
+        past-date error. Compare on the date part so timezone offset and
+        same-day rentals don't trip a false positive. The strict "pickup cannot
+        be in the past" rule is enforced at confirmation time (action_confirm)."""
         for booking in self:
             if booking.booking_date and booking.pickup_date:
-                if booking.pickup_date < booking.booking_date:
-                    raise ValidationError(_('Pickup date cannot be before booking date.'))
+                if booking.pickup_date.date() < booking.booking_date.date():
+                    raise ValidationError(_('Pickup date cannot be before the booking date.'))
     
     def _is_enterprise_available(self):
         """Check if enterprise features are available"""
