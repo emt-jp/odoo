@@ -3,7 +3,7 @@
 
 {
     'name': 'Car Rental & Fleet Management',
-    'version': '2.7.1',
+    'version': '2.7.2',
     'category': 'Fleet',
     'summary': 'Complete car rental and fleet management solution with portal',
     'description': """

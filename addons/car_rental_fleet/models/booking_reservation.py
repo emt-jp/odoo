@@ -262,9 +262,13 @@ class FleetBooking(models.Model):
         if self.pickup_date >= self.return_date:
             raise UserError(_("Pickup date must be before return date."))
         
-        if self.pickup_date < fields.Datetime.now():
+        # Compare on the date part: a pickup earlier *today* is still valid to
+        # confirm (customers/staff act mid-day), and both values are UTC so a
+        # datetime compare would spuriously reject a later-today JST pickup whose
+        # UTC instant is before now. Only a genuinely earlier calendar day fails.
+        if self.pickup_date.date() < fields.Datetime.now().date():
             raise UserError(_("Pickup date cannot be in the past."))
-        
+
         # Check for available vehicles
         available_vehicles = self._find_available_vehicles()
         if not available_vehicles:
