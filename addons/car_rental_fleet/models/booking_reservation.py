@@ -204,8 +204,14 @@ class FleetBooking(models.Model):
                 duration = (return_dt - pickup).days
                 if duration > 0 and 'rental_category' in v:
                     avg_rate = self._get_average_daily_rate(v['rental_category'])
-                    v['estimated_daily_rate'] = avg_rate
-                    v['estimated_total_amount'] = duration * avg_rate
+                    v.setdefault('estimated_daily_rate', avg_rate)
+                    # Only fall back to the naive average-rate estimate when the
+                    # caller didn't supply a total. The api-adapter sends the
+                    # AUTHORITATIVE total (weekend/holiday dynamic pricing +
+                    # extras + insurance + tax); overwriting it here recorded a
+                    # too-low amount (duration × avg_rate) on every booking.
+                    if not v.get('estimated_total_amount'):
+                        v['estimated_total_amount'] = duration * avg_rate
         records = super().create(vals_list)
         return records[0] if is_single else records
     
