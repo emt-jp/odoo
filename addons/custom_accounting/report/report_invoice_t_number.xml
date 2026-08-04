@@ -206,6 +206,11 @@
 
         <!-- Bank details (single row) + Stripe + Compliance — after totals -->
         <xpath expr="//div[@id='total']" position="after">
+            <!-- Company seal (hanko / 角印), driven by the company's invoice_hanko_* settings.
+                 Kept in the module XML so a redeploy doesn't wipe it (it was previously a DB-only web edit). -->
+            <div t-if="o.company_id.invoice_hanko_show and o.company_id.invoice_hanko" style="text-align:right;margin-top:2px;">
+                <img t-att-src="image_data_uri(o.company_id.invoice_hanko)" t-att-style="'width:%spx;opacity:%s;' % (o.company_id.invoice_hanko_width or 85, (o.company_id.invoice_hanko_opacity or 100)/100.0)"/>
+            </div>
             <div t-if="o.partner_bank_id and o.move_type in ('out_invoice', 'out_refund')" class="qis-bank-row avoid-page-break-inside">
                 <strong>お振込先:</strong>
                 <span t-field="o.partner_bank_id.bank_id.name"/>
