@@ -7,7 +7,7 @@
 
             <div class="page">
                 <!-- Receipt Header -->
-                <div class="row mb-4">
+                <div class="row mb-2">
                     <div class="col-12 text-center">
                         <h1 class="mb-0">領収書</h1>
                         <h3 class="text-muted">Receipt</h3>
@@ -15,7 +15,7 @@
                 </div>
 
                 <!-- Receipt Number and Date -->
-                <div class="row mb-4">
+                <div class="row mb-2">
                     <div class="col-6">
                         <p><strong>領収書番号:</strong> <span t-field="o.name"/></p>
                     </div>
@@ -25,7 +25,7 @@
                 </div>
 
                 <!-- Customer Info -->
-                <div class="row mb-4">
+                <div class="row mb-2">
                     <div class="col-12">
                         <div class="border-bottom border-2 border-dark pb-2 mb-3">
                             <h4 class="mb-0">
@@ -36,7 +36,7 @@
                 </div>
 
                 <!-- Amount Section -->
-                <div class="row mb-5">
+                <div class="row mb-2">
                     <div class="col-12">
                         <div class="border border-2 border-dark p-4 text-center">
                             <p class="mb-2">金額 (Amount)</p>
@@ -48,7 +48,7 @@
                 </div>
 
                 <!-- Payment Details -->
-                <div class="row mb-4">
+                <div class="row mb-2">
                     <div class="col-12">
                         <table class="table table-borderless">
                             <tr>
@@ -76,7 +76,7 @@
                 </div>
 
                 <!-- Tax Breakdown (if qualified invoice) -->
-                <div class="row mb-4" t-if="o.is_qualified_invoice">
+                <div class="row mb-2" t-if="o.is_qualified_invoice">
                     <div class="col-6">
                         <table class="table table-sm table-bordered">
                             <thead class="table-light">
@@ -106,19 +106,19 @@
                 </div>
 
                 <!-- Remarks / 備考 (renders the invoice's notes, e.g. rental driver verification) -->
-                <div class="row mb-4" t-if="o.narration">
+                <div class="row mb-2" t-if="o.narration">
                     <div class="col-12">
                         <table class="table table-borderless mb-0">
                             <tr>
                                 <td width="30%"><strong>備考 (Remarks):</strong></td>
-                                <td><span t-field="o.narration"/></td>
+                                <td><span t-out="(o.narration or '').split('&lt;div')[0]"/></td>
                             </tr>
                         </table>
                     </div>
                 </div>
 
                 <!-- Note -->
-                <div class="row mb-5">
+                <div class="row mb-2">
                     <div class="col-12">
                         <p class="text-muted small">
                             上記金額を正に領収いたしました。
@@ -129,7 +129,7 @@
                 </div>
 
                 <!-- Issuer Info with Hanko -->
-                <div class="row mt-5">
+                <div class="row mt-2">
                     <div class="col-8">
                         <strong>発行者 (Issuer):</strong>
                         <div t-field="o.company_id.partner_id"
@@ -140,9 +140,9 @@
                     </div>
                     <div class="col-4 text-end">
                         <!-- Hanko (Company Seal) -->
-                        <div t-if="o.company_id.hanko_image" class="hanko-container"
+                        <div t-if="o.company_id.invoice_hanko or o.company_id.hanko_image" class="hanko-container"
                              style="display: inline-block; position: relative;">
-                            <img t-att-src="image_data_uri(o.company_id.hanko_image)"
+                            <img t-att-src="image_data_uri(o.company_id.invoice_hanko or o.company_id.hanko_image)"
                                  style="max-width: 100px; max-height: 100px; opacity: 0.9;"
                                  alt="Company Seal"/>
                         </div>
@@ -153,7 +153,7 @@
                 </div>
 
                 <!-- Footer -->
-                <div class="row mt-5">
+                <div class="row mt-2">
                     <div class="col-12 text-center text-muted small">
                         <p>この領収書は、お支払いの証明としてお使いいただけます。</p>
                         <p>This receipt serves as proof of payment.</p>
