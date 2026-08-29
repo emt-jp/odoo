@@ -141,7 +141,7 @@ class HrPayslip(models.Model):
         # Evaluate condition
         if rule.condition_select == 'python':
             try:
-                safe_eval(rule.condition_python, localdict, mode='exec', nocopy=True)
+                safe_eval(rule.condition_python, localdict, mode='exec')
                 if not localdict.get('result', False):
                     return None
             except Exception as e:
@@ -150,7 +150,7 @@ class HrPayslip(models.Model):
         # Calculate amount
         if rule.amount_select == 'code':
             try:
-                safe_eval(rule.amount_python_compute, localdict, mode='exec', nocopy=True)
+                safe_eval(rule.amount_python_compute, localdict, mode='exec')
                 amount = localdict.get('result', 0.0)
             except Exception as e:
                 raise UserError(_('Error in rule amount calculation: %s\n%s') % (rule.name, str(e)))
@@ -167,7 +167,7 @@ class HrPayslip(models.Model):
         quantity = 1.0
         if rule.quantity:
             try:
-                safe_eval(rule.quantity, localdict, mode='exec', nocopy=True)
+                safe_eval(rule.quantity, localdict, mode='exec')
                 quantity = localdict.get('result', 1.0)
             except:
                 quantity = 1.0
