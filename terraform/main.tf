@@ -70,6 +70,29 @@ resource "google_artifact_registry_repository" "odoo" {
   format        = "DOCKER"
   project       = var.project_id
 
+  # Every CI build pushed an image and nothing removed one, so this repo reached
+  # 82.8 GB by 2026-09-06. Keep beats Delete in Artifact Registry, so together these
+  # retain the 20 newest versions AND everything from the last 30 days.
+  #
+  # Verified 2026-09-06 that the deployed odoo image was the newest version (rank 1
+  # of 80), so the keep rule protects the running deployment. Cloud Run pins image
+  # digests, so deleting a live image would break new instance starts.
+  cleanup_policies {
+    id     = "keep-recent-releases"
+    action = "KEEP"
+    most_recent_versions {
+      keep_count = 20
+    }
+  }
+
+  cleanup_policies {
+    id     = "delete-stale-builds"
+    action = "DELETE"
+    condition {
+      older_than = "2592000s" # 30 days
+    }
+  }
+
   depends_on = [google_project_service.services]
 }
 
@@ -176,7 +199,7 @@ resource "google_sql_database_instance" "odoo" {
   depends_on = [google_service_networking_connection.private_vpc_connection]
 
   settings {
-    tier              = "db-custom-2-4096"
+    tier              = "db-custom-1-3840" # was db-custom-2-4096; peak CPU 5.7%, DB is 660MB
     availability_type = "ZONAL"
     disk_size         = 20
     disk_type         = "PD_SSD"
