@@ -3,6 +3,15 @@
 
 terraform {
   required_version = ">= 1.0"
+
+  # Remote state. Migrated off a single local file on 2026-09-06 — that file was the
+  # only copy of the state for this stack, and losing it would have meant re-importing
+  # every resource by hand. Object versioning is enabled on the bucket, so a corrupted
+  # or truncated state can be rolled back to a previous generation.
+  backend "gcs" {
+    bucket = "odoo-erp-prod-tfstate"
+    prefix = "terraform"
+  }
   required_providers {
     google = {
       source  = "hashicorp/google"
