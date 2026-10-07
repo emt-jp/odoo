@@ -214,6 +214,14 @@
             <div t-if="o.partner_bank_id and o.move_type in ('out_invoice', 'out_refund')" class="qis-bank-row avoid-page-break-inside">
                 <strong>お振込先:</strong>
                 <span t-field="o.partner_bank_id.bank_id.name"/>
+                <t t-if="o.partner_bank_id.bank_id.bic">
+                    <span class="sep">|</span>
+                    <!-- A Japanese domestic transfer is keyed on the 4-digit
+                         bank code; an overseas one on the SWIFT/BIC. Both live
+                         in `bic`, so label by shape rather than assuming. -->
+                    <t t-if="o.partner_bank_id.bank_id.bic.isdigit()">銀行コード <span t-esc="o.partner_bank_id.bank_id.bic"/></t>
+                    <t t-else="">SWIFT <span t-esc="o.partner_bank_id.bank_id.bic"/></t>
+                </t>
                 <span class="sep">|</span>
                 <span t-field="o.partner_bank_id.bank_id.street"/>
                 <span class="sep">|</span>
