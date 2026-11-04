@@ -175,6 +175,20 @@ class FleetVehicle(models.Model):
         'Is Convertible', compute='_compute_is_convertible', store=True,
         help='True when this vehicle has one or more alternate configurations.')
 
+    # Which public sites list this car (emt-jp/tdc#390). The fleet is managed
+    # in the TDC admin; 88roads, tabi-rv and prince-campervan read the online
+    # cars switched on for them from the api-adapter's public fleet feed.
+    # tokyodrivingclub.com lists every online rental vehicle and needs no flag.
+    tdc_show_88roads = fields.Boolean(
+        'Show on 88roads.com', default=False,
+        help='List this car on 88roads.com when it is online.')
+    tdc_show_tabi_rv = fields.Boolean(
+        'Show on tabi-rv.com', default=False,
+        help='List this car on tabi-rv.com when it is online.')
+    tdc_show_prince = fields.Boolean(
+        'Show on prince-campervan.com', default=False,
+        help='List this car on prince-campervan.com when it is online.')
+
     @api.depends('convertible_configs')
     def _compute_is_convertible(self):
         for vehicle in self:

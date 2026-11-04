@@ -14,6 +14,14 @@
         <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
+                <!-- Public sites that list this car (emt-jp/tdc#390) -->
+                <page string="Public Sites" name="tdc_public_sites">
+                    <group>
+                        <field name="tdc_show_88roads"/>
+                        <field name="tdc_show_tabi_rv"/>
+                        <field name="tdc_show_prince"/>
+                    </group>
+                </page>
                 <!-- Vehicle Pictures Tab -->
                 <page string="Pictures" name="pictures">
                     <group string="Main Vehicle Pictures">
