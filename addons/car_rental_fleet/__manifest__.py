@@ -3,7 +3,7 @@
 
 {
     'name': 'Car Rental & Fleet Management',
-    'version': '2.7.3',
+    'version': '2.8.0',
     'category': 'Fleet',
     'summary': 'Complete car rental and fleet management solution with portal',
     'description': """
@@ -52,6 +52,7 @@
         'views/vehicle_views.xml',
         'views/insurance_views.xml',
         'views/booking_views.xml',
+        'views/res_partner_views.xml',
         'views/rental_views.xml',
         'views/maintenance_views.xml',
         'views/fuel_gps_views.xml',
