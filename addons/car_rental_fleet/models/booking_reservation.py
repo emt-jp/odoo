@@ -75,6 +75,15 @@ class FleetBooking(models.Model):
         'Paid in Full', default=False,
         help='True when the customer pays the rental plus deposit up front.')
 
+    # Trip details for the rental agreement + eligibility (emt-jp/tdc#382).
+    # Per booking, not per renter: they change with every trip.
+    tdc_japan_entry_date = fields.Date(
+        'Date of Entry to Japan', copy=False,
+        help='A foreign licence with an IDP or JAF translation is only valid '
+             'for one year from this date.')
+    tdc_japan_address = fields.Char(
+        'Address in Japan', copy=False, help='Hotel or other address during the rental.')
+
     # Booking channel — which direct site / OTA this booking came in through.
     # One shared fleet, many channels: availability is single-source (this model)
     # but each booking is attributable to its origin. Set by the api-adapter

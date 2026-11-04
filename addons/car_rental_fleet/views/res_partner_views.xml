@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Renter documents on the contact form (emt-jp/tdc#382). -->
+    <record id="view_partner_form_tdc_renter_documents" model="ir.ui.view">
+        <field name="name">res.partner.form.tdc.renter.documents</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Rental Documents" name="tdc_renter_documents" groups="base.group_user">
+                    <group>
+                        <group string="Passport">
+                            <field name="tdc_passport_number"/>
+                            <field name="tdc_passport_expiry"/>
+                            <field name="tdc_nationality_id"/>
+                        </group>
+                        <group string="Driving Licence">
+                            <field name="tdc_license_issuer"/>
+                            <field name="tdc_license_categories"/>
+                            <field name="tdc_license_first_issued"/>
+                        </group>
+                        <group string="Permit for Japan">
+                            <field name="tdc_permit_type"/>
+                            <field name="tdc_permit_number" invisible="tdc_permit_type in (False, 'none', 'japanese')"/>
+                            <field name="tdc_permit_issued" invisible="tdc_permit_type in (False, 'none', 'japanese')"/>
+                            <field name="tdc_permit_expiry" invisible="tdc_permit_type in (False, 'none', 'japanese')"/>
+                        </group>
+                        <group string="Checked">
+                            <field name="tdc_documents_verified_by"/>
+                            <field name="tdc_documents_verified_at"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

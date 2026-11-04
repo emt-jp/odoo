@@ -200,6 +200,12 @@
 
                     <!-- Notes in Tabs -->
                     <notebook>
+                        <page string="Trip" name="trip">
+                            <group>
+                                <field name="tdc_japan_entry_date"/>
+                                <field name="tdc_japan_address"/>
+                            </group>
+                        </page>
                         <page string="Notes" name="notes">
                             <group>
                                 <field name="customer_notes" placeholder="Customer notes..."/>
