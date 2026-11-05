@@ -17,6 +17,7 @@
                 <!-- Public sites that list this car (emt-jp/tdc#390) -->
                 <page string="Public Sites" name="tdc_public_sites">
                     <group>
+                        <field name="is_rental_vehicle"/>
                         <field name="tdc_show_88roads"/>
                         <field name="tdc_show_tabi_rv"/>
                         <field name="tdc_show_prince"/>
