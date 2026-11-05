@@ -25,7 +25,11 @@ class FleetVehicle(models.Model):
     # Note: vehicle_type is inherited as a related field from model_id.vehicle_type
 
     # Rental Specific Fields
-    is_rental_vehicle = fields.Boolean('Rental Vehicle', default=True)
+    # Off by default: the fleet also holds personal and for-sale cars, and an
+    # online rental vehicle appears on tokyodrivingclub.com at once (emt-jp/tdc#395).
+    is_rental_vehicle = fields.Boolean(
+        'Rental Vehicle', default=False,
+        help='Offer this car for rent. An online rental car with a daily rate is listed on tokyodrivingclub.com.')
     rental_category = fields.Selection([
         ('economy', 'Economy'),
         ('compact', 'Compact'),
