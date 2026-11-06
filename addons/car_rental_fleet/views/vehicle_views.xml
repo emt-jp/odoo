@@ -22,6 +22,16 @@
                         <field name="tdc_show_tabi_rv"/>
                         <field name="tdc_show_prince"/>
                     </group>
+                    <group string="Hide from a site (overrides everything above and the automatic rules)">
+                        <field name="tdc_hide_88roads"/>
+                        <field name="tdc_hide_tabi_rv"/>
+                        <field name="tdc_hide_prince"/>
+                    </group>
+                    <div class="text-muted">
+                        A car online and for rent appears on a site when the site lists it automatically
+                        (prince-campervan.com: every campervan; 88roads.com and tabi-rv.com: every car) or
+                        "Show on" is ticked, unless "Hide from" is ticked. Hiding always wins.
+                    </div>
                 </page>
                 <!-- Vehicle Pictures Tab -->
                 <page string="Pictures" name="pictures">
