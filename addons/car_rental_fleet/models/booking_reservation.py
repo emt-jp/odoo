@@ -9,6 +9,15 @@ from dateutil.relativedelta import relativedelta
 
 _logger = logging.getLogger(__name__)
 
+# States in which a booking no longer holds its car. Everything else holds it,
+# including draft: web bookings are pay-at-pickup drafts and are real
+# reservations. Same rule as the api-adapter availability checks
+# (api-adapter/src/utils/availability.ts) and the OTA/email importers here.
+INACTIVE_BOOKING_STATES = ('cancelled', 'expired')
+
+# Fields that decide whether two bookings clash.
+OVERLAP_FIELDS = ('assigned_vehicle_id', 'pickup_date', 'return_date')
+
 
 class FleetBooking(models.Model):
     _name = 'fleet.booking'
@@ -97,6 +106,25 @@ class FleetBooking(models.Model):
         ('direct', 'Direct / Walk-in'),
     ], string='Booking Channel', default='direct', index=True,
         help='Which direct channel this booking originated from. The fleet is shared across all channels.')
+
+    # Date blocks (emt-jp/tdc): staff hold a rental car for a date range
+    # (owner's personal use, a maintenance window) without taking the whole car
+    # offline. A block is a booking row so every availability check, here and
+    # in the api-adapter, already counts it. It has no customer of its own: the
+    # company partner stands in for the required customer_id, and it is left
+    # out of revenue, invoices, reminders, review mail and customer lists.
+    booking_kind = fields.Selection([
+        ('rental', 'Rental'),
+        ('block', 'Date Block'),
+    ], string='Kind', default='rental', required=True, index=True,
+        help='Rental = a customer booking. Date Block = staff hold the car for '
+             'these dates; no channel can book it, and no customer or invoice is involved.')
+    block_reason = fields.Selection([
+        ('personal', 'Personal use'),
+        ('maintenance', 'Maintenance'),
+        ('other', 'Other'),
+    ], string='Block Reason',
+        help='Why the car is held. Only used on date blocks.')
 
     # Booking Status
     state = fields.Selection([
@@ -192,12 +220,51 @@ class FleetBooking(models.Model):
     ], string='Payout Status', default='none',
         help='Lifecycle of the vendor payout; reversed when the charge is refunded.')
 
+    def _block_defaults(self):
+        """Values a date block needs for the fields that are required on every
+        booking but mean nothing for a block. Not a customer: the company."""
+        return {
+            'customer_id': self.env.company.partner_id.id,
+            'contact_phone': '-',
+            'pickup_location': '-',
+            'return_location': '-',
+            'state': 'confirmed',
+            'source': 'direct',
+        }
+
+    def _apply_block_defaults(self, vals, only=None):
+        """Fill a block's placeholder fields in ``vals`` where unset. A block
+        is never a draft: the field default is 'draft', so it is replaced."""
+        for key, value in self._block_defaults().items():
+            if only is not None and key not in only:
+                continue
+            if not vals.get(key) or (key == 'state' and vals[key] == 'draft'):
+                vals[key] = value
+
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        # Lets staff create a block from the Date Blocks form, where these
+        # required fields are hidden.
+        if res.get('booking_kind') == 'block':
+            self._apply_block_defaults(res, only=fields_list)
+        return res
+
     @api.model
     def create(self, vals):
         """Override create to generate booking reference"""
         is_single = isinstance(vals, dict)
         vals_list = [vals] if is_single else list(vals)
         for v in vals_list:
+            if v.get('booking_kind') == 'block':
+                self._apply_block_defaults(v)
+                if v.get('name', _('New')) == _('New'):
+                    v['name'] = f"BLK-{fields.Datetime.now().strftime('%Y%m%d%H%M%S')}"
+                # A block carries no money and belongs to no vendor payout.
+                v['estimated_total_amount'] = 0
+                v['estimated_daily_rate'] = 0
+                v['vendor_id'] = False
+                continue
             if v.get('name', _('New')) == _('New'):
                 # Avoid relying on ir.sequence in tests; generate deterministic reference
                 v['name'] = f"FBK-{fields.Datetime.now().strftime('%Y%m%d%H%M%S')}"
@@ -222,8 +289,82 @@ class FleetBooking(models.Model):
                     if not v.get('estimated_total_amount'):
                         v['estimated_total_amount'] = duration * avg_rate
         records = super().create(vals_list)
+        records._check_vehicle_overlap()
         return records[0] if is_single else records
-    
+
+    def write(self, vals):
+        # The overlap guard runs only on bookings this write actually moves:
+        # a new car or new dates, or a cancelled/expired booking brought back.
+        # Re-checking every write would refuse unrelated edits (a payment
+        # webhook marking a booking paid, a note) on rows that already overlap
+        # in history, e.g. #42/#52 on vehicle #33.
+        before = {}
+        if set(OVERLAP_FIELDS) & vals.keys() or 'state' in vals:
+            before = {b.id: b._overlap_key() for b in self}
+        res = super().write(vals)
+        if before:
+            moved = self.filtered(lambda b: b._overlap_key() != before.get(b.id))
+            moved._check_vehicle_overlap()
+        return res
+
+    def _overlap_key(self):
+        """What decides whether this booking holds its car, and where."""
+        self.ensure_one()
+        return (
+            self.assigned_vehicle_id.id,
+            self.pickup_date,
+            self.return_date,
+            self.state not in INACTIVE_BOOKING_STATES,
+        )
+
+    def _check_vehicle_overlap(self):
+        """Refuse an active booking or block that overlaps another active one
+        on the same car.
+
+        Plain interval overlap, no cleaning buffer: the turnaround buffer is a
+        booking-channel policy enforced by the api-adapter, while this is the
+        last-line guard against two parties holding one car at once. Back to
+        back (one returns at the instant the next picks up) is allowed.
+        """
+        candidates = self.filtered(
+            lambda b: b.assigned_vehicle_id and b.pickup_date and b.return_date
+            and b.state not in INACTIVE_BOOKING_STATES)
+        if not candidates:
+            return
+        # Serialise bookings of the same car. Touching the vehicle row makes a
+        # second transaction booking the same car concurrently fail with a
+        # serialisation error, which Odoo retries; the retry then sees the
+        # first booking and is refused here. Without it, two simultaneous
+        # requests could each pass the search below.
+        self.env.cr.execute(
+            'UPDATE fleet_vehicle SET write_date = write_date WHERE id IN %s',
+            [tuple(candidates.assigned_vehicle_id.ids)])
+        for booking in candidates:
+            # sudo: a clash the current user can't read is still a clash.
+            clash = self.sudo().search([
+                ('id', 'not in', candidates.ids),
+                ('assigned_vehicle_id', '=', booking.assigned_vehicle_id.id),
+                ('state', 'not in', INACTIVE_BOOKING_STATES),
+                ('pickup_date', '<', booking.return_date),
+                ('return_date', '>', booking.pickup_date),
+            ], limit=1)
+            if not clash:
+                # Also two records of this same create/write against each other.
+                clash = (candidates - booking).filtered(
+                    lambda o: o.assigned_vehicle_id == booking.assigned_vehicle_id
+                    and o.pickup_date < booking.return_date
+                    and o.return_date > booking.pickup_date)[:1]
+            if clash:
+                raise ValidationError(_(
+                    '%(car)s is already held from %(start)s to %(end)s by %(ref)s (%(kind)s). '
+                    'Two active bookings or blocks cannot overlap on the same car.',
+                    car=booking.assigned_vehicle_id.display_name,
+                    start=fields.Datetime.context_timestamp(self, clash.pickup_date).strftime('%Y-%m-%d %H:%M'),
+                    end=fields.Datetime.context_timestamp(self, clash.return_date).strftime('%Y-%m-%d %H:%M'),
+                    ref=clash.name,
+                    kind=dict(self._fields['booking_kind'].selection).get(clash.booking_kind),
+                ))
+
     @api.constrains('pickup_date', 'return_date')
     def _check_booking_dates(self):
         """Validate that return date is after pickup date"""
@@ -335,9 +476,10 @@ class FleetBooking(models.Model):
             self.rental_id.action_cancel_rental()
         
         self.write({'state': 'cancelled'})
-        
-        # Send cancellation email
-        self._send_booking_cancellation()
+
+        # Send cancellation email. A date block has no customer to tell.
+        if self.booking_kind != 'block':
+            self._send_booking_cancellation()
         
         return True
     
@@ -471,6 +613,7 @@ class FleetBooking(models.Model):
             end_date = fields.Date.today()
         
         bookings = self.search([
+            ('booking_kind', '=', 'rental'),
             ('booking_date', '>=', start_date),
             ('booking_date', '<=', end_date),
         ])
@@ -497,6 +640,7 @@ class FleetBooking(models.Model):
             return []
         
         bookings = self.search([
+            ('booking_kind', '=', 'rental'),
             ('state', 'in', ['confirmed', 'assigned']),
         ])
         
@@ -517,6 +661,7 @@ class FleetBooking(models.Model):
         start_date = end_date - timedelta(days=days)
         
         bookings = self.search([
+            ('booking_kind', '=', 'rental'),
             ('booking_date', '>=', start_date),
             ('booking_date', '<=', end_date),
         ])
@@ -544,6 +689,7 @@ class FleetBooking(models.Model):
         expiry_date = fields.Datetime.now() - timedelta(hours=24)
         
         old_bookings = self.search([
+            ('booking_kind', '=', 'rental'),
             ('state', '=', 'draft'),
             ('booking_date', '<', expiry_date),
         ])
@@ -560,6 +706,7 @@ class FleetBooking(models.Model):
         
         # Send pickup reminders for confirmed bookings
         pickup_reminders = self.search([
+            ('booking_kind', '=', 'rental'),
             ('state', 'in', ['confirmed', 'assigned']),
             ('pickup_date', '<=', fields.Datetime.now() + timedelta(hours=24)),
             ('pickup_date', '>', fields.Datetime.now()),

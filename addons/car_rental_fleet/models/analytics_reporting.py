@@ -120,7 +120,7 @@ class FleetAnalytics(models.Model):
             record.expired_documents_count = len(documents.filtered(lambda d: d.is_expired))
 
             # Booking metrics
-            bookings = self.env['fleet.booking'].search([('state', 'in', ['draft', 'confirmed'])])
+            bookings = self.env['fleet.booking'].search([('booking_kind', '=', 'rental'), ('state', 'in', ['draft', 'confirmed'])])
             record.pending_bookings_count = len(bookings.filtered(lambda b: b.state == 'draft'))
             record.confirmed_bookings_count = len(bookings.filtered(lambda b: b.state == 'confirmed'))
 
