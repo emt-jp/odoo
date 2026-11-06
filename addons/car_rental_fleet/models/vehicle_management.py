@@ -193,6 +193,24 @@ class FleetVehicle(models.Model):
         'Show on prince-campervan.com', default=False,
         help='List this car on prince-campervan.com when it is online.')
 
+    # Per-site exclusions (emt-jp/tdc#406). The listing rule, applied by the
+    # api-adapter's public fleet feed, is: online rental car AND (site rule
+    # matches OR the show switch is on) AND the hide switch is off. Site rules:
+    # prince-campervan.com lists every campervan; 88roads.com and tabi-rv.com
+    # list every online car. Hide always wins.
+    tdc_hide_88roads = fields.Boolean(
+        'Hide from 88roads.com', default=False,
+        help='Never list this car on 88roads.com. 88roads.com otherwise lists every '
+             'online rental car; hiding wins over "Show on 88roads.com".')
+    tdc_hide_tabi_rv = fields.Boolean(
+        'Hide from tabi-rv.com', default=False,
+        help='Never list this car on tabi-rv.com. tabi-rv.com otherwise lists every '
+             'online rental car; hiding wins over "Show on tabi-rv.com".')
+    tdc_hide_prince = fields.Boolean(
+        'Hide from prince-campervan.com', default=False,
+        help='Never list this car on prince-campervan.com. prince-campervan.com otherwise '
+             'lists every online campervan, plus cars switched on by hand; hiding wins over both.')
+
     @api.depends('convertible_configs')
     def _compute_is_convertible(self):
         for vehicle in self:
