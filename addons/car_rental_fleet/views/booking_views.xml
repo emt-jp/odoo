@@ -93,6 +93,7 @@
                 <field name="estimated_total_amount" widget="monetary" optional="show"/>
                 <field name="contact_phone" optional="hide"/>
                 <field name="contact_email" optional="hide"/>
+                <field name="booking_kind" optional="hide"/>
             </list>
         </field>
     </record>
@@ -129,6 +130,11 @@
                     <div class="oe_title">
                         <h1><field name="name" placeholder="Booking Reference"/></h1>
                     </div>
+                    <div class="alert alert-warning" role="alert" invisible="booking_kind != 'block'">
+                        This is a date block, not a rental: no channel can book the car for these dates.
+                        Edit it from Bookings &gt; Date Blocks.
+                    </div>
+                    <field name="booking_kind" invisible="1"/>
 
                     <!-- Booking Details -->
                     <group string="📅 Booking Information">
@@ -236,10 +242,14 @@
                 <filter string="Assigned" name="assigned" domain="[('state', '=', 'assigned')]"/>
                 <filter string="Cancelled" name="cancelled" domain="[('state', '=', 'cancelled')]"/>
                 <separator/>
+                <filter string="Rentals" name="rentals" domain="[('booking_kind', '=', 'rental')]"/>
+                <filter string="Date Blocks" name="blocks" domain="[('booking_kind', '=', 'block')]"/>
+                <separator/>
                 <group>
                     <filter string="Status" name="group_status" context="{'group_by': 'state'}"/>
                     <filter string="Vehicle Type" name="group_vehicle_type" context="{'group_by': 'vehicle_type'}"/>
                     <filter string="Customer" name="group_customer" context="{'group_by': 'customer_id'}"/>
+                    <filter string="Kind" name="group_kind" context="{'group_by': 'booking_kind'}"/>
                 </group>
             </search>
         </field>
@@ -250,13 +260,95 @@
         <field name="name">Bookings</field>
         <field name="res_model">fleet.booking</field>
         <field name="view_mode">kanban,calendar,list,form</field>
-        <field name="context">{'search_default_draft': 1}</field>
+        <field name="context">{'search_default_draft': 1, 'search_default_rentals': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Create your first booking!
             </p>
             <p>
                 Manage customer bookings and reservations for your fleet.
+            </p>
+        </field>
+    </record>
+
+    <!-- ==================== DATE BLOCKS ==================== -->
+    <!-- A date block is a fleet.booking with booking_kind = 'block': staff hold
+         a car for a date range (personal use, maintenance) so no channel can
+         book it, without taking the car offline. Customer, phone and location
+         are filled by the model; staff only pick the car, dates and reason. -->
+    <record id="view_fleet_booking_block_list" model="ir.ui.view">
+        <field name="name">fleet.booking.block.list</field>
+        <field name="model">fleet.booking</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <list string="Date Blocks" decoration-muted="state in ('cancelled', 'expired')">
+                <field name="assigned_vehicle_id"/>
+                <field name="pickup_date" string="From"/>
+                <field name="return_date" string="Until"/>
+                <field name="block_reason"/>
+                <field name="internal_notes" optional="show"/>
+                <field name="state" widget="badge" decoration-danger="state == 'cancelled'"/>
+                <field name="name" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_fleet_booking_block_form" model="ir.ui.view">
+        <field name="name">fleet.booking.block.form</field>
+        <field name="model">fleet.booking</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <form string="Date Block">
+                <header>
+                    <button name="action_cancel_booking" string="Remove Block" type="object"
+                            icon="fa-times" invisible="not id or state in ('cancelled', 'expired')"
+                            confirm="Remove this block? The car becomes bookable for these dates again."/>
+                    <field name="state" widget="statusbar" statusbar_visible="confirmed,cancelled"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="assigned_vehicle_id" required="1" options="{'no_create': True}"/>
+                            <field name="block_reason" required="1"/>
+                        </group>
+                        <group>
+                            <field name="pickup_date" string="From"/>
+                            <field name="return_date" string="Until"/>
+                        </group>
+                    </group>
+                    <field name="internal_notes" placeholder="Note for staff (optional)"/>
+                    <!-- Required on every booking; the model fills them for a block. -->
+                    <field name="booking_kind" invisible="1"/>
+                    <field name="customer_id" invisible="1"/>
+                    <field name="contact_phone" invisible="1"/>
+                    <field name="pickup_location" invisible="1"/>
+                    <field name="return_location" invisible="1"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_fleet_booking_block" model="ir.actions.act_window">
+        <field name="name">Date Blocks</field>
+        <field name="res_model">fleet.booking</field>
+        <field name="view_mode">list,calendar,form</field>
+        <field name="domain">[('booking_kind', '=', 'block')]</field>
+        <field name="context">{'default_booking_kind': 'block', 'default_block_reason': 'personal'}</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_fleet_booking_block_list')}),
+            (0, 0, {'view_mode': 'calendar', 'view_id': ref('view_fleet_booking_calendar')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_fleet_booking_block_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Block a car for a date range
+            </p>
+            <p>
+                Hold a rental car for personal use or maintenance. No booking channel
+                can book it for those dates, and the car stays online for every other day.
             </p>
         </field>
     </record>
@@ -356,6 +448,7 @@
     <!-- Menu Items -->
     <menuitem id="menu_fleet_booking_root" name="Bookings" parent="menu_car_rental_operations" sequence="10"/>
     <menuitem id="menu_fleet_booking" name="Bookings" parent="menu_fleet_booking_root" action="action_fleet_booking" sequence="10"/>
+    <menuitem id="menu_fleet_booking_block" name="Date Blocks" parent="menu_fleet_booking_root" action="action_fleet_booking_block" sequence="15"/>
     <menuitem id="menu_fleet_driver" name="Drivers" parent="menu_fleet_booking_root" action="action_fleet_driver" sequence="20"/>
 
 </odoo>

@@ -16,7 +16,7 @@ class FleetPortal(CustomerPortal):
 
         if 'booking_count' in counters:
             values['booking_count'] = request.env['fleet.booking'].search_count([
-                ('customer_id', '=', partner.id)
+                ('customer_id', '=', partner.id), ('booking_kind', '=', 'rental')
             ]) if request.env['fleet.booking'].check_access_rights('read', raise_exception=False) else 0
 
         if 'rental_count' in counters:
@@ -31,7 +31,7 @@ class FleetPortal(CustomerPortal):
         partner = request.env.user.partner_id
 
         values['booking_count'] = request.env['fleet.booking'].search_count([
-            ('customer_id', '=', partner.id)
+            ('customer_id', '=', partner.id), ('booking_kind', '=', 'rental')
         ])
         values['rental_count'] = request.env['fleet.rental'].search_count([
             ('customer_id', '=', partner.id)
@@ -47,7 +47,7 @@ class FleetPortal(CustomerPortal):
         partner = request.env.user.partner_id
         FleetBooking = request.env['fleet.booking']
 
-        domain = [('customer_id', '=', partner.id)]
+        domain = [('customer_id', '=', partner.id), ('booking_kind', '=', 'rental')]
 
         searchbar_sortings = {
             'date': {'label': _('Booking Date'), 'order': 'booking_date desc'},
